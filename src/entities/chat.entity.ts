@@ -1,0 +1,81 @@
+import {
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { sessionEntity } from './session.entity';
+import { createUUID } from 'src/commom/utils/base';
+import {
+  chatType,
+  msgType,
+  msgStatus,
+} from 'src/commom/constants/base-enum.const';
+
+@Entity('chat')
+export class chatEntity {
+  @PrimaryGeneratedColumn({ comment: '聊天自增id' })
+  id: number; // 标记为主列，值自动生成
+
+  @Column({ length: 36, comment: '客户端消息id' })
+  clientMsg_id: string;
+
+  @Index()
+  @Column({ length: 36, comment: '关联生成的会话id' })
+  session_id: string;
+
+  @Column({ type: 'int', comment: '发送方id' })
+  send_uid: number;
+
+  @Column({ length: 48, default: null, comment: '发送方ip' })
+  send_ip: string;
+
+  @Column({ type: 'text', charset: 'utf8mb4', comment: '消息内容' })
+  msgdata: string;
+
+  @Column({ length: 96, default: null, comment: '消息密钥' })
+  msg_secret: string;
+
+  @Column({
+    type: 'enum',
+    enum: chatType,
+    comment: '会话类型',
+  })
+  chat_type: string;
+
+  @Column({
+    type: 'enum',
+    enum: msgType,
+    comment: '消息类型',
+  })
+  msg_type: string;
+
+  @Column({
+    type: 'enum',
+    enum: msgStatus,
+    default: 'unread',
+    comment: '消息状态',
+  })
+  msg_status: string;
+
+  @ManyToOne(() => sessionEntity, (session) => session.msgs, {
+    createForeignKeyConstraints: false, // 取消联合主键约束
+  })
+  session: sessionEntity;
+
+  @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
+  create_time: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
+  update_time: Date;
+
+  @BeforeInsert()
+  addClientMsgId() {
+    // 生成客户端消息id
+    this.clientMsg_id = createUUID();
+  }
+}

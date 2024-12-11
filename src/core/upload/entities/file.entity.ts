@@ -1,0 +1,43 @@
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import {
+  msgType as fileType,
+  fileUseType,
+} from 'src/commom/constants/base-enum.const';
+
+@Entity('file')
+export class fileEntity {
+  @PrimaryGeneratedColumn({ comment: '文件自增id' })
+  id: number;
+
+  @Column({ length: 96, comment: '文件名' })
+  file_name: string;
+
+  @Column({ type: 'int', comment: '文件大小' })
+  file_size: number;
+
+  @Column({
+    type: 'enum',
+    enum: fileType,
+    comment: '文件类型',
+  })
+  file_type: string;
+
+  @Column({
+    type: 'enum',
+    enum: fileUseType,
+    comment: '使用类型',
+    default: 'unknown',
+  })
+  use_type: string;
+
+  @Column({ type: 'int', comment: '上传者id' })
+  upload_uid: number;
+
+  @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
+  create_time: Date;
+}
