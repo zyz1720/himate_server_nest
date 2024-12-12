@@ -2,7 +2,7 @@
 
 ### 简介
 
-**[Hiamte](https://gitee.com/zyz1720/himate_rn_app)**聊天应用的Nestjs后端服务
+[Hiamte](https://gitee.com/zyz1720/himate_rn_app)聊天应用的Nestjs后端服务
 
 如何使用Nestjs：https://nestjs.com/
 
