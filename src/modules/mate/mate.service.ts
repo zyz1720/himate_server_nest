@@ -103,7 +103,6 @@ export class MateService {
         );
       }),
     ).andWhere('mate.mate_status = :status', { status: mate_status });
-    qb.cache(true);
     qb.limit(pageSize);
     qb.offset(pageSize * (pageNum - 1));
     qb.orderBy('mate.create_time');

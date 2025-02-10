@@ -80,7 +80,6 @@ export class UserService {
       const enPassword = encryptPassword(password);
       qb.andWhere('user.password = :enPassword', { enPassword });
     }
-    qb.cache(true);
     const data = await qb.getOne();
     return data;
   }

@@ -297,7 +297,6 @@ export class MusicService {
     if (isFindMusic == true) {
       qb.leftJoinAndSelect('favorites.music', 'music');
     }
-    qb.cache(true);
     const data = await qb.getOne();
     return data;
   }

@@ -14,6 +14,17 @@ export class BooleanFromStringPipe implements PipeTransform {
       }
       throw new BadRequestException('Invalid value for boolean conversion');
     }
+    if ('isFindMusic' in value) {
+      const { isFindMusic } = value;
+      if (
+        typeof isFindMusic === 'string' &&
+        (isFindMusic === 'true' || isFindMusic === 'false')
+      ) {
+        value.isFindMusic = isFindMusic === 'true';
+        return value;
+      }
+      throw new BadRequestException('Invalid value for boolean conversion');
+    }
     return value;
   }
 }

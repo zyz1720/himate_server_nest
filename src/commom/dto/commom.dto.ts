@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsEmail } from 'class-validator';
 
 // 分页查询参数
 export class FindAllDto {
@@ -38,4 +38,12 @@ export class IdsDto {
     required: true,
   })
   readonly ids: number[];
+}
+
+// 邮箱号查询参数
+export class AccountDto {
+  @ApiProperty({ description: '邮箱号', required: true })
+  @IsNotEmpty({ message: '邮箱不能为空' })
+  @IsEmail({}, { message: '邮箱格式不正确' })
+  readonly account: string;
 }

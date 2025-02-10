@@ -65,7 +65,7 @@ export class FavoritesController {
 
   @ApiOperation({ summary: '收藏夹详情' })
   @Get('detail')
-  async findOne(@Query() query: FindOneFavoritesDto) {
+  async findOne(@Query(BooleanFromStringPipe) query: FindOneFavoritesDto) {
     return this.musicService.findOneFavorites(query);
   }
 
