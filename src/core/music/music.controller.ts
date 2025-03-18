@@ -10,7 +10,11 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MusicService } from './music.service';
 import { IdsDto } from 'src/commom/dto/commom.dto';
-import { FindAllFavoritesDto, FindAllMusicDto } from './dto/findall-music.dto';
+import {
+  FindAllFavoritesDto,
+  FindAllMusicDto,
+  FindMusicMoreDto,
+} from './dto/findall-music.dto';
 import { AddMusicFavoritesDto } from './dto/add-music.dto';
 import {
   EditFavoritesDto,
@@ -85,5 +89,30 @@ export class FavoritesController {
   @Delete('del')
   async remove(@Query() query: IdsDto) {
     return this.musicService.deleteFavorites(query);
+  }
+}
+
+@ApiTags('第三方音乐')
+@ApiBearerAuth()
+@Controller('musicMore')
+export class musicMoreController {
+  constructor(private readonly musicService: MusicService) {}
+
+  @ApiOperation({ summary: '查找音乐' })
+  @Get('list')
+  async findMore(@Query() query: FindMusicMoreDto) {
+    return this.musicService.findMusicMoreList(query);
+  }
+
+  @ApiOperation({ summary: '查找歌词' })
+  @Get('lyric')
+  async findLyric(@Query('id') id: number) {
+    return this.musicService.findMusicLyric(id);
+  }
+
+  @ApiOperation({ summary: '匹配音乐信息' })
+  @Get('match')
+  async matchInfo(@Query('num') num: number) {
+    return this.musicService.matchMusicInfo(num);
   }
 }

@@ -78,3 +78,23 @@ export class FindAllFavoritesDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '是否是默认收藏夹', enum: numStatus })
   readonly is_default?: string;
 }
+
+export class FindMusicMoreDto {
+  @ApiProperty({
+    description: '歌曲名称',
+    required: true,
+  })
+  readonly word: string;
+
+  @ApiPropertyOptional({
+    description: '页数',
+    default: 1,
+  })
+  readonly page?: number;
+
+  @ApiPropertyOptional({
+    description: '每页显示数量',
+    default: 10,
+  })
+  readonly num?: number;
+}

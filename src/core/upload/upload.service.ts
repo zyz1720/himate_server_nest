@@ -198,4 +198,36 @@ export class UploadService {
       return ResultMsg.fail('哈希值生成失败');
     }
   }
+
+  /* 删除重复文件 */
+  async deleteRepeatFile() {
+    // 查找重复记录的 ID
+    const duplicates = await this.fileRepository
+      .createQueryBuilder('file')
+      .select('file.id', 'id')
+      .where((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('file_name')
+          .from(fileEntity, 'f')
+          .groupBy('file_name')
+          .having('COUNT(f.id) > 1')
+          .getQuery();
+        return 'file.file_name IN ' + subQuery;
+      })
+      .andWhere(
+        'file.id NOT IN (SELECT MIN(f.id) FROM file f GROUP BY f.file_name)',
+      )
+      .getRawMany();
+
+    // 删除重复记录
+    const duplicateIds = duplicates.map((record) => record.id);
+    if (duplicateIds.length) {
+      await this.fileRepository.delete(duplicateIds);
+    }
+    return ResultMsg.ok(
+      `共${duplicateIds.length}个重复文件，成功删除`,
+      duplicateIds,
+    );
+  }
 }

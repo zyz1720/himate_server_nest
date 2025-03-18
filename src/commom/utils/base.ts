@@ -1,10 +1,11 @@
-import { createHash } from 'crypto';
+import { BinaryLike, createHash } from 'crypto';
 import { ResultMsg } from './result';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseConst } from '../constants/base.const';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import axios from 'axios';
 
 /* 处理过滤器消息提示 */
 export const getFilterMsg = (data: any | string | Array<any>) => {
@@ -144,7 +145,7 @@ export const generateFileHash = (
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash(algorithm);
     const stream = fs.createReadStream(filePath);
-    stream.on('data', (data) => hash.update(data));
+    stream.on('data', (data) => hash.update(data as BinaryLike));
     stream.on('end', () => resolve(hash.digest('hex')));
     stream.on('error', (error) => {
       console.log(error);
@@ -152,3 +153,44 @@ export const generateFileHash = (
     });
   });
 };
+
+/* 下载文件到指定目录 */
+export const downloadFile = async (
+  url: string,
+  outputPath = BaseConst.uploadDir,
+): Promise<string> => {
+  try {
+    // 创建目录（如果不存在）
+    const dir = path.dirname(outputPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    // 下载文件
+    const response = await axios({
+      method: 'GET',
+      url: url,
+      responseType: 'stream', // 以流的形式接收数据
+    });
+
+    // 文件保存路径
+    const fileName = url.split('/').pop();
+    const filePath = path.join(outputPath, fileName);
+
+    // 将文件写入指定目录
+    const writer = fs.createWriteStream(filePath);
+
+    response.data.pipe(writer);
+
+    return new Promise((resolve, reject) => {
+      writer.on('finish', () => resolve(fileName));
+      writer.on('error', reject);
+    });
+  } catch (error) {
+    throw new Error(`文件下载失败: ${error.message}`);
+  }
+};
+
+/* 延迟x毫秒 */
+export const delay = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

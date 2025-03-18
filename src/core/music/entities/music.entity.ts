@@ -5,8 +5,11 @@ import {
   ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { favoritesEntity } from './favorites.entity';
+import { musicMoreEntity } from './music-more.entity';
 
 @Entity('music')
 export class musicEntity {
@@ -47,6 +50,13 @@ export class musicEntity {
     createForeignKeyConstraints: false,
   })
   favorites: favoritesEntity[];
+
+  @OneToOne(() => musicMoreEntity, (musicMore) => musicMore.music, {
+    cascade: true, // 启用级联操作
+    createForeignKeyConstraints: false, // 禁用外键约束
+  })
+  @JoinColumn()
+  musicMore: musicMoreEntity;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;

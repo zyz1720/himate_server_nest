@@ -2,8 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ResultMsg, ResultList } from 'src/commom/utils/result';
-import { FindAllMusicDto, FindAllFavoritesDto } from './dto/findall-music.dto';
-import { formatleftJoinData } from 'src/commom/utils/base';
+import {
+  FindAllMusicDto,
+  FindAllFavoritesDto,
+  FindMusicMoreDto,
+} from './dto/findall-music.dto';
+import { formatleftJoinData, downloadFile, delay } from 'src/commom/utils/base';
 import { AddMusicFavoritesDto } from './dto/add-music.dto';
 import {
   EditMusicDto,
@@ -12,12 +16,15 @@ import {
 } from './dto/edit-music.dto';
 import { musicEntity } from './entities/music.entity';
 import { favoritesEntity } from './entities/favorites.entity';
+import { musicMoreEntity } from './entities/music-more.entity';
 import { Msg } from 'src/commom/constants/base-msg.const';
 import { IdsDto } from 'src/commom/dto/commom.dto';
 import { UserService } from 'src/modules/user/user.service';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
 import { BaseConst } from 'src/commom/constants/base.const';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 @Injectable()
 export class MusicService {
@@ -26,8 +33,11 @@ export class MusicService {
     private readonly musicRepository: Repository<musicEntity>,
     @InjectRepository(favoritesEntity)
     private readonly favoritesRepository: Repository<favoritesEntity>,
+    @InjectRepository(musicMoreEntity)
+    private readonly musicMoreRepository: Repository<musicMoreEntity>,
     private readonly userService: UserService,
     private readonly queryRunnerFactory: QueryRunnerFactory,
+    private readonly configService: ConfigService,
   ) {}
 
   /* 获取所有音乐 */
@@ -313,6 +323,128 @@ export class MusicService {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
+  }
+
+  /* 第三方api获取搜索 */
+  async findMusicMoreList(query: FindMusicMoreDto) {
+    const { word, page = 1, num = 5 } = query || {};
+    try {
+      const searchRes = await axios.get(
+        this.configService.get('MUSIC_API') + '/search/song',
+        {
+          params: {
+            word,
+            page,
+            num,
+          },
+        },
+      );
+      // console.log(searchRes.data);
+      if (searchRes.data.code === 200) {
+        const list = searchRes.data.data.map((item: any) => {
+          return {
+            id: item.id,
+            mid: item.mid,
+            title: item.song,
+            artist: item.singer,
+            album: item.album,
+            cover: item.cover,
+          };
+        });
+        return ResultList.list(list, list.length);
+      } else {
+        return ResultMsg.fail(searchRes.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      return ResultMsg.fail(Msg.GET_FAIL);
+    }
+  }
+
+  /* 第三方api获取歌词 */
+  async findMusicLyric(id: number) {
+    try {
+      const lyricRes = await axios.get(
+        this.configService.get('MUSIC_API') + '/lyric',
+        {
+          params: {
+            id,
+          },
+        },
+      );
+      if (lyricRes.data.code === 200) {
+        const lyric = lyricRes.data.data;
+        return ResultMsg.ok(Msg.GET_SUCCESS, lyric);
+      } else {
+        return ResultMsg.fail(lyricRes.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      return ResultMsg.fail(Msg.GET_FAIL);
+    }
+  }
+
+  /* 为本地音乐匹配更多信息 */
+  async matchMusicInfo(num: number) {
+    let count = 0;
+    const qb = this.musicRepository.createQueryBuilder('music');
+    qb.select(['music.id', 'music.title', 'music.artist', 'music.album']);
+    qb.leftJoinAndSelect('music.musicMore', 'musicMore');
+    qb.where('musicMore.id IS NULL');
+    if (num) {
+      qb.limit(num);
+    }
+    const musicList = await qb.getMany();
+    const hashPromises = musicList.map(async (element) => {
+      await delay(1000);
+      const findRes = await this.findMusicMoreList({
+        word: element.title,
+        num: 10,
+      });
+      if ('list' in findRes) {
+        const newlist = findRes.list as any[];
+        const matchedMusic = newlist.find(
+          (item) =>
+            (element.title.includes(item.title) ||
+              item.title.includes(element.title)) &&
+            (item.artist === element.artist || item.album === element.album),
+        );
+        if (matchedMusic) {
+          const downloadRes = await downloadFile(matchedMusic.cover);
+          await delay(1000);
+          const lyricRes = await this.findMusicLyric(matchedMusic.id);
+          if (downloadRes && lyricRes.success) {
+            const insertData = this.musicMoreRepository.create({
+              music_id: element.id,
+              match_id: matchedMusic.id,
+              music_name: matchedMusic.title,
+              music_singer: matchedMusic.artist,
+              music_album: matchedMusic.album,
+              music_cover: downloadRes,
+              music_lyric: lyricRes.data.lrc,
+              music_trans: lyricRes.data.trans,
+              music_yrc: lyricRes.data.yrc,
+              music_roma: lyricRes.data.roma,
+            });
+            element.musicMore = insertData;
+            const saveRes = await this.musicRepository.save(element);
+            if (saveRes) {
+              count += 1;
+              // console.log('更新音乐详情成功');
+            }
+          }
+        }
+      }
+    });
+    try {
+      await Promise.all(hashPromises);
+      return ResultMsg.ok(
+        `共${musicList.length}条音乐，成功匹配${count}条音乐信息`,
+      );
+    } catch (error) {
+      console.error(error);
+      return ResultMsg.fail('匹配失败');
     }
   }
 }

@@ -56,7 +56,7 @@ export class ResultList<T> {
   }
 
   @ApiProperty({ type: 'Array', default: [] })
-  list?: T[];
+  list: T[];
 
   @ApiProperty({ type: 'boolean', default: 0 })
   count: number;

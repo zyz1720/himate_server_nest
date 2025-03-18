@@ -67,4 +67,10 @@ export class UploadController {
   async generateHash() {
     return this.uploadService.generateHashForFile();
   }
+
+  @ApiOperation({ summary: '删除重复文件' })
+  @Delete('delRepeat')
+  async removeRepeatFile() {
+    return this.uploadService.deleteRepeatFile();
+  }
 }
