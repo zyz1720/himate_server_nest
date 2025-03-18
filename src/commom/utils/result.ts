@@ -1,10 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-interface IResMsg {
-  send_uid: number;
-  session_id?: string;
-  MsgId?: number;
-  isReSend?: boolean;
-}
+import { SocketResDto } from '../dto/commom.dto';
 /**
  * 消息响应结构
  * ok 成功
@@ -42,7 +37,11 @@ export class ResultMsg {
     return new ResultMsg(msg, null, false);
   }
 
-  static socket(msg?: string, data?: IResMsg, success?: boolean): ResultMsg {
+  static socket(
+    msg: string,
+    data?: SocketResDto,
+    success?: boolean,
+  ): ResultMsg {
     return new ResultMsg(msg, data, success);
   }
 }

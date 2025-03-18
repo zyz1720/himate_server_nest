@@ -15,6 +15,7 @@ export class groupMemberEntity {
   @PrimaryGeneratedColumn({ comment: '群成员表自增id' })
   id: number; // 标记为主列，值自动生成
 
+  @Index()
   @Column({ length: 36, comment: '关联群组id' })
   group_id: string;
 

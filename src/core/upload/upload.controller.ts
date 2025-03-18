@@ -61,4 +61,10 @@ export class UploadController {
   async removeMoreFile(@Query() query: DelFileDto) {
     return this.uploadService.deleteMoreFile(query);
   }
+
+  @ApiOperation({ summary: '生成文件hash值' })
+  @Post('hash')
+  async generateHash() {
+    return this.uploadService.generateHashForFile();
+  }
 }

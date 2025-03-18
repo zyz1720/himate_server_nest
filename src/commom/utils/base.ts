@@ -1,9 +1,10 @@
 import { createHash } from 'crypto';
 import { ResultMsg } from './result';
-import * as fs from 'fs';
-import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseConst } from '../constants/base.const';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
 
 /* 处理过滤器消息提示 */
 export const getFilterMsg = (data: any | string | Array<any>) => {
@@ -133,4 +134,21 @@ export const formatleftJoinData = (
     }
   }
   return newData;
+};
+
+/* 为文件生成哈希值 */
+export const generateFileHash = (
+  filePath: string,
+  algorithm: string = 'sha256',
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash(algorithm);
+    const stream = fs.createReadStream(filePath);
+    stream.on('data', (data) => hash.update(data));
+    stream.on('end', () => resolve(hash.digest('hex')));
+    stream.on('error', (error) => {
+      console.log(error);
+      reject(null);
+    });
+  });
 };

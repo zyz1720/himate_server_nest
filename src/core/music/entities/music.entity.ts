@@ -10,7 +10,7 @@ import { favoritesEntity } from './favorites.entity';
 
 @Entity('music')
 export class musicEntity {
-  @PrimaryGeneratedColumn({ comment: '文件自增id' })
+  @PrimaryGeneratedColumn({ comment: '音乐自增id' })
   id: number; // 标记为主列，值自动生成
 
   @Column({ length: 96, comment: '文件名' })

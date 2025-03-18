@@ -17,11 +17,10 @@ import {
   userRole,
   numStatus,
 } from 'src/commom/constants/base-enum.const';
+import { Exclude } from 'class-transformer';
 
 @Entity('user')
 export class userEntity {
-  constructor() {}
-
   @PrimaryGeneratedColumn({ comment: '用户id' })
   id: number; // 标记为主列，值自动生成
 
@@ -64,6 +63,7 @@ export class userEntity {
   user_role: string;
 
   // 查询时隐藏密码
+  @Exclude()
   @Column({ length: 200, select: false, comment: '用户密码' })
   password: string;
 

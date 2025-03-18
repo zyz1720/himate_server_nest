@@ -16,12 +16,10 @@ import { msgType, chatType } from 'src/commom/constants/base-enum.const';
 
 @Entity('session')
 export class sessionEntity {
-  constructor() {}
-
   @PrimaryGeneratedColumn({ comment: '会话自增id' })
   id: number; // 标记为主列，值自动生成
 
-  @Index()
+  @Index({ unique: true })
   @Column({ length: 36, comment: '会话id(好友id或群组id)' })
   session_id: string;
 

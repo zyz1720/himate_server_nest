@@ -13,7 +13,7 @@ export class mateEntity {
   @PrimaryGeneratedColumn({ comment: '好友自增id' })
   id: number; // 标记为主列，值自动生成
 
-  @Index()
+  @Index({ unique: true })
   @Column({ length: 36, comment: '随机好友id' })
   mate_id: string;
 

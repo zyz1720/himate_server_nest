@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  Index,
 } from 'typeorm';
 import {
   msgType as fileType,
@@ -14,6 +15,7 @@ export class fileEntity {
   @PrimaryGeneratedColumn({ comment: '文件自增id' })
   id: number;
 
+  @Index({ unique: true })
   @Column({ length: 96, comment: '文件名' })
   file_name: string;
 
@@ -34,6 +36,10 @@ export class fileEntity {
     default: 'unknown',
   })
   use_type: string;
+
+  @Index()
+  @Column({ length: 64, comment: '文件hash' })
+  file_hash: string;
 
   @Column({ type: 'int', comment: '上传者id' })
   upload_uid: number;

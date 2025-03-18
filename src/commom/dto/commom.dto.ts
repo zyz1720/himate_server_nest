@@ -47,3 +47,11 @@ export class AccountDto {
   @IsEmail({}, { message: '邮箱格式不正确' })
   readonly account: string;
 }
+
+// socket响应参数
+export class SocketResDto {
+  send_uid: number;
+  session_id?: string;
+  MsgId?: number;
+  isReSend?: boolean;
+}

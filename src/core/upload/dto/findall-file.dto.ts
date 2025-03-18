@@ -36,9 +36,11 @@ export class FindAllFileDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({
     description: '使用场景',
     enum: fileUseType,
-    required: true,
   })
   readonly use_type?: string;
+
+  @ApiPropertyOptional({ description: '文件hash值' })
+  readonly file_hash?: string;
 
   @ApiPropertyOptional({
     description: '上传用户id',
