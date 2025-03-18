@@ -396,7 +396,7 @@ export class MusicService {
       qb.limit(num);
     }
     const musicList = await qb.getMany();
-    const hashPromises = musicList.map(async (element) => {
+    const matchPromises = musicList.map(async (element) => {
       await delay(1000);
       const findRes = await this.findMusicMoreList({
         word: element.title,
@@ -438,7 +438,7 @@ export class MusicService {
       }
     });
     try {
-      await Promise.all(hashPromises);
+      await Promise.all(matchPromises);
       return ResultMsg.ok(
         `共${musicList.length}条音乐，成功匹配${count}条音乐信息`,
       );

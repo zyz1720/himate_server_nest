@@ -15,6 +15,7 @@ import {
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { BaseConst } from 'src/commom/constants/base.const';
+import * as path from 'path';
 
 @Injectable()
 export class UploadService {
@@ -157,13 +158,14 @@ export class UploadService {
 
   /* 为已有文件生成哈希值 */
   async generateHashForFile() {
+    let count = 0;
+    let delCount = 0;
     const files = await this.fileRepository.find({
       select: ['id', 'file_name'],
     });
     const hashPromises = files.map(async (element) => {
-      const fileHash = await generateFileHash(
-        BaseConst.uploadDir + '/' + element.file_name,
-      );
+      const filePath = path.join(BaseConst.uploadDir, element.file_name);
+      const fileHash = await generateFileHash(filePath);
       if (fileHash) {
         const updateRes = await this.fileRepository
           .createQueryBuilder('file')
@@ -172,9 +174,7 @@ export class UploadService {
           .where('file.id = :id', { id: element.id })
           .execute();
         if (updateRes.affected) {
-          console.log(`更新文件 ${element.file_name} 的哈希值成功`);
-        } else {
-          console.log(`更新文件 ${element.file_name} 的哈希值失败`);
+          count += 1;
         }
       } else {
         const delRes = await this.fileRepository
@@ -183,17 +183,17 @@ export class UploadService {
           .where('file.id = :id', { id: element.id })
           .execute();
         if (delRes.affected) {
-          console.log(`删除文件 ${element.file_name} 失败`);
-        } else {
-          console.log(`删除文件 ${element.file_name} 成功`);
+          delCount += 1;
         }
       }
     });
     try {
       await Promise.all(hashPromises);
-      return ResultMsg.ok('哈希值生成完成');
+      return ResultMsg.ok(
+        `共${files.length}个文件，成功生成${count}个哈希值，删除无法读取的文件数据${delCount}条`,
+      );
     } catch (error) {
-      console.error('生成哈希值时出错: ', error);
+      console.error(error);
       // 记录或处理错误
       return ResultMsg.fail('哈希值生成失败');
     }

@@ -142,14 +142,14 @@ export const generateFileHash = (
   filePath: string,
   algorithm: string = 'sha256',
 ): Promise<string> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const hash = crypto.createHash(algorithm);
     const stream = fs.createReadStream(filePath);
     stream.on('data', (data) => hash.update(data as BinaryLike));
     stream.on('end', () => resolve(hash.digest('hex')));
     stream.on('error', (error) => {
       console.log(error);
-      reject(null);
+      resolve(null);
     });
   });
 };
@@ -182,9 +182,9 @@ export const downloadFile = async (
 
     response.data.pipe(writer);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       writer.on('finish', () => resolve(fileName));
-      writer.on('error', reject);
+      writer.on('error', () => resolve(null));
     });
   } catch (error) {
     throw new Error(`文件下载失败: ${error.message}`);
