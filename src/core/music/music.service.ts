@@ -93,6 +93,16 @@ export class MusicService {
     return ResultList.list(data, count);
   }
 
+  /* 获取音乐详情 */
+  async findOneMusic(id: number) {
+    const music = this.musicRepository
+      .createQueryBuilder('music')
+      .leftJoinAndSelect('music.musicMore', 'musicMore')
+      .where('music.id = :id', { id })
+      .getOne();
+    return music;
+  }
+
   /* 编辑音乐 */
   async updateMusic(data: EditMusicDto) {
     const { id } = data || {};

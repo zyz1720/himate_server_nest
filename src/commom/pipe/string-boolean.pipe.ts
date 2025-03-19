@@ -25,6 +25,17 @@ export class BooleanFromStringPipe implements PipeTransform {
       }
       throw new BadRequestException('Invalid value for boolean conversion');
     }
+    if ('isForce' in value) {
+      const { isForce } = value;
+      if (
+        typeof isForce === 'string' &&
+        (isForce === 'true' || isForce === 'false')
+      ) {
+        value.isForce = isForce === 'true';
+        return value;
+      }
+      throw new BadRequestException('Invalid value for boolean conversion');
+    }
     return value;
   }
 }

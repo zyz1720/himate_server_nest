@@ -35,7 +35,7 @@ export class mateEntity {
   @Column({ length: 96, comment: '同意者头像' })
   agree_avatar: string;
 
-  @Column({ length: 96, default: null, comment: '验证消息' })
+  @Column({ length: 200, default: null, comment: '验证消息' })
   validate_msg: string;
 
   @Column({

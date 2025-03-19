@@ -58,7 +58,7 @@ export class UploadController {
 
   @ApiOperation({ summary: '按条件删除文件' })
   @Delete('del')
-  async removeMoreFile(@Query() query: DelFileDto) {
+  async removeMoreFile(@Query(BooleanFromStringPipe) query: DelFileDto) {
     return this.uploadService.deleteMoreFile(query);
   }
 

@@ -46,9 +46,12 @@ MAil_PASSWORD=
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=
+
+// 第三方音乐api配置
+MUSIC_API=
 ```
 
-默认.env文件为开发环境，生产环境新增.env.prod配置。
+.env文件主要用于作为配置示例，不建议直接配置.env文件作为您的项目环境，建议新建如.env.local这样的多个.env文件进行多环境配置
 
 ### 技术栈
 

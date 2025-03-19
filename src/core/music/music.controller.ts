@@ -30,6 +30,12 @@ import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
 export class MusicController {
   constructor(private readonly musicService: MusicService) {}
 
+  @ApiOperation({ summary: '获取音乐详情' })
+  @Get('detail')
+  async findOne(@Query('id') id: number) {
+    return this.musicService.findOneMusic(id);
+  }
+
   @ApiOperation({ summary: '查找音乐' })
   @Get('list')
   async findAll(@Query(BooleanFromStringPipe) query: FindAllMusicDto) {

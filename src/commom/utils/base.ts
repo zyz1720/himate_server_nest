@@ -184,7 +184,10 @@ export const downloadFile = async (
 
     return new Promise((resolve) => {
       writer.on('finish', () => resolve(fileName));
-      writer.on('error', () => resolve(null));
+      writer.on('error', (error) => {
+        console.log(error);
+        resolve(null);
+      });
     });
   } catch (error) {
     throw new Error(`文件下载失败: ${error.message}`);

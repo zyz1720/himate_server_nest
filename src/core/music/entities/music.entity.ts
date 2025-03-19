@@ -37,13 +37,13 @@ export class musicEntity {
   @Column({ length: 96, comment: '音乐名称' })
   title: string;
 
-  @Column({ length: 48, default: null, comment: '音乐艺术家' })
+  @Column({ length: 96, default: null, comment: '音乐艺术家' })
   artist: string;
 
   @Column({ type: 'json', default: null, comment: '音乐艺术家数组' })
   artists: Array<string>;
 
-  @Column({ length: 48, default: null, comment: '专辑名' })
+  @Column({ length: 96, default: null, comment: '专辑名' })
   album: string;
 
   @ManyToMany(() => favoritesEntity, {

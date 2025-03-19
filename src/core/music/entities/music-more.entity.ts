@@ -19,16 +19,16 @@ export class musicMoreEntity {
   @Column({ type: 'int', comment: '本地音乐id' })
   music_id: number;
 
-  @Column({ length: 24, comment: '匹配第三方音乐id' })
+  @Column({ length: 16, comment: '匹配第三方音乐id' })
   match_id: string;
 
   @Column({ length: 96, comment: '音乐名称' })
   music_name: string;
 
-  @Column({ length: 48, comment: '音乐作者' })
+  @Column({ length: 96, comment: '音乐作者' })
   music_singer: string;
 
-  @Column({ length: 48, comment: '专辑名' })
+  @Column({ length: 96, comment: '专辑名' })
   music_album: string;
 
   @Column({ length: 96, comment: '音乐封面' })
