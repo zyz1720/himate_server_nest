@@ -14,6 +14,7 @@ import {
   FindAllFavoritesDto,
   FindAllMusicDto,
   FindMusicMoreDto,
+  FindMusicUrlDto,
 } from './dto/findall-music.dto';
 import { AddMusicFavoritesDto } from './dto/add-music.dto';
 import {
@@ -103,6 +104,12 @@ export class FavoritesController {
 @Controller('musicMore')
 export class musicMoreController {
   constructor(private readonly musicService: MusicService) {}
+
+  @ApiOperation({ summary: '查找音乐播放地址' })
+  @Get('detail')
+  async findOne(@Query(BooleanFromStringPipe) query: FindMusicUrlDto) {
+    return this.musicService.findMusicUrl(query);
+  }
 
   @ApiOperation({ summary: '查找音乐' })
   @Get('list')

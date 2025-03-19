@@ -6,6 +6,7 @@ import {
   FindAllMusicDto,
   FindAllFavoritesDto,
   FindMusicMoreDto,
+  FindMusicUrlDto,
 } from './dto/findall-music.dto';
 import { formatleftJoinData, downloadFile, delay } from 'src/commom/utils/base';
 import { AddMusicFavoritesDto } from './dto/add-music.dto';
@@ -388,6 +389,31 @@ export class MusicService {
         return ResultMsg.ok(Msg.GET_SUCCESS, lyric);
       } else {
         return ResultMsg.fail(lyricRes.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      return ResultMsg.fail(Msg.GET_FAIL);
+    }
+  }
+
+  /* 获取第三方播放地址 */
+  async findMusicUrl(query: FindMusicUrlDto) {
+    const { id, quality = 14, type = 0, ekey = false } = query || {};
+    try {
+      const musicRes = await axios.post(
+        this.configService.get('MUSIC_API') + '/geturl',
+        {
+          id,
+          quality,
+          type,
+          ekey,
+        },
+      );
+      if (musicRes.data.code === 200) {
+        const music = musicRes.data.data;
+        return ResultMsg.ok(Msg.GET_SUCCESS, music);
+      } else {
+        return ResultMsg.fail(musicRes.data.message);
       }
     } catch (error) {
       console.log(error);

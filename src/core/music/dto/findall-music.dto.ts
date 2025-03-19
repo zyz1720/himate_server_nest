@@ -98,3 +98,29 @@ export class FindMusicMoreDto {
   })
   readonly num?: number;
 }
+
+export class FindMusicUrlDto {
+  @ApiProperty({
+    description: '歌曲id',
+    required: true,
+  })
+  readonly id: number;
+
+  @ApiPropertyOptional({
+    description: '音质 (0-16)',
+    default: 14,
+  })
+  readonly quality?: number;
+
+  @ApiPropertyOptional({
+    description: '歌曲类型 (0或1 常规歌曲 111	华语群星 112	铃声 113	伴奏)',
+    default: 0,
+  })
+  readonly type?: number;
+
+  @ApiPropertyOptional({
+    description: '是否获取加密的音乐链接',
+    default: false,
+  })
+  readonly ekey?: boolean;
+}

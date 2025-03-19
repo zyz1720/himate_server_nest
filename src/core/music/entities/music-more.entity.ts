@@ -46,7 +46,9 @@ export class musicMoreEntity {
   @Column({ type: 'text', default: null, comment: '音译歌词' })
   music_roma: string;
 
-  @OneToOne(() => musicEntity, (music) => music.musicMore)
+  @OneToOne(() => musicEntity, (music) => music.musicMore, {
+    createForeignKeyConstraints: false,
+  })
   @JoinColumn()
   music: musicEntity;
 

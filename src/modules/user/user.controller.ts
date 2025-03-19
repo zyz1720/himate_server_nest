@@ -37,7 +37,7 @@ export class UserController {
     return await this.userService.createUser(user);
   }
 
-  @ApiOperation({ summary: '用户登录' })
+  @ApiOperation({ summary: '用户登录（邮箱或账号只填写其中一个即可）' })
   @Roles(Role.Public)
   @Post('login')
   async userlogin(

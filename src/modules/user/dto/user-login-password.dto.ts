@@ -8,7 +8,6 @@ import {
 } from 'class-validator';
 
 export class UserLoginBypasswordDto {
-  //ApiProperty是对数据类型的描述
   @ApiProperty({
     description: '邮箱号',
     required: false,
