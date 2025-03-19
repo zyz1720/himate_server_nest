@@ -32,6 +32,7 @@ export class sessionEntity {
   @Column({
     type: 'text',
     charset: 'utf8mb4',
+    collation: 'utf8mb4_unicode_ci',
     default: null,
     comment: '最后一条消息',
   })

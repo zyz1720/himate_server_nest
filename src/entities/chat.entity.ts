@@ -34,7 +34,11 @@ export class chatEntity {
   @Column({ length: 48, default: null, comment: '发送方ip' })
   send_ip: string;
 
-  @Column({ type: 'text', charset: 'utf8mb4', comment: '消息内容' })
+  @Column({
+    type: 'text',
+    charset: 'utf8mb4',
+    collation: 'utf8mb4_unicode_ci',
+  })
   msgdata: string;
 
   @Column({ length: 96, default: null, comment: '消息密钥' })
