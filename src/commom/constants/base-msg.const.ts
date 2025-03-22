@@ -22,4 +22,10 @@ export const Msg = {
   DISCONNECT_SUCCESS: '断开连接',
   UPLOAD_SUCCESS: '上传成功',
   UPLOAD_FAIL: '上传失败',
+  DOWNLOAD_SUCCESS: '下载成功',
+  DOWNLOAD_FAIL: '下载失败',
+  EXPORT_SUCCESS: '导出成功',
+  EXPORT_FAIL: '导出失败',
+  IMPORT_SUCCESS: '导入成功',
+  IMPORT_FAIL: '导入失败',
 };

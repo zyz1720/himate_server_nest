@@ -6,8 +6,8 @@ import {
 } from 'src/commom/constants/base-enum.const';
 
 export class AddFileDto {
-  @ApiProperty({ description: '上传用户id', required: true })
-  @IsNotEmpty({ message: '缺少上传用户id' })
+  @ApiProperty({ description: '用户id', required: true })
+  @IsNotEmpty({ message: '缺少用户id' })
   readonly uid: number;
 
   @ApiProperty({
@@ -25,4 +25,10 @@ export class AddFileDto {
   })
   @IsNotEmpty({ message: '缺少文件使用场景' })
   readonly use_type: string;
+}
+
+export class DownloadFileDto extends AddFileDto {
+  @ApiProperty({ description: '下载链接', required: true })
+  @IsNotEmpty({ message: '下载链接不能为空' })
+  readonly url: string;
 }

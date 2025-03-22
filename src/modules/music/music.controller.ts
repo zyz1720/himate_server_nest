@@ -21,6 +21,7 @@ import {
   EditFavoritesDto,
   EditMusicDto,
   EditDefaultFavoritesDto,
+  MatchMusicMoreDto,
 } from './dto/edit-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
 import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
@@ -125,7 +126,7 @@ export class musicMoreController {
 
   @ApiOperation({ summary: '匹配音乐信息' })
   @Get('match')
-  async matchInfo(@Query('num') num: number) {
-    return this.musicService.matchMusicInfo(num);
+  async matchInfo(@Query() query: MatchMusicMoreDto) {
+    return this.musicService.matchMusicInfo(query);
   }
 }

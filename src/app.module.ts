@@ -22,7 +22,8 @@ import { GroupMemberModule } from './modules/group-member/group-member.module';
 import { UploadModule } from './core/upload/upload.module';
 import { AppPackageModule } from './modules/app-package/app-package.module';
 import { UploadController } from './core/upload/upload.controller';
-import { MusicModule } from './core/music/music.module';
+import { MusicModule } from './modules/music/music.module';
+import { FileModule } from './modules/file/file.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { BaseConst } from './commom/constants/base.const';
 import { BullModule } from '@nestjs/bull';
@@ -118,6 +119,7 @@ import envConfig from '../config/env';
     GroupMemberModule,
     AppPackageModule,
     MusicModule,
+    FileModule,
   ],
   // 此处必须添加'UploadController',否则上传配置无法生效
   controllers: [AppController, UploadController],

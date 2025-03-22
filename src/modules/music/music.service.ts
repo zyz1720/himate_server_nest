@@ -8,16 +8,17 @@ import {
   FindMusicMoreDto,
   FindMusicUrlDto,
 } from './dto/findall-music.dto';
-import { formatleftJoinData, downloadFile, delay } from 'src/commom/utils/base';
+import { formatleftJoinData, delay } from 'src/commom/utils/base';
 import { AddMusicFavoritesDto } from './dto/add-music.dto';
 import {
   EditMusicDto,
   EditFavoritesDto,
   EditDefaultFavoritesDto,
+  MatchMusicMoreDto,
 } from './dto/edit-music.dto';
-import { musicEntity } from './entities/music.entity';
-import { favoritesEntity } from './entities/favorites.entity';
-import { musicMoreEntity } from './entities/music-more.entity';
+import { musicEntity } from 'src/entities/music.entity';
+import { favoritesEntity } from 'src/entities/favorites.entity';
+import { musicMoreEntity } from 'src/entities/music-more.entity';
 import { Msg } from 'src/commom/constants/base-msg.const';
 import { IdsDto } from 'src/commom/dto/commom.dto';
 import { UserService } from 'src/modules/user/user.service';
@@ -25,6 +26,7 @@ import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
 import { BaseConst } from 'src/commom/constants/base.const';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
 import { ConfigService } from '@nestjs/config';
+import { FileService } from '../file/file.service';
 import axios from 'axios';
 
 @Injectable()
@@ -39,6 +41,7 @@ export class MusicService {
     private readonly userService: UserService,
     private readonly queryRunnerFactory: QueryRunnerFactory,
     private readonly configService: ConfigService,
+    private readonly fileService: FileService,
   ) {}
 
   /* 获取所有音乐 */
@@ -422,7 +425,8 @@ export class MusicService {
   }
 
   /* 为本地音乐匹配更多信息 */
-  async matchMusicInfo(num: number) {
+  async matchMusicInfo(query: MatchMusicMoreDto) {
+    const { uid, num = 10 } = query || {};
     let count = 0;
     const qb = this.musicRepository.createQueryBuilder('music');
     qb.select(['music.id', 'music.title', 'music.artist', 'music.album']);
@@ -447,17 +451,24 @@ export class MusicService {
             (item.artist === element.artist || item.album === element.album),
         );
         if (matchedMusic) {
-          const downloadRes = await downloadFile(matchedMusic.cover);
+          const downloadRes = await this.fileService.downloadSaveFile(
+            matchedMusic.cover,
+            {
+              uid,
+              use_type: 'music',
+              file_type: 'image',
+            },
+          );
           await delay(1000);
           const lyricRes = await this.findMusicLyric(matchedMusic.id);
-          if (downloadRes && lyricRes.success) {
+          if (downloadRes.success && lyricRes.success) {
             const insertData = this.musicMoreRepository.create({
               music_id: element.id,
               match_id: matchedMusic.id,
               music_name: matchedMusic.title,
               music_singer: matchedMusic.artist,
               music_album: matchedMusic.album,
-              music_cover: downloadRes,
+              music_cover: downloadRes.data?.file_name,
               music_lyric: lyricRes.data.lrc,
               music_trans: lyricRes.data.trans,
               music_yrc: lyricRes.data.yrc,

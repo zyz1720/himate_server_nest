@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { AvatarUpdatedEvent } from 'src/modules/user/events/update-avatar.event';
 import { UserNameUpdatedEvent } from 'src/modules/user/events/update-userName.event';
 import { MusicService } from '../music.service';
-import { favoritesEntity } from '../entities/favorites.entity';
+import { favoritesEntity } from '../../../entities/favorites.entity';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
 
 @Injectable()

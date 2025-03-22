@@ -10,6 +10,9 @@ export class FindAllChatDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '发送方uid' })
   send_uid?: number;
 
+  @ApiPropertyOptional({ description: '会话id' })
+  session_id?: string;
+
   @ApiPropertyOptional({ description: '消息' })
   msgdata?: string;
 
@@ -30,4 +33,7 @@ export class FindAllChatDto extends PartialType(FindAllDto) {
     enum: chatType,
   })
   chat_type?: string;
+
+  @ApiPropertyOptional({ description: '是否分页', default: true })
+  readonly isPaging?: boolean;
 }

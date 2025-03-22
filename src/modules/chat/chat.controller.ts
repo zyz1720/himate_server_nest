@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindAllChatDto } from './dto/findall-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { DateDto, IdsDto } from 'src/commom/dto/commom.dto';
+import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
 
 @ApiTags('聊天消息')
 @ApiBearerAuth()
@@ -28,7 +29,7 @@ export class ChatController {
 
   @ApiOperation({ summary: '聊天消息列表' })
   @Get('list')
-  findAll(@Query() query: FindAllChatDto) {
+  findAll(@Query(BooleanFromStringPipe) query: FindAllChatDto) {
     return this.chatService.findAllChatmsg(query);
   }
 

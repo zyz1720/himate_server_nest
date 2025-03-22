@@ -78,3 +78,18 @@ export class EditDefaultFavoritesDto extends PickType(EditFavoritesDto, [
   @IsNumber()
   readonly creator_uid: number;
 }
+
+export class MatchMusicMoreDto {
+  @ApiProperty({
+    description: '用户id',
+    required: true,
+  })
+  @IsNotEmpty({ message: '用户id不能为空' })
+  readonly uid: number;
+
+  @ApiPropertyOptional({
+    description: '匹配的数量',
+    default: 10,
+  })
+  readonly num?: number;
+}

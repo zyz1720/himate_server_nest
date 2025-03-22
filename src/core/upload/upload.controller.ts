@@ -1,7 +1,5 @@
 import {
   Controller,
-  Delete,
-  Get,
   MaxFileSizeValidator,
   ParseFilePipe,
   Post,
@@ -17,12 +15,9 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
-import { UploadService } from './upload.service';
 import { FileUploadDto } from 'src/commom/dto/commom.dto';
-import { FindAllFileDto } from './dto/findall-file.dto';
-import { AddFileDto } from './dto/add-file.dto';
-import { DelFileDto } from './dto/del-file.dto';
-import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
+import { AddFileDto } from 'src/modules/file/dto/add-file.dto';
+import { UploadService } from './upload.service';
 
 @ApiTags('文件上传')
 @ApiBearerAuth()
@@ -48,29 +43,5 @@ export class UploadController {
     @Query() query: AddFileDto,
   ) {
     return this.uploadService.upload(file, query);
-  }
-
-  @ApiOperation({ summary: '查找文件' })
-  @Get('list')
-  async findAll(@Query(BooleanFromStringPipe) query: FindAllFileDto) {
-    return this.uploadService.findAllFile(query);
-  }
-
-  @ApiOperation({ summary: '按条件删除文件' })
-  @Delete('del')
-  async removeMoreFile(@Query(BooleanFromStringPipe) query: DelFileDto) {
-    return this.uploadService.deleteMoreFile(query);
-  }
-
-  @ApiOperation({ summary: '生成文件hash值' })
-  @Post('hash')
-  async generateHash() {
-    return this.uploadService.generateHashForFile();
-  }
-
-  @ApiOperation({ summary: '删除重复文件' })
-  @Delete('delRepeat')
-  async removeRepeatFile() {
-    return this.uploadService.deleteRepeatFile();
   }
 }

@@ -65,12 +65,17 @@ export class ChatService {
       chat_type,
       msgdata,
       msg_status,
+      session_id,
       pageNum = 1,
       pageSize = 10,
+      isPaging = true,
     } = query || {};
     const qb = this.chatRepository.createQueryBuilder('chat');
     if (send_uid) {
       qb.andWhere('chat.send_uid = :send_uid', { send_uid });
+    }
+    if (session_id) {
+      qb.andWhere('chat.session_id = :session_id', { session_id });
     }
     if (msg_type) {
       qb.andWhere('chat.msg_type = :msg_type', { msg_type });
@@ -85,8 +90,10 @@ export class ChatService {
       qb.andWhere('chat.chat_type = :chat_type', { chat_type });
     }
     qb.orderBy('chat.create_time', 'DESC');
-    qb.limit(pageSize);
-    qb.offset(pageSize * (pageNum - 1));
+    if (isPaging) {
+      qb.limit(pageSize);
+      qb.offset(pageSize * (pageNum - 1));
+    }
 
     const count = await qb.getCount();
     const data = await qb.getMany();

@@ -1,9 +1,9 @@
 import { loadMusicMetadata } from 'music-metadata';
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { AddMusicDto } from '../music/dto/add-music.dto';
+import { AddMusicDto } from 'src/modules/music/dto/add-music.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { musicEntity } from '../music/entities/music.entity';
+import { musicEntity } from 'src/entities/music.entity';
 import { Repository } from 'typeorm';
 import { BaseConst } from 'src/commom/constants/base.const';
 import * as fs from 'fs';

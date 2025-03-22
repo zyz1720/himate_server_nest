@@ -6,17 +6,19 @@ import {
   musicMoreController,
 } from './music.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { musicEntity } from './entities/music.entity';
-import { favoritesEntity } from './entities/favorites.entity';
-import { musicMoreEntity } from './entities/music-more.entity';
+import { musicEntity } from 'src/entities/music.entity';
+import { favoritesEntity } from 'src/entities/favorites.entity';
+import { musicMoreEntity } from 'src/entities/music-more.entity';
 import { UserModule } from 'src/modules/user/user.module';
 import { UserInfoUpdatedListener } from './listeners/userInfo-update.listener';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { FileModule } from '../file/file.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([musicEntity, favoritesEntity, musicMoreEntity]),
     UserModule,
+    FileModule,
   ],
   controllers: [MusicController, FavoritesController, musicMoreController],
   providers: [MusicService, UserInfoUpdatedListener, QueryRunnerFactory],
