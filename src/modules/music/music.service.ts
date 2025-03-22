@@ -451,6 +451,7 @@ export class MusicService {
             (item.artist === element.artist || item.album === element.album),
         );
         if (matchedMusic) {
+          await delay(1000);
           const downloadRes = await this.fileService.downloadSaveFile(
             matchedMusic.cover,
             {

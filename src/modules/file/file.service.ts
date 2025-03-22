@@ -326,7 +326,7 @@ export class FileService {
           }),
         );
         writer.on('error', (error) => {
-          console.log(error);
+          console.error(error);
           resolve(null);
         });
       });
@@ -342,10 +342,10 @@ export class FileService {
       fs.stat(filePath, (error, stats) => {
         if (error) {
           console.error(error);
-          resolve(null);
+          resolve(0);
         } else {
           const { size } = stats;
-          resolve(size || null);
+          resolve(size || 0);
         }
       });
     });
