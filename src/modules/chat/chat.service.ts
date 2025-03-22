@@ -131,7 +131,7 @@ export class ChatService {
     const delRes = await this.chatRepository
       .createQueryBuilder('chat')
       .delete()
-      .where('id IN (:...ids)', { ids: ids })
+      .where('id IN (:...ids)', { ids: [...ids] })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);

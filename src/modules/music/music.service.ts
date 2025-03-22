@@ -129,7 +129,7 @@ export class MusicService {
     const delRes = await this.musicRepository
       .createQueryBuilder('music')
       .delete()
-      .where('id IN (:...ids)', { ids: ids })
+      .where('id IN (:...ids)', { ids: [...ids] })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);
@@ -331,7 +331,7 @@ export class MusicService {
     const delRes = await this.favoritesRepository
       .createQueryBuilder('favorites')
       .delete()
-      .where('id IN (:...ids)', { ids: ids })
+      .where('id IN (:...ids)', { ids: [...ids] })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);

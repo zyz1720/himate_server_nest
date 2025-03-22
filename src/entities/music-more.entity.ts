@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -49,7 +48,6 @@ export class musicMoreEntity {
   @OneToOne(() => musicEntity, (music) => music.musicMore, {
     createForeignKeyConstraints: false,
   })
-  @JoinColumn()
   music: musicEntity;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })

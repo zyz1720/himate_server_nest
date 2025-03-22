@@ -53,6 +53,7 @@ export class musicEntity {
 
   @OneToOne(() => musicMoreEntity, (musicMore) => musicMore.music, {
     cascade: true, // 启用级联操作
+    onDelete: 'CASCADE', // 级联删除
     createForeignKeyConstraints: false, // 禁用外键约束
   })
   @JoinColumn()
