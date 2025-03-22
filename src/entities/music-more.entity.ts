@@ -33,16 +33,16 @@ export class musicMoreEntity {
   @Column({ length: 96, comment: '音乐封面' })
   music_cover: string;
 
-  @Column({ type: 'text', default: null, comment: '标准歌词' })
+  @Column({ type: 'mediumtext', default: null, comment: '标准歌词' })
   music_lyric: string;
 
-  @Column({ type: 'text', default: null, comment: '翻译歌词' })
+  @Column({ type: 'mediumtext', default: null, comment: '翻译歌词' })
   music_trans: string;
 
-  @Column({ type: 'text', default: null, comment: '逐字歌词' })
+  @Column({ type: 'mediumtext', default: null, comment: '逐字歌词' })
   music_yrc: string;
 
-  @Column({ type: 'text', default: null, comment: '音译歌词' })
+  @Column({ type: 'mediumtext', default: null, comment: '音译歌词' })
   music_roma: string;
 
   @OneToOne(() => musicEntity, (music) => music.musicMore, {
