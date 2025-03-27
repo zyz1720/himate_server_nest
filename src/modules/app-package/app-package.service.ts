@@ -67,6 +67,8 @@ export class AppPackageService {
         fileName: `%${app_fileName}%`,
       });
     }
+    qb.orderBy('app_package.create_time', 'DESC');
+    qb.take(1);
     const appPackageData = await qb.getOne();
     return appPackageData;
   }
