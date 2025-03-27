@@ -15,10 +15,29 @@ export class EditMusicDto extends PickType(FindAllMusicDto, [
   @IsNotEmpty({ message: '音乐id不能为空' })
   readonly id: number;
 
+  @ApiProperty({
+    description: '用户id',
+    required: true,
+  })
+  @IsNotEmpty({ message: '用户id不能为空' })
+  readonly uid: number;
+
   @ApiPropertyOptional({
     description: '音乐作者',
   })
   readonly artists?: Array<string>;
+
+  @ApiPropertyOptional({
+    description: '第三方音乐id',
+  })
+  readonly m_id?: number;
+
+  @ApiPropertyOptional({
+    description: '是否重置音乐扩展信息(0:否, 1:是)',
+    enum: numStatus,
+    default: 0,
+  })
+  readonly reset_more?: string;
 }
 
 export class EditFavoritesDto {

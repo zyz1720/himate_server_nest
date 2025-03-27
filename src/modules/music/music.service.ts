@@ -109,15 +109,48 @@ export class MusicService {
 
   /* 编辑音乐 */
   async updateMusic(data: EditMusicDto) {
-    const { id } = data || {};
-    const updateRes = await this.musicRepository
-      .createQueryBuilder('music')
-      .update()
-      .set({ ...data })
-      .where('music.id = :id', { id })
-      .execute();
-    if (updateRes.affected) {
-      return ResultMsg.ok(Msg.UPDATE_SUCCESS, updateRes.generatedMaps[0]);
+    const { id, m_id, uid, reset_more = '0' } = data || {};
+    const music = await this.musicRepository.findOne({ where: { id: id } });
+    const updateData = this.musicRepository.merge(music, data);
+    if (m_id) {
+      const musicRes = await this.findMusicUrl({ id: m_id });
+      if (!musicRes.success) {
+        return musicRes;
+      }
+      const { cover, artist, album } = musicRes.data;
+      const musicLrcRes = await this.findMusicLyric(id);
+      if (!musicLrcRes.success) {
+        return musicLrcRes;
+      }
+      const downloadRes = await this.fileService.downloadSaveFile(cover, {
+        uid,
+        use_type: 'music',
+        file_type: 'image',
+      });
+      if (!downloadRes.success) {
+        return downloadRes;
+      }
+      const { lrc, trans, yrc, roma } = musicLrcRes.data;
+      const insertData = this.musicMoreRepository.create({
+        music_id: id,
+        match_id: String(m_id),
+        music_name: music.title,
+        music_singer: artist,
+        music_album: album,
+        music_cover: downloadRes.data?.file_name,
+        music_lyric: lrc,
+        music_trans: trans,
+        music_yrc: yrc,
+        music_roma: roma,
+      });
+      updateData.musicMore = insertData;
+    }
+    if (reset_more == '1') {
+      updateData.musicMore = null;
+    }
+    const updateRes = await this.musicRepository.save(updateData);
+    if (updateRes) {
+      return ResultMsg.ok(Msg.UPDATE_SUCCESS, updateRes);
     } else {
       return ResultMsg.fail(Msg.UPDATE_FAIL);
     }
@@ -463,17 +496,19 @@ export class MusicService {
           await delay(1000);
           const lyricRes = await this.findMusicLyric(matchedMusic.id);
           if (downloadRes.success && lyricRes.success) {
+            const { lrc, trans, yrc, roma } = lyricRes.data;
+            const { id, title, artist, album } = matchedMusic;
             const insertData = this.musicMoreRepository.create({
               music_id: element.id,
-              match_id: matchedMusic.id,
-              music_name: matchedMusic.title,
-              music_singer: matchedMusic.artist,
-              music_album: matchedMusic.album,
+              match_id: id,
+              music_name: title,
+              music_singer: artist,
+              music_album: album,
               music_cover: downloadRes.data?.file_name,
-              music_lyric: lyricRes.data.lrc,
-              music_trans: lyricRes.data.trans,
-              music_yrc: lyricRes.data.yrc,
-              music_roma: lyricRes.data.roma,
+              music_lyric: lrc,
+              music_trans: trans,
+              music_yrc: yrc,
+              music_roma: roma,
             });
             element.musicMore = insertData;
             const saveRes = await this.musicRepository.save(element);
