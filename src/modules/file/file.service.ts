@@ -10,12 +10,13 @@ import { DelFileDto } from './dto/del-file.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { BaseConst } from 'src/commom/constants/base.const';
+import { Msg } from 'src/commom/constants/base-msg.const';
 import { BinaryLike } from 'crypto';
+import { getFileNameFromUrl } from 'src/commom/utils/base';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import axios from 'axios';
-import { Msg } from 'src/commom/constants/base-msg.const';
 
 @Injectable()
 export class FileService {
@@ -310,7 +311,7 @@ export class FileService {
       });
 
       // 文件保存路径
-      const fileName = url.split('/').pop();
+      const fileName = getFileNameFromUrl(url);
       const filePath = path.join(outputPath, fileName);
 
       // 将文件写入指定目录

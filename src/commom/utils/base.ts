@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import { ResultMsg } from './result';
 import { v4 as uuidv4 } from 'uuid';
+import { basename } from 'path';
 
 /* 处理过滤器消息提示 */
 export const getFilterMsg = (data: any | string | Array<any>) => {
@@ -83,3 +84,20 @@ export const formatleftJoinData = (
 /* 延迟x毫秒 */
 export const delay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+/* 获取文件名 */
+
+export const getFileNameFromUrl = (url: string) => {
+  if (typeof url !== 'string' || !url.trim()) return '';
+  try {
+    const parsedUrl = new URL(url);
+    const pathname = parsedUrl.pathname;
+
+    // 使用path模块的basename方法获取文件名
+    return basename(pathname);
+  } catch (e) {
+    // 如果URL解析失败，回退到简单方法
+    const urlWithoutParams = url.split('?')[0].split('#')[0];
+    return basename(urlWithoutParams || '');
+  }
+};

@@ -110,15 +110,18 @@ export class MusicService {
   /* 编辑音乐 */
   async updateMusic(data: EditMusicDto) {
     const { id, m_id, uid, reset_more = '0' } = data || {};
-    const music = await this.musicRepository.findOne({ where: { id: id } });
+    const music = await this.findOneMusic(id);
+    if (!music) {
+      return ResultMsg.fail(Msg.DATA_NOEXIST);
+    }
     const updateData = this.musicRepository.merge(music, data);
     if (m_id) {
       const musicRes = await this.findMusicUrl({ id: m_id });
       if (!musicRes.success) {
         return musicRes;
       }
-      const { cover, artist, album } = musicRes.data;
-      const musicLrcRes = await this.findMusicLyric(id);
+      const { cover, song, singer, album } = musicRes.data;
+      const musicLrcRes = await this.findMusicLyric(m_id);
       if (!musicLrcRes.success) {
         return musicLrcRes;
       }
@@ -131,19 +134,32 @@ export class MusicService {
         return downloadRes;
       }
       const { lrc, trans, yrc, roma } = musicLrcRes.data;
-      const insertData = this.musicMoreRepository.create({
+      const insertData = {
         music_id: id,
         match_id: String(m_id),
-        music_name: music.title,
-        music_singer: artist,
+        music_name: song,
+        music_singer: singer,
         music_album: album,
         music_cover: downloadRes.data?.file_name,
         music_lyric: lrc,
         music_trans: trans,
         music_yrc: yrc,
         music_roma: roma,
-      });
-      updateData.musicMore = insertData;
+      };
+      if (music.musicMore) {
+        const musicMore = music.musicMore;
+        const updateObj = this.musicMoreRepository.merge(musicMore, insertData);
+        const updateRes = await this.musicMoreRepository.update(
+          musicMore.id,
+          updateObj,
+        );
+        if (!updateRes.affected) {
+          return ResultMsg.fail(Msg.UPDATE_FAIL);
+        }
+      } else {
+        const createRes = this.musicMoreRepository.create(insertData);
+        updateData.musicMore = createRes;
+      }
     }
     if (reset_more == '1') {
       updateData.musicMore = null;
