@@ -25,6 +25,8 @@ import {
 } from './dto/edit-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
 import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
+import { Roles } from 'src/core/auth/roles.decorator';
+import { Role } from 'src/commom/constants/base-enum.const';
 
 @ApiTags('音乐')
 @ApiBearerAuth()
@@ -45,12 +47,14 @@ export class MusicController {
   }
 
   @ApiOperation({ summary: '修改音乐信息' })
+  @Roles(Role.Admin)
   @Put('edit')
   async update(@Body() user: EditMusicDto) {
     return await this.musicService.updateMusic(user);
   }
 
   @ApiOperation({ summary: '删除音乐' })
+  @Roles(Role.Admin)
   @Delete('del')
   async remove(@Query() query: IdsDto) {
     return this.musicService.deleteMusic(query);
@@ -107,24 +111,28 @@ export class musicMoreController {
   constructor(private readonly musicService: MusicService) {}
 
   @ApiOperation({ summary: '查找音乐播放地址' })
+  @Roles(Role.Admin)
   @Get('detail')
   async findOne(@Query(BooleanFromStringPipe) query: FindMusicUrlDto) {
     return this.musicService.findMusicUrl(query);
   }
 
   @ApiOperation({ summary: '查找音乐' })
+  @Roles(Role.Admin)
   @Get('list')
   async findMore(@Query() query: FindMusicMoreDto) {
     return this.musicService.findMusicMoreList(query);
   }
 
   @ApiOperation({ summary: '查找歌词' })
+  @Roles(Role.Admin)
   @Get('lyric')
   async findLyric(@Query('id') id: number) {
     return this.musicService.findMusicLyric(id);
   }
 
   @ApiOperation({ summary: '匹配音乐信息' })
+  @Roles(Role.Admin)
   @Get('match')
   async matchInfo(@Query() query: MatchMusicMoreDto) {
     return this.musicService.matchMusicInfo(query);

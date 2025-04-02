@@ -11,6 +11,7 @@ export interface IJwtSign {
   selfAccount: string;
   userId: number;
   account: string;
+  userRole: string;
 }
 
 @Injectable()
@@ -22,11 +23,12 @@ export class AuthService {
 
   /* jwt签名用 */
   async login(user: Partial<userEntity>) {
-    const { id, self_account, account } = user || {};
+    const { id, self_account, account, user_role } = user || {};
     const payload = {
       selfAccount: self_account,
-      userId: id,
       account: account,
+      userId: id,
+      userRole: user_role,
     };
     return {
       access_token: this.jwtService.sign(payload),

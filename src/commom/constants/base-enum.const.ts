@@ -38,7 +38,7 @@ export const numStatus = [1, 0];
 
 // 用户权限枚举
 export enum Role {
-  Public = 'public',
-  User = 'user',
+  User = 'default',
   Admin = 'admin',
+  VIP = 'vip',
 }

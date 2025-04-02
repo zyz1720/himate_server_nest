@@ -1,8 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Roles } from './core/auth/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Public } from './core/auth/roles.decorator';
 import { BaseConst } from './commom/constants/base.const';
 
 @ApiTags('App')
@@ -11,7 +10,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @ApiOperation({ summary: 'Welcome to Himate!' })
-  @Roles(Role.Public)
+  @Public()
   @Get()
   getHello(): string {
     return this.appService.getHello();

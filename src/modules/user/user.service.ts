@@ -6,7 +6,7 @@ import { RedisService } from 'src/core/Redis/redis.service';
 import { encryptPassword } from 'src/commom/utils/base';
 import { UserLoginBycodeDto } from './dto/user-login-code.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { FindAllUserDto } from './dto/findAll-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AvatarUpdatedEvent } from './events/update-avatar.event';
@@ -58,6 +58,16 @@ export class UserService {
     } else {
       return ResultMsg.fail(Msg.CREATE_FAIL);
     }
+  }
+
+  /* 用户注册 */
+  async registerUser(data: RegisterUserDto) {
+    const validateRes = await this.validateUser(data);
+    if (!validateRes.success) {
+      return validateRes;
+    }
+    const createRes = await this.createUser(data);
+    return createRes;
   }
 
   /* 获取用户信息 */

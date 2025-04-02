@@ -6,11 +6,12 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './core/auth/auth.module';
 import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
+import { RolesGuard } from './core/auth/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { MailModule } from './core/mail/mail.module';
 import { RedisModule } from './core/Redis/redis.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { CorsMiddleware } from './commom/CorsMiddleware/cors.middleware';
+import { CorsMiddleware } from './commom/middleware/cors.middleware';
 import { diskStorage } from 'multer';
 import { MateModule } from './modules/mate/mate.module';
 import { SessionModule } from './modules/session/session.module';
@@ -128,6 +129,10 @@ import envConfig from '../config/env';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

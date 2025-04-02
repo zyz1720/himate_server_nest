@@ -5,10 +5,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { ROLES_KEY } from './roles.decorator';
+import { IS_PUBLIC_KEY } from './roles.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
-import { Role } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -20,39 +19,37 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
   canActivate(context: ExecutionContext) {
     // 在这里添加自定义的认证逻辑
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
     const type = context.getType();
     // 一旦使用Public注解，就通过
-    if (requiredRoles) {
-      return requiredRoles.includes(Role.Public);
+    if (isPublic) {
+      return true;
     }
 
     // 单独处理Socket验证
     if (type === 'ws') {
       const client = context.switchToWs().getClient();
-      const token = client.handshake.auth.Authorization;
-      if (!token) {
-        return false;
-      }
+      const token = client.handshake?.auth?.Authorization;
       try {
         const decoded = this.jwtService.verify(token);
         if (decoded) {
           return true;
         }
-        return false;
+        throw new WsException('请登录！');
       } catch (error) {
         console.log(error);
-        return false;
+        throw new WsException('验证失败！');
       }
     }
-    // 例如调用 super.logIn(request) 来建立一个session
+
     return super.canActivate(context);
   }
 
   handleRequest(err: any, user: any, info: any) {
+    // console.log(info);
     if (err || !user) {
       throw (
         err ||

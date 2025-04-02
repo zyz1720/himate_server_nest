@@ -8,6 +8,10 @@ import {
   MinLength,
 } from 'class-validator';
 import { FindAllUserDto } from './findAll-user.dto';
+import { Request } from 'express';
+import { IJwtSign } from 'src/core/auth/auth.service';
+import { Role } from 'src/commom/constants/base-enum.const';
+import { ForbiddenException } from '@nestjs/common';
 
 export class UpdateUserDto extends PickType(FindAllUserDto, [
   'user_name',
@@ -52,4 +56,24 @@ export class UpdateUserDto extends PickType(FindAllUserDto, [
   })
   @IsOptional()
   readonly birthday?: string;
+
+  // 动态验证user_role字段
+  static fromRequest(body: any, req: Request): UpdateUserDto {
+    const dto = new UpdateUserDto();
+    const newDto = Object.assign(dto, body);
+
+    const user = req.user as IJwtSign;
+
+    if (user) {
+      const isNotAdmin = !user.userRole?.includes(Role.Admin);
+      const isChangingRole = body?.user_role !== undefined;
+      const isChangingOtherUser = user.userId !== body?.id;
+
+      if (isNotAdmin && (isChangingRole || isChangingOtherUser)) {
+        throw new ForbiddenException('您没有此操作权限');
+      }
+    }
+
+    return newDto;
+  }
 }

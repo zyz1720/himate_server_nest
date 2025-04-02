@@ -1,7 +1,6 @@
 import { Query, Controller, Get } from '@nestjs/common';
 import { MailService } from './mail.service';
-import { Roles } from '../auth/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Public } from '../auth/roles.decorator';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountDto } from 'src/commom/dto/commom.dto';
 
@@ -12,7 +11,7 @@ export class MailController {
   constructor(private readonly mailService: MailService) {}
 
   @ApiOperation({ summary: '获取验证码' })
-  @Roles(Role.Public)
+  @Public()
   @Get('code')
   async loginCode(@Query() query: AccountDto) {
     const { account } = query || {};

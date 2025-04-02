@@ -13,6 +13,8 @@ import { UpdateGroupMemberDto } from './dto/update-group-member.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindJoinGroupDto } from './dto/findjoin-group.dto';
 import { FindOneGroupMemberDto } from './dto/findOne-group-member.dto';
+import { Roles } from 'src/core/auth/roles.decorator';
+import { Role } from 'src/commom/constants/base-enum.const';
 
 @ApiTags('群成员')
 @ApiBearerAuth()
@@ -51,6 +53,7 @@ export class GroupMemberController {
   }
 
   @ApiOperation({ summary: '删除某个群下的所有群成员' })
+  @Roles(Role.Admin)
   @Delete('delMore')
   removeMore(@Query('group_Id') group_Id: string) {
     return this.groupMemberService.removeMoreGroupMember(group_Id);

@@ -14,6 +14,8 @@ import { FindAllChatDto } from './dto/findall-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { DateDto, IdsDto } from 'src/commom/dto/commom.dto';
 import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
+import { Roles } from 'src/core/auth/roles.decorator';
+import { Role } from 'src/commom/constants/base-enum.const';
 
 @ApiTags('聊天消息')
 @ApiBearerAuth()
@@ -52,12 +54,14 @@ export class ChatController {
   }
 
   @ApiOperation({ summary: '删除某个会话的所有消息' })
+  @Roles(Role.Admin)
   @Delete('delMore')
   removeMore(@Query('session_id') session_id: string) {
     return this.chatService.removeMoreChatmsg(session_id);
   }
 
   @ApiOperation({ summary: '删除某段时间前的所有消息' })
+  @Roles(Role.Admin)
   @Delete('delRead')
   removeRead(@Query() query: DateDto) {
     return this.chatService.removeReadChatmsg(query);
