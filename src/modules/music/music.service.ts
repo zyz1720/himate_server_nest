@@ -495,8 +495,7 @@ export class MusicService {
         const newlist = findRes.list as any[];
         const matchedMusic = newlist.find(
           (item) =>
-            (element.title.includes(item.title) ||
-              item.title.includes(element.title)) &&
+            item.title.includes(element.title) &&
             (item.artist === element.artist || item.album === element.album),
         );
         if (matchedMusic) {
