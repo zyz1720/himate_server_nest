@@ -45,10 +45,10 @@ export class AddMusicFavoritesDto {
 
 /* 添加音乐收藏夹DTO */
 export class SyncFavoritesDto {
-  @ApiProperty({ description: '创建者id', required: true })
-  @IsNotEmpty({ message: '创建者id不能为空' })
+  @ApiProperty({ description: '用户id', required: true })
+  @IsNotEmpty({ message: '用户id不能为空' })
   @IsNumber()
-  readonly creator_uid: number;
+  readonly uid: number;
 
   @ApiProperty({ description: '收藏夹链接', required: true })
   @IsNotEmpty({ message: '收藏夹链接不能为空' })

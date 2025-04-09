@@ -44,6 +44,12 @@ export class FindAllMusicDto extends PartialType(FindAllDto) {
   })
   readonly album?: string;
 
+  @ApiPropertyOptional({
+    description: '是否有扩展信息 (0:否, 1:是)',
+    enum: NumericStatus,
+  })
+  readonly isMusicMore?: number;
+
   @ApiProperty({
     description: '上传时间',
     required: false,

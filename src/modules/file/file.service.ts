@@ -13,6 +13,10 @@ import { BaseConst } from 'src/commom/constants/base.const';
 import { Msg } from 'src/commom/constants/base-msg.const';
 import { BinaryLike } from 'crypto';
 import { getFileNameFromUrl } from 'src/commom/utils/base';
+import {
+  FileUseType,
+  MessageType as FileType,
+} from 'src/commom/constants/base-enum.const';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
@@ -69,11 +73,18 @@ export class FileService {
       .values([fileData])
       .execute();
     if (insertRes.identifiers.length) {
-      if (file_type === 'audio' && use_type === 'music') {
-        await this.fileParserQueue.add('addMusic', fileForm);
+      if (file_type === FileType.Audio && use_type === FileUseType.Music) {
+        const musicJob = await this.fileParserQueue.add('addMusic', fileForm);
+        await musicJob.finished();
+        return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
       }
-      if (file_type === 'image') {
-        await this.fileParserQueue.add('createThumbnail', fileForm);
+      if (file_type === FileType.Image) {
+        const thumbnailJob = await this.fileParserQueue.add(
+          'createThumbnail',
+          fileForm,
+        );
+        await thumbnailJob.finished();
+        return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
       }
       return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
     } else {
@@ -143,7 +154,7 @@ export class FileService {
     if (files.length) {
       const deletionPromises = files.map(async (element) => {
         let delThumbnailFlag = true;
-        if (element.file_type === 'image') {
+        if (element.file_type === FileType.Image) {
           delThumbnailFlag = this.deleteFile(
             BaseConst.ThumbnailDir,
             element.file_name,

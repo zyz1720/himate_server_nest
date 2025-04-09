@@ -23,6 +23,7 @@ import {
   EditDefaultFavoritesDto,
   MatchMusicMoreDto,
 } from './dto/edit-music.dto';
+import { FindOneMusicDto } from './dto/findone-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
 import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
 import { Roles } from 'src/core/auth/roles.decorator';
@@ -36,8 +37,8 @@ export class MusicController {
 
   @ApiOperation({ summary: '获取音乐详情' })
   @Get('detail')
-  async findOne(@Query('id') id: number) {
-    return this.musicService.findOneMusic(id);
+  async findOne(@Query() query: FindOneMusicDto) {
+    return this.musicService.findOneMusic(query);
   }
 
   @ApiOperation({ summary: '查找音乐' })
@@ -139,7 +140,7 @@ export class musicMoreController {
   }
 
   @ApiOperation({ summary: '同步收藏夹' })
-  @Get('sync')
+  @Post('sync')
   async syncFavorite(@Body() data: SyncFavoritesDto) {
     return this.musicService.syncMoreFavorites(data);
   }

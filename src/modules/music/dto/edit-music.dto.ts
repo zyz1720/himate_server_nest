@@ -1,7 +1,10 @@
 import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { FindAllMusicDto } from './findall-music.dto';
 import { IsNotEmpty, IsNumber } from 'class-validator';
-import { NumericStatus } from 'src/commom/constants/base-enum.const';
+import {
+  NumericStatus,
+  HandleType,
+} from 'src/commom/constants/base-enum.const';
 
 export class EditMusicDto extends PickType(FindAllMusicDto, [
   'title',
@@ -37,7 +40,7 @@ export class EditMusicDto extends PickType(FindAllMusicDto, [
     enum: NumericStatus,
     default: NumericStatus.False,
   })
-  readonly reset_more?: string;
+  readonly reset_more?: number;
 }
 
 export class EditFavoritesDto {
@@ -59,7 +62,7 @@ export class EditFavoritesDto {
   @ApiPropertyOptional({
     description:
       ' (有music_ids 字段时为批量修改,type:add:添加音乐,remove:取消收藏)',
-    enum: ['add', 'remove'],
+    enum: HandleType,
   })
   readonly handleType?: string;
 

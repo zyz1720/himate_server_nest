@@ -63,6 +63,12 @@ export enum NumericStatus {
   False = 0,
 }
 
+// 操作类型枚举
+export enum HandleType {
+  Add = 'add',
+  Remove = 'remove',
+}
+
 // 用户权限枚举
 export enum Role {
   User = 'default',
