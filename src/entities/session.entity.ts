@@ -12,7 +12,7 @@ import {
 import { chatEntity } from './chat.entity';
 import { mateEntity } from './mate.entity';
 import { groupEntity } from './group.entity';
-import { msgType, chatType } from 'src/commom/constants/base-enum.const';
+import { MessageType, ChatType } from 'src/commom/constants/base-enum.const';
 
 @Entity('session')
 export class sessionEntity {
@@ -57,15 +57,15 @@ export class sessionEntity {
 
   @Column({
     type: 'enum',
-    enum: msgType,
-    default: 'text',
+    enum: MessageType,
+    default: MessageType.Text,
     comment: '最后的消息类型',
   })
   last_msgType: string;
 
   @Column({
     type: 'enum',
-    enum: chatType,
+    enum: ChatType,
     comment: '会话类型',
   })
   chat_type: string;

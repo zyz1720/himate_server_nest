@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { CreateGroupDto } from './create-group.dto';
 import { IsNotEmpty, IsNumber } from 'class-validator';
-import { memberStatus as groupStatus } from 'src/commom/constants/base-enum.const';
+import { MemberStatus as GroupStatus } from 'src/commom/constants/base-enum.const';
 
 export class UpdateGroupDto extends PartialType(CreateGroupDto) {
   @ApiProperty({ description: '群组自增id', required: true })
@@ -20,7 +20,7 @@ export class UpdateGroupDto extends PartialType(CreateGroupDto) {
 
   @ApiPropertyOptional({
     description: '群状态',
-    enum: groupStatus,
+    enum: GroupStatus,
   })
   readonly group_status?: string;
 }

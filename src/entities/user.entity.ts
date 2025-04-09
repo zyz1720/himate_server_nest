@@ -13,9 +13,9 @@ import {
   encryptPassword,
 } from 'src/commom/utils/base';
 import {
-  gender,
-  userRole,
-  numStatus,
+  Gender,
+  Role,
+  NumericStatus,
 } from 'src/commom/constants/base-enum.const';
 import { Exclude } from 'class-transformer';
 
@@ -36,8 +36,8 @@ export class userEntity {
 
   @Column({
     type: 'enum',
-    enum: gender,
-    default: 'unknown',
+    enum: Gender,
+    default: Gender.Unknown,
     comment: '性别',
   })
   sex: string;
@@ -56,8 +56,8 @@ export class userEntity {
 
   @Column({
     type: 'enum',
-    enum: userRole,
-    default: 'default',
+    enum: Role,
+    default: Role.User,
     comment: '用户权限',
   })
   user_role: string;
@@ -69,8 +69,8 @@ export class userEntity {
 
   @Column({
     type: 'enum',
-    enum: numStatus,
-    default: 1,
+    enum: NumericStatus,
+    default: NumericStatus.True,
     comment: '用户状态(1:正常 0:禁用)',
   })
   user_status: string;

@@ -9,7 +9,7 @@ import {
   FindMusicUrlDto,
 } from './dto/findall-music.dto';
 import { formatleftJoinData, delay } from 'src/commom/utils/base';
-import { AddMusicFavoritesDto } from './dto/add-music.dto';
+import { AddMusicFavoritesDto, SyncFavoritesDto } from './dto/add-music.dto';
 import {
   EditMusicDto,
   EditFavoritesDto,
@@ -28,6 +28,10 @@ import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
 import { ConfigService } from '@nestjs/config';
 import { FileService } from '../file/file.service';
 import axios from 'axios';
+import {
+  FileUseType,
+  MessageType as FileType,
+} from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class MusicService {
@@ -127,8 +131,8 @@ export class MusicService {
       }
       const downloadRes = await this.fileService.downloadSaveFile(cover, {
         uid,
-        use_type: 'music',
-        file_type: 'image',
+        use_type: FileUseType.Music,
+        file_type: FileType.Image,
       });
       if (!downloadRes.success) {
         return downloadRes;
@@ -395,13 +399,7 @@ export class MusicService {
     try {
       const searchRes = await axios.get(
         this.configService.get('MUSIC_API') + '/search/song',
-        {
-          params: {
-            word,
-            page,
-            num,
-          },
-        },
+        { params: { word, page, num } },
       );
       // console.log(searchRes.data);
       if (searchRes.data.code === 200) {
@@ -430,11 +428,7 @@ export class MusicService {
     try {
       const lyricRes = await axios.get(
         this.configService.get('MUSIC_API') + '/lyric',
-        {
-          params: {
-            id,
-          },
-        },
+        { params: { id } },
       );
       if (lyricRes.data.code === 200) {
         const lyric = lyricRes.data.data;
@@ -450,16 +444,11 @@ export class MusicService {
 
   /* 获取第三方播放地址 */
   async findMusicUrl(query: FindMusicUrlDto) {
-    const { id, quality = 14, type = 0, ekey = false } = query || {};
+    const { id, quality = 9, type = 0, ekey = false } = query || {};
     try {
       const musicRes = await axios.post(
         this.configService.get('MUSIC_API') + '/geturl',
-        {
-          id,
-          quality,
-          type,
-          ekey,
-        },
+        { id, quality, type, ekey },
       );
       if (musicRes.data.code === 200) {
         const music = musicRes.data.data;
@@ -502,11 +491,7 @@ export class MusicService {
           await delay(1000);
           const downloadRes = await this.fileService.downloadSaveFile(
             matchedMusic.cover,
-            {
-              uid,
-              use_type: 'music',
-              file_type: 'image',
-            },
+            { uid, use_type: FileUseType.Music, file_type: FileType.Image },
           );
           await delay(1000);
           const lyricRes = await this.findMusicLyric(matchedMusic.id);
@@ -544,5 +529,88 @@ export class MusicService {
       console.error(error);
       return ResultMsg.fail('匹配失败');
     }
+  }
+
+  /* 同步第三方收藏夹 */
+  async syncMoreFavorites(data: SyncFavoritesDto) {
+    const { url, creator_uid } = data || {};
+    try {
+      const musicRes = await axios.get(url);
+
+      const regex = /var firstPageData\s*=\s*({.*?})\s*;\s*(?:\n|$)/s;
+      const match = musicRes.data.match(regex);
+
+      if (match && match[1]) {
+        try {
+          // return JSON.parse(match[1])?.taogeData;
+          const parsedData = JSON.parse(match[1]);
+          const { title, picurl, desc, songlist } = parsedData?.taogeData || {};
+          if (!title || !picurl || !songlist) {
+            return ResultMsg.fail('未解析到有效数据');
+          }
+          const existPost = await this.findOneFavorites({
+            isFindMusic: false,
+            favorites_name: title,
+          });
+          if (existPost) {
+          } else {
+            const addForm = {
+              creator_uid,
+              favorites_name: title,
+              favorites_remark: desc || '',
+            } as {
+              creator_uid: number;
+              favorites_name: string;
+              favorites_remark: string;
+              [key: string]: any;
+            };
+            const downloadRes = await this.fileService.downloadSaveFile(
+              picurl as string,
+              {
+                uid: creator_uid,
+                use_type: FileUseType.Music,
+                file_type: FileType.Image,
+              },
+            );
+            if (downloadRes.success) {
+              addForm.favorites_cover = downloadRes.data?.file_name;
+            }
+            const addFavoritesRes = await this.AddFavorites(addForm);
+            if (!addFavoritesRes.success) {
+              return ResultMsg.fail(Msg.CREATE_FAIL);
+            }
+          }
+        } catch (error) {
+          console.error(error);
+          return ResultMsg.fail('不支持的数据格式');
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return ResultMsg.fail(Msg.GET_FAIL);
+    }
+  }
+
+  /* 批量下载音乐 */
+  async batchDownloadMusic(data: any[], uid: number) {
+    const musicIds = [];
+    const downloadPromises = data.map(async (item) => {
+      const { id, name, singer, album } = item;
+      const musicRes = await this.musicRepository.findOne({
+        where: { title: name, artist: singer.name, album: album.name },
+      });
+      if (musicRes) {
+        musicIds.push(musicRes.id);
+      } else {
+        const findRes = await this.findMusicUrl({ id });
+        if (findRes.success) {
+          const { url } = findRes.data;
+          const downloadMusicRes = await this.fileService.downloadSaveFile(
+            url,
+            { uid, use_type: FileUseType.Music, file_type: FileType.Audio },
+          );
+        }
+      }
+    });
   }
 }

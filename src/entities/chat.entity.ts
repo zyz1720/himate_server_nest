@@ -11,9 +11,9 @@ import {
 import { sessionEntity } from './session.entity';
 import { createUUID } from 'src/commom/utils/base';
 import {
-  chatType,
-  msgType,
-  msgStatus,
+  ChatType,
+  MessageType,
+  MessageStatus,
 } from 'src/commom/constants/base-enum.const';
 
 @Entity('chat')
@@ -46,22 +46,22 @@ export class chatEntity {
 
   @Column({
     type: 'enum',
-    enum: chatType,
+    enum: ChatType,
     comment: '会话类型',
   })
   chat_type: string;
 
   @Column({
     type: 'enum',
-    enum: msgType,
+    enum: MessageType,
     comment: '消息类型',
   })
   msg_type: string;
 
   @Column({
     type: 'enum',
-    enum: msgStatus,
-    default: 'unread',
+    enum: MessageStatus,
+    default: MessageStatus.Unread,
     comment: '消息状态',
   })
   msg_status: string;

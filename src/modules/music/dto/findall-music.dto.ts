@@ -1,6 +1,6 @@
 import { ApiPropertyOptional, ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsDateString, IsOptional } from 'class-validator';
-import { numStatus } from 'src/commom/constants/base-enum.const';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 import { FindAllDto } from 'src/commom/dto/commom.dto';
 
 export class FindAllMusicDto extends PartialType(FindAllDto) {
@@ -71,11 +71,11 @@ export class FindAllFavoritesDto extends PartialType(FindAllDto) {
 
   @ApiPropertyOptional({
     description: '是否公开(0:私密, 1:公开)',
-    enum: numStatus,
+    enum: NumericStatus,
   })
   readonly is_public?: string;
 
-  @ApiPropertyOptional({ description: '是否是默认收藏夹', enum: numStatus })
+  @ApiPropertyOptional({ description: '是否是默认收藏夹', enum: NumericStatus })
   readonly is_default?: string;
 }
 

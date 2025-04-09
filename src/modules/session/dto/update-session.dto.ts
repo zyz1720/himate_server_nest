@@ -1,7 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateChatDto } from 'src/modules/chat/dto/create-chat.dto';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { msgStatus } from 'src/commom/constants/base-enum.const';
+import { MessageStatus } from 'src/commom/constants/base-enum.const';
 
 export class UpdateSessionDto extends PartialType(CreateChatDto) {
   @ApiProperty({ description: '会话id', required: true })
@@ -16,7 +16,7 @@ export class UpdateSessionDto extends PartialType(CreateChatDto) {
 
   @ApiProperty({
     description: '消息状态',
-    enum: msgStatus,
+    enum: MessageStatus,
     required: true,
   })
   @IsNotEmpty({ message: '缺少消息状态' })

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
-import { chatType, msgType } from 'src/commom/constants/base-enum.const';
+import { ChatType, MessageType } from 'src/commom/constants/base-enum.const';
 
 export class CreateChatDto {
   @ApiProperty({ description: '会话id', required: true })
@@ -29,8 +29,8 @@ export class CreateChatDto {
 
   @ApiProperty({
     description: '会话类型',
-    enum: chatType,
-    default: chatType[0],
+    enum: ChatType,
+    default: ChatType.Personal,
     required: true,
   })
   @IsNotEmpty({ message: '缺少会话类型' })
@@ -39,8 +39,8 @@ export class CreateChatDto {
 
   @ApiProperty({
     description: '消息类型',
-    enum: msgType,
-    default: msgType[0],
+    enum: MessageType,
+    default: MessageType.Text,
     required: true,
   })
   @IsNotEmpty({ message: '缺少消息类型' })

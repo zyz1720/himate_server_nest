@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { musicEntity } from './music.entity';
-import { numStatus } from 'src/commom/constants/base-enum.const';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 
 @Entity('favorites')
 export class favoritesEntity {
@@ -39,17 +39,17 @@ export class favoritesEntity {
 
   @Column({
     type: 'enum',
-    enum: numStatus,
+    enum: NumericStatus,
     comment: '是否公开(0:私密, 1:公开)',
-    default: 0,
+    default: NumericStatus.False,
   })
   is_public: string;
 
   @Column({
     type: 'enum',
-    enum: numStatus,
+    enum: NumericStatus,
     comment: '是否是默认收藏夹(0:否, 1:是)',
-    default: 0,
+    default: NumericStatus.False,
   })
   is_default: string;
 

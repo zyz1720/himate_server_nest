@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { FindAllDto } from 'src/commom/dto/commom.dto';
-import { mateStatus } from 'src/commom/constants/base-enum.const';
+import { MateStatus } from 'src/commom/constants/base-enum.const';
 
 export class FindMateStatusDto extends PartialType(FindAllDto) {
   @ApiProperty({ description: '用户自己的id', required: true })
@@ -14,7 +14,7 @@ export class FindMateStatusDto extends PartialType(FindAllDto) {
 
   @ApiPropertyOptional({
     description: '好友状态',
-    enum: mateStatus,
+    enum: MateStatus,
   })
   readonly mate_status?: string;
 }

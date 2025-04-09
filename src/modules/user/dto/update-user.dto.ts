@@ -65,7 +65,7 @@ export class UpdateUserDto extends PickType(FindAllUserDto, [
     const user = req.user as IJwtSign;
 
     if (user) {
-      const isNotAdmin = !user.userRole?.includes(Role.Admin);
+      const isNotAdmin = !user.UserRole?.includes(Role.Admin);
       const isChangingRole = body?.user_role !== undefined;
       const isChangingOtherUser = user.userId !== body?.id;
 

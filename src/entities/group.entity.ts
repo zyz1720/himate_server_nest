@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { groupMemberEntity } from './group-member.entity';
-import { memberStatus as groupStatus } from 'src/commom/constants/base-enum.const';
+import { MemberStatus as GroupStatus } from 'src/commom/constants/base-enum.const';
 
 @Entity('group')
 export class groupEntity {
@@ -37,8 +37,8 @@ export class groupEntity {
 
   @Column({
     type: 'enum',
-    enum: groupStatus,
-    default: 'normal',
+    enum: GroupStatus,
+    default: GroupStatus.Normal,
     comment: '群状态',
   })
   group_status: string;

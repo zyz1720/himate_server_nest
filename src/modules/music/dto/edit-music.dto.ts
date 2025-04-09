@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { FindAllMusicDto } from './findall-music.dto';
 import { IsNotEmpty, IsNumber } from 'class-validator';
-import { numStatus } from 'src/commom/constants/base-enum.const';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 
 export class EditMusicDto extends PickType(FindAllMusicDto, [
   'title',
@@ -34,8 +34,8 @@ export class EditMusicDto extends PickType(FindAllMusicDto, [
 
   @ApiPropertyOptional({
     description: '是否重置音乐扩展信息(0:否, 1:是)',
-    enum: numStatus,
-    default: 0,
+    enum: NumericStatus,
+    default: NumericStatus.False,
   })
   readonly reset_more?: string;
 }
@@ -80,7 +80,7 @@ export class EditFavoritesDto {
 
   @ApiPropertyOptional({
     description: '是否公开(0:私密, 1:公开)',
-    enum: numStatus,
+    enum: NumericStatus,
   })
   readonly is_public?: string;
 }

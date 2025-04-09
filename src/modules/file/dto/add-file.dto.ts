@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 import {
-  fileUseType,
-  msgType as fileType,
+  FileUseType,
+  MessageType as FileType,
 } from 'src/commom/constants/base-enum.const';
 
 export class AddFileDto {
@@ -12,7 +12,7 @@ export class AddFileDto {
 
   @ApiProperty({
     description: '文件类型',
-    enum: fileType,
+    enum: FileType,
     required: true,
   })
   @IsNotEmpty({ message: '缺少文件类型' })
@@ -20,7 +20,7 @@ export class AddFileDto {
 
   @ApiProperty({
     description: '使用场景',
-    enum: fileUseType,
+    enum: FileUseType,
     required: true,
   })
   @IsNotEmpty({ message: '缺少文件使用场景' })

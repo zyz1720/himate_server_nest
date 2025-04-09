@@ -1,6 +1,6 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { FindAllDto } from 'src/commom/dto/commom.dto';
-import { memberStatus as groupStatus } from 'src/commom/constants/base-enum.const';
+import { MemberStatus as GroupStatus } from 'src/commom/constants/base-enum.const';
 
 export class FindAllGroupDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '群组所属用户id' })
@@ -11,7 +11,7 @@ export class FindAllGroupDto extends PartialType(FindAllDto) {
 
   @ApiPropertyOptional({
     description: '群状态',
-    enum: groupStatus,
+    enum: GroupStatus,
   })
   readonly group_status?: string;
 

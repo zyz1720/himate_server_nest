@@ -70,10 +70,10 @@ export class FileService {
       .execute();
     if (insertRes.identifiers.length) {
       if (file_type === 'audio' && use_type === 'music') {
-        this.fileParserQueue.add('addMusic', fileForm);
+        await this.fileParserQueue.add('addMusic', fileForm);
       }
       if (file_type === 'image') {
-        this.fileParserQueue.add('createThumbnail', fileForm);
+        await this.fileParserQueue.add('createThumbnail', fileForm);
       }
       return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
     } else {
@@ -320,12 +320,7 @@ export class FileService {
       response.data.pipe(writer);
 
       return new Promise((resolve) => {
-        writer.on('finish', () =>
-          resolve({
-            filePath,
-            fileName,
-          }),
-        );
+        writer.on('finish', () => resolve({ filePath, fileName }));
         writer.on('error', (error) => {
           console.error(error);
           resolve(null);

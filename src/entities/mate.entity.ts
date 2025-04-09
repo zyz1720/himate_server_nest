@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { mateStatus } from 'src/commom/constants/base-enum.const';
+import { MateStatus } from 'src/commom/constants/base-enum.const';
 
 @Entity('mate')
 export class mateEntity {
@@ -40,8 +40,8 @@ export class mateEntity {
 
   @Column({
     type: 'enum',
-    enum: mateStatus,
-    default: 'waiting',
+    enum: MateStatus,
+    default: MateStatus.Waiting,
     comment: '好友状态',
   })
   mate_status: string;

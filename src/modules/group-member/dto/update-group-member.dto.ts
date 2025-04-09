@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
-import { memberStatus, memberRole } from 'src/commom/constants/base-enum.const';
+import {
+  MemberStatus,
+  GroupMemberRole,
+} from 'src/commom/constants/base-enum.const';
 
 export class UpdateGroupMemberDto {
   @ApiProperty({ description: '群成员id', required: true })
@@ -14,9 +17,9 @@ export class UpdateGroupMemberDto {
   @ApiPropertyOptional({ description: '群成员备注' })
   readonly member_remark?: string;
 
-  @ApiPropertyOptional({ description: '群成员权限', enum: memberRole })
+  @ApiPropertyOptional({ description: '群成员权限', enum: GroupMemberRole })
   readonly member_role?: string;
 
-  @ApiPropertyOptional({ description: '群成员状态', enum: memberStatus })
+  @ApiPropertyOptional({ description: '群成员状态', enum: MemberStatus })
   readonly member_status?: string;
 }

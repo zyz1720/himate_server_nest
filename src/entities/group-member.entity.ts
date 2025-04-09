@@ -8,7 +8,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { groupEntity } from './group.entity';
-import { memberStatus, memberRole } from 'src/commom/constants/base-enum.const';
+import {
+  MemberStatus,
+  GroupMemberRole,
+} from 'src/commom/constants/base-enum.const';
 
 @Entity('group_member')
 export class groupMemberEntity {
@@ -31,16 +34,16 @@ export class groupMemberEntity {
 
   @Column({
     type: 'enum',
-    enum: memberRole,
-    default: 'member',
+    enum: GroupMemberRole,
+    default: GroupMemberRole.Member,
     comment: '群成员权限',
   })
   member_role: string;
 
   @Column({
     type: 'enum',
-    enum: memberStatus,
-    default: 'normal',
+    enum: MemberStatus,
+    default: MemberStatus.Normal,
     comment: '群成员状态',
   })
   member_status: string;

@@ -6,8 +6,8 @@ import {
   Index,
 } from 'typeorm';
 import {
-  msgType as fileType,
-  fileUseType,
+  MessageType as FileType,
+  FileUseType,
 } from 'src/commom/constants/base-enum.const';
 
 @Entity('file')
@@ -22,18 +22,14 @@ export class fileEntity {
   @Column({ type: 'int', comment: '文件大小' })
   file_size: number;
 
-  @Column({
-    type: 'enum',
-    enum: fileType,
-    comment: '文件类型',
-  })
+  @Column({ type: 'enum', enum: FileType, comment: '文件类型' })
   file_type: string;
 
   @Column({
     type: 'enum',
-    enum: fileUseType,
+    enum: FileUseType,
     comment: '使用类型',
-    default: 'unknown',
+    default: FileUseType.Unknown,
   })
   use_type: string;
 

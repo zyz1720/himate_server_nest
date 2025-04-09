@@ -11,7 +11,7 @@ export interface IJwtSign {
   selfAccount: string;
   userId: number;
   account: string;
-  userRole: string;
+  UserRole: string;
 }
 
 @Injectable()
@@ -28,7 +28,7 @@ export class AuthService {
       selfAccount: self_account,
       account: account,
       userId: id,
-      userRole: user_role,
+      UserRole: user_role,
     };
     return {
       access_token: this.jwtService.sign(payload),

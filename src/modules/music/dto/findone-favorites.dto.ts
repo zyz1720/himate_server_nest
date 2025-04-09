@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { numStatus } from 'src/commom/constants/base-enum.const';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 
 export class FindOneFavoritesDto {
   @ApiPropertyOptional({ description: '歌单id' })
@@ -14,6 +14,6 @@ export class FindOneFavoritesDto {
   @ApiPropertyOptional({ description: '歌单名称' })
   readonly favorites_name?: string;
 
-  @ApiPropertyOptional({ description: '是否是默认收藏夹', enum: numStatus })
+  @ApiPropertyOptional({ description: '是否是默认收藏夹', enum: NumericStatus })
   readonly is_default?: string;
 }

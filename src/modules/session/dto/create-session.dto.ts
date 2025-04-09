@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
-import { chatType } from 'src/commom/constants/base-enum.const';
+import { ChatType } from 'src/commom/constants/base-enum.const';
 
 export class CreateSessionDto {
   @ApiProperty({ description: '用户id', required: true })
@@ -15,7 +15,7 @@ export class CreateSessionDto {
 
   @ApiProperty({
     description: '会话类型',
-    enum: chatType,
+    enum: ChatType,
     required: true,
   })
   @IsNotEmpty({ message: '缺少会话类型' })

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { mateStatus } from 'src/commom/constants/base-enum.const';
+import { MateStatus } from 'src/commom/constants/base-enum.const';
 
 export class FindMateBymIdDto {
   @ApiProperty({ description: '好友关系id', required: true })
@@ -13,7 +13,7 @@ export class FindMateBymIdDto {
 
   @ApiPropertyOptional({
     description: '好友状态',
-    enum: mateStatus,
+    enum: MateStatus,
   })
   readonly mate_status?: string;
 }

@@ -1,9 +1,9 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { FindAllDto } from 'src/commom/dto/commom.dto';
 import {
-  gender,
-  userRole,
-  numStatus,
+  Gender,
+  Role,
+  NumericStatus,
 } from 'src/commom/constants/base-enum.const';
 
 export class FindAllUserDto extends PartialType(FindAllDto) {
@@ -26,21 +26,15 @@ export class FindAllUserDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '账号' })
   readonly self_account?: string;
 
-  @ApiPropertyOptional({
-    description: '用户权限',
-    enum: userRole,
-  })
+  @ApiPropertyOptional({ description: '用户权限', enum: Role })
   readonly user_role?: string;
 
-  @ApiPropertyOptional({
-    description: '性别',
-    enum: gender,
-  })
+  @ApiPropertyOptional({ description: '性别', enum: Gender })
   readonly sex?: string;
 
   @ApiPropertyOptional({
     description: '状态(1:正常,2:冻结)',
-    enum: numStatus,
+    enum: NumericStatus,
   })
   readonly user_status?: string;
 }

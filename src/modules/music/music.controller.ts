@@ -16,7 +16,7 @@ import {
   FindMusicMoreDto,
   FindMusicUrlDto,
 } from './dto/findall-music.dto';
-import { AddMusicFavoritesDto } from './dto/add-music.dto';
+import { AddMusicFavoritesDto, SyncFavoritesDto } from './dto/add-music.dto';
 import {
   EditFavoritesDto,
   EditMusicDto,
@@ -136,5 +136,11 @@ export class musicMoreController {
   @Get('match')
   async matchInfo(@Query() query: MatchMusicMoreDto) {
     return this.musicService.matchMusicInfo(query);
+  }
+
+  @ApiOperation({ summary: '同步收藏夹' })
+  @Get('sync')
+  async syncFavorite(@Body() data: SyncFavoritesDto) {
+    return this.musicService.syncMoreFavorites(data);
   }
 }
