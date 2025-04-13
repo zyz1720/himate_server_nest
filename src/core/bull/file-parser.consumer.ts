@@ -1,29 +1,24 @@
 import { loadMusicMetadata } from 'music-metadata';
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { AddMusicDto } from 'src/modules/music/dto/add-music.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { musicEntity } from 'src/entities/music.entity';
-import { Repository } from 'typeorm';
+import { ParseFileDto } from 'src/modules/file/dto/parser-file.dto';
+import { MusicService } from 'src/modules/music/music.service';
 import { BaseConst } from 'src/commom/constants/base.const';
 import * as fs from 'fs';
 import * as sharp from 'sharp';
 
 @Processor('fileParser')
-export class fileParserConsumer {
-  constructor(
-    @InjectRepository(musicEntity)
-    private readonly musicRepository: Repository<musicEntity>,
-  ) {}
+export class FileParserConsumer {
+  constructor(private readonly musicService: MusicService) {}
 
   @Process('addMusic')
-  async addMusic(job: Job<AddMusicDto>): Promise<boolean> {
+  async parseMusic(job: Job<ParseFileDto>): Promise<boolean> {
     const data = job.data;
     const { file_path } = data || {};
-    let miusicData = this.musicRepository.create({
+    let miusicData = {
       ...data,
       title: data.file_name.split('.')[0],
-    });
+    } as any;
     try {
       const mm = await loadMusicMetadata();
       const metadata = await mm.parseFile(file_path);
@@ -38,18 +33,12 @@ export class fileParserConsumer {
       if (!title) {
         musicForm.title = data.file_name.split('.')[0];
       }
-      miusicData = this.musicRepository.create(musicForm);
+      miusicData = musicForm;
     } catch (error) {
       console.log('解析音乐信息失败', error);
     }
-    const insertRes = await this.musicRepository
-      .createQueryBuilder('music')
-      .insert()
-      .into(musicEntity)
-      .values([miusicData])
-      .execute();
-    if (insertRes.identifiers.length) {
-      // console.log('音乐信息保存成功', insertRes.identifiers);
+    const insertRes = await this.musicService.addMusic(miusicData);
+    if (insertRes.success) {
       return true;
     } else {
       return false;
@@ -57,7 +46,7 @@ export class fileParserConsumer {
   }
 
   @Process('createThumbnail')
-  async createThumbnail(job: Job<AddMusicDto>): Promise<boolean> {
+  async createThumbnail(job: Job<ParseFileDto>): Promise<boolean> {
     const { file_path, file_name } = job.data || {};
     try {
       const curPath = BaseConst.ThumbnailDir;

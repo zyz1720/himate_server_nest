@@ -40,7 +40,7 @@ export class musicEntity {
   @Column({ length: 96, default: null, comment: '音乐艺术家' })
   artist: string;
 
-  @Column({ type: 'json', default: null, comment: '音乐艺术家数组' })
+  @Column({ type: 'json', default: null, comment: '音乐艺术家集合' })
   artists: Array<string>;
 
   @Column({ length: 96, default: null, comment: '专辑名' })

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 import {
   FileUseType,
@@ -25,6 +25,12 @@ export class AddFileDto {
   })
   @IsNotEmpty({ message: '缺少文件使用场景' })
   readonly use_type: string;
+
+  @ApiPropertyOptional({
+    description: '是否解析文件',
+    default: true,
+  })
+  readonly isParser?: boolean;
 }
 
 export class DownloadFileDto extends AddFileDto {

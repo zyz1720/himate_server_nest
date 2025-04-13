@@ -44,7 +44,7 @@ export class FileService {
 
   // 添加文件到数据库
   async addFile(filePath: string, fileName: string, query: AddFileDto) {
-    const { uid, file_type, use_type } = query || {};
+    const { uid, file_type, use_type, isParser = true } = query || {};
     const fileHash = await this.generateFileHash(filePath);
     if (!fileHash) {
       return ResultMsg.fail('读取文件失败！');
@@ -72,19 +72,18 @@ export class FileService {
       .into(fileEntity)
       .values([fileData])
       .execute();
+    console.log(isParser);
+
     if (insertRes.identifiers.length) {
-      if (file_type === FileType.Audio && use_type === FileUseType.Music) {
-        const musicJob = await this.fileParserQueue.add('addMusic', fileForm);
-        await musicJob.finished();
-        return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
-      }
-      if (file_type === FileType.Image) {
-        const thumbnailJob = await this.fileParserQueue.add(
-          'createThumbnail',
-          fileForm,
-        );
-        await thumbnailJob.finished();
-        return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
+      if (isParser) {
+        if (file_type === FileType.Audio && use_type === FileUseType.Music) {
+          this.fileParserQueue.add('addMusic', fileForm);
+          return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
+        }
+        if (file_type === FileType.Image) {
+          this.fileParserQueue.add('createThumbnail', fileForm);
+          return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
+        }
       }
       return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
     } else {

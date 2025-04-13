@@ -1,27 +1,35 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
+import { ParseFileDto } from 'src/modules/file/dto/parser-file.dto';
 
 /* 添加音乐DTO */
-export class AddMusicDto {
-  @ApiProperty({ description: '歌曲文件路径', required: true })
-  @IsNotEmpty({ message: '歌曲文件路径不能为空' })
+export class AddMusicDto extends PickType(ParseFileDto, [
+  'file_name',
+  'file_size',
+  'upload_uid',
+] as const) {
+  @ApiProperty({ description: '音乐名称', required: true })
+  @IsNotEmpty({ message: '音乐名称不能为空' })
   @IsString()
-  readonly file_path: string;
+  readonly title: string;
 
-  @ApiProperty({ description: '文件名称', required: true })
-  @IsNotEmpty({ message: '文件名称不能为空' })
-  @IsString()
-  readonly file_name: string;
+  @ApiPropertyOptional({ description: '音乐艺术家' })
+  readonly artist?: string;
 
-  @ApiProperty({ description: '文件大小', required: true })
-  @IsNumber()
-  @IsNotEmpty({ message: '文件大小不能为空' })
-  readonly file_size: number;
+  @ApiPropertyOptional({ description: '音乐艺术家集合' })
+  readonly artists?: string[];
 
-  @ApiProperty({ description: '上传用户id', required: true })
-  @IsNotEmpty({ message: '上传用户id不能为空' })
-  @IsNumber()
-  readonly upload_uid: number;
+  @ApiPropertyOptional({ description: '音乐专辑名' })
+  readonly album?: string;
+
+  @ApiPropertyOptional({ description: '采样率' })
+  readonly sampleRate?: number;
+
+  @ApiPropertyOptional({ description: '比特率' })
+  readonly bitrate?: number;
+
+  @ApiPropertyOptional({ description: '音乐时长' })
+  readonly duration?: number;
 }
 
 /* 添加音乐收藏夹DTO */

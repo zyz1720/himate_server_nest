@@ -11,4 +11,7 @@ export class FindOneMusicDto extends PickType(FindAllMusicDto, [
 ] as const) {
   @ApiPropertyOptional({ description: '音乐id' })
   readonly id?: number;
+
+  @ApiPropertyOptional({ description: '第三方音乐id' })
+  readonly match_id?: string;
 }

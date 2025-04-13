@@ -1,20 +1,20 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { FileService } from './file.service';
 import { FileController } from './file.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { fileEntity } from 'src/entities/file.entity';
-import { musicEntity } from 'src/entities/music.entity';
 import { BullModule } from '@nestjs/bull';
-import { fileParserConsumer } from 'src/core/bull/file-parser.consumer';
+import { FileParserConsumer } from 'src/core/bull/file-parser.consumer';
+import { MusicModule } from '../music/music.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([fileEntity]),
-    TypeOrmModule.forFeature([musicEntity]),
+    forwardRef(() => MusicModule),
     BullModule.registerQueue({ name: 'fileParser' }),
   ],
   controllers: [FileController],
-  providers: [fileParserConsumer, FileService],
+  providers: [FileParserConsumer, FileService],
   exports: [FileService],
 })
 export class FileModule {}

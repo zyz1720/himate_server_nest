@@ -9,7 +9,11 @@ import {
   FindMusicUrlDto,
 } from './dto/findall-music.dto';
 import { formatleftJoinData, delay } from 'src/commom/utils/base';
-import { AddMusicFavoritesDto, SyncFavoritesDto } from './dto/add-music.dto';
+import {
+  AddMusicFavoritesDto,
+  AddMusicDto,
+  SyncFavoritesDto,
+} from './dto/add-music.dto';
 import {
   EditMusicDto,
   EditFavoritesDto,
@@ -49,6 +53,22 @@ export class MusicService {
     private readonly configService: ConfigService,
     private readonly fileService: FileService,
   ) {}
+
+  /* 添加音乐 */
+  async addMusic(data: AddMusicDto) {
+    const miusicData = this.musicRepository.create(data);
+    const insertRes = await this.musicRepository
+      .createQueryBuilder('music')
+      .insert()
+      .into(musicEntity)
+      .values([miusicData])
+      .execute();
+    if (insertRes.identifiers.length) {
+      return ResultMsg.ok(Msg.CREATE_SUCCESS, miusicData);
+    } else {
+      return ResultMsg.fail(Msg.CREATE_FAIL);
+    }
+  }
 
   /* 获取所有音乐 */
   async findAllMusic(query: FindAllMusicDto) {
@@ -113,9 +133,13 @@ export class MusicService {
 
   /* 获取音乐详情 */
   async findOneMusic(query: FindOneMusicDto) {
-    const { id, album, artist, title, file_name, upload_uid } = query || {};
+    const { id, album, artist, title, file_name, upload_uid, match_id } =
+      query || {};
     const qb = this.musicRepository.createQueryBuilder('music');
     qb.leftJoinAndSelect('music.musicMore', 'musicMore');
+    if (match_id) {
+      qb.andWhere('musicMore.match_id = :match_id', { match_id });
+    }
     if (id) {
       qb.andWhere('music.id = :id', { id });
     }
@@ -134,6 +158,7 @@ export class MusicService {
     if (upload_uid) {
       qb.andWhere('music.upload_uid = :upload_uid', { upload_uid });
     }
+
     const music = await qb.getOne();
     return music;
   }
@@ -219,7 +244,7 @@ export class MusicService {
   }
 
   /* 添加音乐收藏 */
-  async AddFavorites(data: AddMusicFavoritesDto) {
+  async addFavorites(data: AddMusicFavoritesDto) {
     const { creator_uid } = data || {};
     const existPost = await this.findOneFavorites({
       isFindMusic: false,
@@ -428,7 +453,9 @@ export class MusicService {
         this.configService.get('MUSIC_API') + '/search/song',
         { params: { word, page, num } },
       );
-      // console.log(searchRes.data);
+      if (searchRes.status != 200) {
+        return ResultMsg.fail(Msg.GET_FAIL);
+      }
       if (searchRes.data.code === 200) {
         const list = searchRes.data.data.map((item: any) => {
           return {
@@ -457,6 +484,9 @@ export class MusicService {
         this.configService.get('MUSIC_API') + '/lyric',
         { params: { id } },
       );
+      if (lyricRes.status != 200) {
+        return ResultMsg.fail(Msg.GET_FAIL);
+      }
       if (lyricRes.data.code === 200) {
         const lyric = lyricRes.data.data;
         return ResultMsg.ok(Msg.GET_SUCCESS, lyric);
@@ -477,6 +507,9 @@ export class MusicService {
         this.configService.get('MUSIC_API') + '/geturl',
         { id, quality, type, ekey },
       );
+      if (musicRes.status != 200) {
+        return ResultMsg.fail(Msg.GET_FAIL);
+      }
       if (musicRes.data.code === 200) {
         const music = musicRes.data.data;
         return ResultMsg.ok(Msg.GET_SUCCESS, music);
@@ -558,6 +591,30 @@ export class MusicService {
     }
   }
 
+  /* 获取第三方歌单 */
+  async findMoreFavorite(id: number) {
+    try {
+      const favoriteRes = await axios.get(
+        this.configService.get('FAVORITE_API'),
+        {
+          params: { id, format: 'json', newsong: 1 },
+        },
+      );
+      if (favoriteRes.status != 200) {
+        return ResultMsg.fail(Msg.GET_FAIL);
+      }
+      if (favoriteRes.data.code == 0) {
+        const favorite = favoriteRes.data.data.cdlist[0];
+        return ResultMsg.ok(Msg.GET_SUCCESS, favorite);
+      } else {
+        return ResultMsg.fail(Msg.GET_FAIL);
+      }
+    } catch (error) {
+      console.log(error);
+      return ResultMsg.fail(Msg.GET_FAIL);
+    }
+  }
+
   /* 同步第三方收藏夹 */
   async syncMoreFavorites(data: SyncFavoritesDto) {
     const { url, uid } = data || {};
@@ -571,8 +628,8 @@ export class MusicService {
         try {
           // return JSON.parse(match[1])?.taogeData;
           const parsedData = JSON.parse(match[1]);
-          const { title, picurl, desc, songlist } = parsedData?.taogeData || {};
-          if (!title || !picurl || !songlist) {
+          const { title, picurl, desc, id } = parsedData?.taogeData || {};
+          if (!title || !picurl || !id) {
             return ResultMsg.fail('未解析到有效数据');
           }
           const existPost = await this.findOneFavorites({
@@ -580,15 +637,15 @@ export class MusicService {
             favorites_name: title,
           });
           if (existPost) {
-            const musicIds = await this.batchDownloadMusic(songlist, uid);
+            const { m_ids, m_count } = await this.batchDownloadMusic(id, uid);
             const updateFavoritesRes = await this.updateFavorites({
               id: existPost.id,
-              musicIds: musicIds,
+              musicIds: m_ids,
               handleType: HandleType.Add,
             });
             if (updateFavoritesRes.success) {
               return ResultMsg.ok(
-                `共${songlist.length}首音乐，成功导入${musicIds.length}首音乐`,
+                `共${m_count}首音乐，成功导入${m_ids.length}首音乐`,
               );
             }
           } else {
@@ -608,20 +665,20 @@ export class MusicService {
             if (downloadRes.success) {
               addForm.favorites_cover = downloadRes.data?.file_name;
             }
-            const addFavoritesRes = await this.AddFavorites(addForm);
+            const addFavoritesRes = await this.addFavorites(addForm);
             if (!addFavoritesRes.success) {
               return ResultMsg.fail(Msg.CREATE_FAIL);
             }
             await delay(1000);
-            const musicIds = await this.batchDownloadMusic(songlist, uid);
+            const { m_ids, m_count } = await this.batchDownloadMusic(id, uid);
             const updateFavoritesRes = await this.updateFavorites({
               id: addFavoritesRes.data.id,
-              musicIds: musicIds,
+              musicIds: m_ids,
               handleType: HandleType.Add,
             });
             if (updateFavoritesRes.success) {
               return ResultMsg.ok(
-                `共${songlist.length}首音乐，成功导入${musicIds.length}首音乐`,
+                `共${m_count}首音乐，成功导入${m_ids.length}首音乐`,
               );
             }
           }
@@ -637,50 +694,68 @@ export class MusicService {
   }
 
   /* 批量下载音乐 */
-  async batchDownloadMusic(_songlist: any[], uid: number) {
+  async batchDownloadMusic(dissId: number, uid: number) {
     const musicIds = [];
-    const downloadPromises = _songlist.map(async (item) => {
-      const { id, name, singer, album } = item;
-      const musicRes = await this.findOneMusic({
-        title: name,
-        artist: singer.name,
-        album: album.name,
-      });
-      if (musicRes) {
-        musicIds.push(musicRes.id);
-      } else {
-        const findRes = await this.findMusicUrl({ id });
-        if (findRes.success) {
-          const { url } = findRes.data;
-          await delay(1000);
-          const downloadMusicRes = await this.fileService.downloadSaveFile(
-            url,
-            { uid, use_type: FileUseType.Music, file_type: FileType.Audio },
-          );
-          if (downloadMusicRes.success) {
-            const musicRes = await this.findOneMusic({
-              title: name,
-              artist: singer.name,
-              album: album.name,
+    let musicCount = 0;
+    const factorieRes = await this.findMoreFavorite(dissId);
+    if (factorieRes.success) {
+      const { songlist, songnum } = factorieRes.data;
+      musicCount = songnum;
+      const downloadPromises = songlist.map(async (item: any) => {
+        const { id, interval, title, singer, album } = item;
+        const musicRes = await this.findOneMusic({
+          match_id: String(id),
+        });
+        if (musicRes) {
+          musicIds.push(musicRes.id);
+        } else {
+          const findRes = await this.findMusicUrl({ id });
+          if (findRes.success) {
+            const { url, singer: _singer } = findRes.data;
+            await delay(1000);
+            const downloadRes = await this.fileService.downloadSaveFile(url, {
+              uid,
+              use_type: FileUseType.Music,
+              file_type: FileType.Audio,
+              isParser: false,
             });
-            if (musicRes) {
-              musicIds.push(musicRes.id);
-              await delay(1000);
-              await this.updateMusic({
-                id: musicRes.id,
-                m_id: id,
-                uid: uid,
+            if (downloadRes.success) {
+              const { file_name, file_size, upload_uid } = downloadRes.data;
+              const addMusicRes = await this.addMusic({
+                file_name,
+                file_size,
+                upload_uid,
+                sampleRate: 44100,
+                bitrate: 320000,
+                duration: interval,
+                title,
+                artist: _singer,
+                artists: singer.map((e: any) => e.title),
+                album: album.title,
               });
+              if (addMusicRes.success) {
+                const music_id = addMusicRes.data.id;
+                musicIds.push(id);
+                await delay(1000);
+                await this.updateMusic({
+                  id: music_id,
+                  m_id: id,
+                  uid: uid,
+                });
+              }
             }
           }
         }
+      });
+      try {
+        await Promise.all(downloadPromises);
+      } catch (error) {
+        console.error('An error occurred in batchDownloadMusic', error);
       }
-    });
-    try {
-      await Promise.all(downloadPromises);
-    } catch (error) {
-      console.error('An error occurred in batchDownloadMusic', error);
     }
-    return musicIds;
+    return {
+      m_ids: musicIds,
+      m_count: musicCount,
+    };
   }
 }

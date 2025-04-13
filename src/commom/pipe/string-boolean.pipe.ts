@@ -2,7 +2,13 @@ import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class BooleanFromStringPipe implements PipeTransform {
-  private readonly booleanKeys = ['isPaging', 'isFindMusic', 'isForce', 'ekey'];
+  private readonly booleanKeys = [
+    'isPaging',
+    'isFindMusic',
+    'isForce',
+    'ekey',
+    'isParser',
+  ];
 
   transform(value: any) {
     for (const key of this.booleanKeys) {

@@ -17,7 +17,7 @@ export class FileController {
   @ApiOperation({ summary: '下载文件到服务器' })
   @Roles(Role.VIP, Role.Admin)
   @Get('download')
-  async downloadFile(@Query() query: DownloadFileDto) {
+  async downloadFile(@Query(BooleanFromStringPipe) query: DownloadFileDto) {
     const { url, ...data } = query;
     return this.fileService.downloadSaveFile(url, data);
   }

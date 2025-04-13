@@ -71,7 +71,7 @@ export class FavoritesController {
   @ApiOperation({ summary: '创建收藏夹' })
   @Post('add')
   async create(@Body() data: AddMusicFavoritesDto) {
-    return this.musicService.AddFavorites(data);
+    return this.musicService.addFavorites(data);
   }
 
   @ApiOperation({ summary: '查找收藏夹' })

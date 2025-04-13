@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MusicService } from './music.service';
 import {
   MusicController,
@@ -18,7 +18,7 @@ import { FileModule } from '../file/file.module';
   imports: [
     TypeOrmModule.forFeature([musicEntity, favoritesEntity, musicMoreEntity]),
     UserModule,
-    FileModule,
+    forwardRef(() => FileModule),
   ],
   controllers: [MusicController, FavoritesController, musicMoreController],
   providers: [MusicService, UserInfoUpdatedListener, QueryRunnerFactory],
