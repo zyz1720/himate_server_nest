@@ -49,6 +49,7 @@ REDIS_PASSWORD=
 
 // 第三方音乐api配置
 MUSIC_API=
+FAVORITE_API=
 ```
 
 .env文件主要用于作为配置示例，不建议直接配置.env文件作为您的项目环境，建议新建如.env.local这样的多个.env文件进行多环境配置
