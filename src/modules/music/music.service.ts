@@ -617,6 +617,7 @@ export class MusicService {
 
   /* 同步第三方收藏夹 */
   async syncMoreFavorites(data: SyncFavoritesDto) {
+    return ResultMsg.fail('该服务暂停中');
     const { url, uid } = data || {};
     try {
       const musicRes = await axios.get(url);

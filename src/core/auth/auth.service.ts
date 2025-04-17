@@ -39,7 +39,7 @@ export class AuthService {
   /* 用户登录（账号密码） */
   async userlogin(data: UserLoginBypasswordDto) {
     const { account, self_account, password } = data || {};
-    let user = null;
+    let user = null as Partial<userEntity>;
     if (account) {
       user = await this.userService.findOneUser({ account });
     }
@@ -54,7 +54,7 @@ export class AuthService {
       if (enUser) {
         const Token = await this.login(enUser);
         return ResultMsg.ok(Msg.LOGIN_SUCCESS, {
-          userInfo: user,
+          userId: user.id,
           userToken: Token.access_token,
           tokenType: Token.token_type,
         });
@@ -75,7 +75,7 @@ export class AuthService {
       if (user) {
         const Token = await this.login(user);
         return ResultMsg.ok(Msg.LOGIN_SUCCESS, {
-          userInfo: user,
+          userId: user.id,
           userToken: Token.access_token,
           tokenType: Token.token_type,
         });
