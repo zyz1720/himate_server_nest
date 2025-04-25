@@ -143,45 +143,47 @@ export class SessionService {
       chat_type,
     } = query || {};
     const qb = this.sessionRepository.createQueryBuilder('session');
-    const mateCondition = () =>
-      qb
-        .leftJoinAndSelect('session.mate', 'mate')
-        .where('mate.apply_uid = :uid OR mate.agree_uid = :uid', {
-          uid,
-        });
-    const groupCondition = () =>
-      qb
+
+    // 1. 处理会话类型条件
+    if (chat_type === 'personal') {
+      qb.leftJoinAndSelect('session.mate', 'mate').where(
+        'mate.apply_uid = :uid OR mate.agree_uid = :uid',
+        { uid },
+      );
+    } else if (chat_type === 'group') {
+      qb.leftJoinAndSelect('session.group', 'group')
+        .leftJoinAndSelect('group.members', 'member')
+        .where('member.member_uid = :uid', { uid });
+    } else {
+      qb.leftJoinAndSelect('session.mate', 'mate')
         .leftJoinAndSelect('session.group', 'group')
         .leftJoinAndSelect('group.members', 'member')
-        .orWhere('member.member_uid = :uid', { uid });
-
-    if (chat_type === 'personal') {
-      mateCondition();
-    }
-    if (chat_type === 'group') {
-      groupCondition();
-    }
-    if (!chat_type) {
-      mateCondition();
-      groupCondition();
+        .where(
+          '(mate.apply_uid = :uid OR mate.agree_uid = :uid) OR (member.member_uid = :uid)',
+          { uid },
+        );
     }
 
+    // 2. 处理消息状态过滤
     if (msg_status) {
       qb.leftJoinAndSelect(
         'session.msgs',
         'msgs',
         'msgs.msg_status = :status',
-        {
-          status: msg_status,
-        },
+        { status: msg_status },
       );
-      qb.addOrderBy('msgs.create_time', 'DESC');
+      qb.orderBy('msgs.create_time', 'DESC');
+    } else {
+      qb.orderBy('session.update_time', 'DESC');
     }
-    qb.orderBy('session.update_time', 'DESC');
+
+    // 3. 分页逻辑
+    const count = await qb.getCount();
     qb.limit(pageSize);
     qb.offset(pageSize * (pageNum - 1));
-    const count = await qb.getCount();
+
     const data = await qb.getMany();
+
     let newdata = [];
     if (data.length) {
       newdata = data.map((item) => {
