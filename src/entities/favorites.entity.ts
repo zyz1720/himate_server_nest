@@ -54,6 +54,8 @@ export class favoritesEntity {
   is_default: string;
 
   @ManyToMany(() => musicEntity, {
+    cascade: true,
+    onDelete: 'CASCADE',
     createForeignKeyConstraints: false,
   })
   @JoinTable()

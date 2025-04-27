@@ -172,10 +172,8 @@ export class SessionService {
         'msgs.msg_status = :status',
         { status: msg_status },
       );
-      qb.orderBy('msgs.create_time', 'DESC');
-    } else {
-      qb.orderBy('session.update_time', 'DESC');
     }
+    qb.orderBy('session.update_time', 'DESC');
 
     // 3. 分页逻辑
     const count = await qb.getCount();
