@@ -72,7 +72,6 @@ export class FileService {
       .into(fileEntity)
       .values([fileData])
       .execute();
-    console.log(isParser);
 
     if (insertRes.identifiers.length) {
       if (isParser) {

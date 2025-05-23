@@ -617,7 +617,6 @@ export class MusicService {
 
   /* 同步第三方收藏夹 */
   async syncMoreFavorites(data: SyncFavoritesDto) {
-    return ResultMsg.fail('该服务暂停中');
     const { url, uid } = data || {};
     try {
       const musicRes = await axios.get(url);
@@ -639,6 +638,9 @@ export class MusicService {
           });
           if (existPost) {
             const { m_ids, m_count } = await this.batchDownloadMusic(id, uid);
+            if (m_ids.length == 0) {
+              return ResultMsg.fail('未能导入任何音乐');
+            }
             const updateFavoritesRes = await this.updateFavorites({
               id: existPost.id,
               musicIds: m_ids,
@@ -672,6 +674,9 @@ export class MusicService {
             }
             await delay(1000);
             const { m_ids, m_count } = await this.batchDownloadMusic(id, uid);
+            if (m_ids.length == 0) {
+              return ResultMsg.fail('未能导入任何音乐');
+            }
             const updateFavoritesRes = await this.updateFavorites({
               id: addFavoritesRes.data.id,
               musicIds: m_ids,
@@ -698,6 +703,7 @@ export class MusicService {
   async batchDownloadMusic(dissId: number, uid: number) {
     const musicIds = [];
     let musicCount = 0;
+
     const factorieRes = await this.findMoreFavorite(dissId);
     if (factorieRes.success) {
       const { songlist, songnum } = factorieRes.data;
@@ -712,37 +718,39 @@ export class MusicService {
         } else {
           const findRes = await this.findMusicUrl({ id });
           if (findRes.success) {
-            const { url, singer: _singer } = findRes.data;
-            await delay(1000);
-            const downloadRes = await this.fileService.downloadSaveFile(url, {
-              uid,
-              use_type: FileUseType.Music,
-              file_type: FileType.Audio,
-              isParser: false,
-            });
-            if (downloadRes.success) {
-              const { file_name, file_size, upload_uid } = downloadRes.data;
-              const addMusicRes = await this.addMusic({
-                file_name,
-                file_size,
-                upload_uid,
-                sampleRate: 44100,
-                bitrate: 320000,
-                duration: interval,
-                title,
-                artist: _singer,
-                artists: singer.map((e: any) => e.title),
-                album: album.title,
+            const { url, singer: _singer, quality } = findRes.data;
+            if (!quality.includes('试听')) {
+              await delay(1000);
+              const downloadRes = await this.fileService.downloadSaveFile(url, {
+                uid,
+                use_type: FileUseType.Music,
+                file_type: FileType.Audio,
+                isParser: false,
               });
-              if (addMusicRes.success) {
-                const music_id = addMusicRes.data.id;
-                musicIds.push(id);
-                await delay(1000);
-                await this.updateMusic({
-                  id: music_id,
-                  m_id: id,
-                  uid: uid,
+              if (downloadRes.success) {
+                const { file_name, file_size, upload_uid } = downloadRes.data;
+                const addMusicRes = await this.addMusic({
+                  file_name,
+                  file_size,
+                  upload_uid,
+                  sampleRate: 44100,
+                  bitrate: 320000,
+                  duration: interval,
+                  title,
+                  artist: _singer,
+                  artists: singer.map((e: any) => e.title),
+                  album: album.title,
                 });
+                if (addMusicRes.success) {
+                  const music_id = addMusicRes.data.id;
+                  musicIds.push(id);
+                  await delay(1000);
+                  await this.updateMusic({
+                    id: music_id,
+                    m_id: id,
+                    uid: uid,
+                  });
+                }
               }
             }
           }

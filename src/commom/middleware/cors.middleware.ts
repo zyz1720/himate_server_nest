@@ -6,11 +6,7 @@ export class CorsMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const requestOrigin = req.header('Origin');
 
-    const allowedOrigins = [
-      'http://localhost:8080',
-      'http://192.168.1.11',
-      'http://192.168.110.35',
-    ]; // 允许的源
+    const allowedOrigins = ['http://localhost:8080', 'http://192.168.110.35']; // 允许的源
     const isAllow = allowedOrigins.includes(requestOrigin);
     // 在这里配置跨域相关的逻辑
     if (isAllow) {
