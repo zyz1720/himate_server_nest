@@ -709,14 +709,14 @@ export class MusicService {
       const { songlist, songnum } = factorieRes.data;
       musicCount = songnum;
       const downloadPromises = songlist.map(async (item: any) => {
-        const { id, interval, title, singer, album } = item;
+        const { id: mid, interval, title, singer, album } = item;
         const musicRes = await this.findOneMusic({
-          match_id: String(id),
+          match_id: String(mid),
         });
         if (musicRes) {
           musicIds.push(musicRes.id);
         } else {
-          const findRes = await this.findMusicUrl({ id });
+          const findRes = await this.findMusicUrl({ id: mid });
           if (findRes.success) {
             const { url, singer: _singer, quality } = findRes.data;
             if (!quality.includes('试听')) {
@@ -743,11 +743,11 @@ export class MusicService {
                 });
                 if (addMusicRes.success) {
                   const music_id = addMusicRes.data.id;
-                  musicIds.push(id);
+                  musicIds.push(music_id);
                   await delay(1000);
                   await this.updateMusic({
                     id: music_id,
-                    m_id: id,
+                    m_id: mid,
                     uid: uid,
                   });
                 }
