@@ -24,7 +24,7 @@ export class favoritesEntity {
   @Column({ length: 96, comment: '创建者头像' })
   creator_avatar: string;
 
-  @Column({ length: 48, comment: '收藏夹名' })
+  @Column({ length: 96, comment: '收藏夹名' })
   favorites_name: string;
 
   @Column({
@@ -34,7 +34,13 @@ export class favoritesEntity {
   })
   favorites_cover: string;
 
-  @Column({ length: 200, default: null, comment: '收藏夹描述' })
+  @Column({
+    type: 'text',
+    charset: 'utf8mb4',
+    collation: 'utf8mb4_unicode_ci',
+    default: null,
+    comment: '收藏夹描述',
+  })
   favorites_remark: string;
 
   @Column({

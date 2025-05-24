@@ -38,6 +38,7 @@ export class chatEntity {
     type: 'text',
     charset: 'utf8mb4',
     collation: 'utf8mb4_unicode_ci',
+    comment: '消息内容',
   })
   msgdata: string;
 
