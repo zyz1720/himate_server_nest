@@ -663,6 +663,7 @@ export class MusicService {
                 uid: uid,
                 use_type: FileUseType.Music,
                 file_type: FileType.Image,
+                isAddTimeStamp: true,
               },
             );
             if (downloadRes.success) {

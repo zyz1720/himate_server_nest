@@ -32,7 +32,12 @@ export class FileService {
 
   // 下载文件并记录
   async downloadSaveFile(url: string, query: AddFileDto) {
-    const downloadRes = await this.downloadFile(url);
+    const { isAddTimeStamp = false } = query || {};
+    const downloadRes = await this.downloadFile(
+      url,
+      BaseConst.uploadDir,
+      isAddTimeStamp,
+    );
     if (downloadRes) {
       const { filePath, fileName } = downloadRes;
       const addRes = await this.addFile(filePath, fileName, query);
@@ -304,6 +309,7 @@ export class FileService {
   async downloadFile(
     url: string,
     outputPath = BaseConst.uploadDir,
+    isAddTimeStamp = false,
   ): Promise<{ filePath: string; fileName: string }> {
     try {
       // 创建目录（如果不存在）
@@ -320,7 +326,10 @@ export class FileService {
       });
 
       // 文件保存路径
-      const fileName = getFileNameFromUrl(url);
+      let fileName = getFileNameFromUrl(url);
+      if (isAddTimeStamp) {
+        fileName = Date.now() + '_' + fileName;
+      }
       const filePath = path.join(outputPath, fileName);
 
       // 将文件写入指定目录

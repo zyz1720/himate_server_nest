@@ -31,6 +31,12 @@ export class AddFileDto {
     default: true,
   })
   readonly isParser?: boolean;
+
+  @ApiPropertyOptional({
+    description: '是否为文件名添加时间戳',
+    default: false,
+  })
+  readonly isAddTimeStamp?: boolean;
 }
 
 export class DownloadFileDto extends AddFileDto {

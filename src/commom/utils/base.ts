@@ -94,10 +94,10 @@ export const getFileNameFromUrl = (url: string) => {
     const pathname = parsedUrl.pathname;
 
     // 使用path模块的basename方法获取文件名
-    return Date.now() + '_' + basename(pathname);
+    return basename(pathname);
   } catch (e) {
     // 如果URL解析失败，回退到简单方法
     const urlWithoutParams = url.split('?')[0].split('#')[0];
-    return Date.now() + '_' + basename(urlWithoutParams || '');
+    return basename(urlWithoutParams || '');
   }
 };
