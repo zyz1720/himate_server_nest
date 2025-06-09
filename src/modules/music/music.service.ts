@@ -626,13 +626,13 @@ export class MusicService {
 
       if (match && match[1]) {
         try {
-          // return JSON.parse(match[1])?.taogeData;
           const parsedData = JSON.parse(match[1]);
           const { title, picurl, desc, id } = parsedData?.taogeData || {};
           if (!title || !picurl || !id) {
             return ResultMsg.fail('未解析到有效数据');
           }
           const existPost = await this.findOneFavorites({
+            creator_uid: uid,
             isFindMusic: false,
             favorites_name: title,
           });
