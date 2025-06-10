@@ -7,7 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import { BaseConst } from 'src/commom/constants/base.const';
 
-async function myAppSever() {
+async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 全局异常过滤器
@@ -39,4 +39,4 @@ async function myAppSever() {
   staticApp.use('/static', express.static(BaseConst.uploadDir));
   staticApp.listen(3002);
 }
-myAppSever();
+bootstrap();
