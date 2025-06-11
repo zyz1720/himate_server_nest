@@ -6,7 +6,6 @@ import { ResultMsg } from 'src/commom/utils/result';
 import { FindAllFileDto } from './dto/findall-file.dto';
 import { ResultList } from 'src/commom/utils/result';
 import { AddFileDto } from './dto/add-file.dto';
-import { DelFileDto } from './dto/del-file.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { BaseConst } from 'src/commom/constants/base.const';
@@ -21,6 +20,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import axios from 'axios';
+import { IdsDto } from 'src/commom/dto/commom.dto';
 
 @Injectable()
 export class FileService {
@@ -108,7 +108,7 @@ export class FileService {
       use_type,
       file_hash,
       create_time,
-      isPaging = true,
+      isPaging = 1,
     } = query || {};
     const qb = this.fileRepository.createQueryBuilder('file');
     if (ids) {
@@ -146,47 +146,62 @@ export class FileService {
     return ResultList.list(data, count);
   }
 
-  /* 删除用户上传的文件 */
-  async deleteMoreFile(query: DelFileDto) {
-    const { isForce } = query || {};
-    const { list: files } = await this.findAllFile({
-      isPaging: false,
-      ...query,
-    });
-    let delCount = 0;
-    if (files.length) {
-      const deletionPromises = files.map(async (element) => {
-        let delThumbnailFlag = true;
-        if (element.file_type === FileType.Image) {
-          delThumbnailFlag = this.deleteFile(
-            BaseConst.ThumbnailDir,
-            element.file_name,
-          );
-        }
-        const delUploadFlag = this.deleteFile(
-          BaseConst.uploadDir,
-          element.file_name,
-        );
-        if ((delUploadFlag && delThumbnailFlag) || isForce) {
-          try {
-            const delRes = await this.fileRepository
-              .createQueryBuilder('file')
-              .delete()
-              .where('file.id = :id', { id: element.id })
-              .execute();
-            if (delRes.affected) {
-              delCount += 1;
-            }
-          } catch (err) {
-            console.error(`删除文件 ${element.file_name} 时出错: `, err);
-            // 记录或处理错误
-          }
-        }
-      });
-      await Promise.all(deletionPromises);
-    }
+  // /* 删除用户上传的文件 */
+  // async deleteMoreFile(query: DelFileDto) {
+  //   const { isForce } = query || {};
+  //   const { list: files } = await this.findAllFile({
+  //     isPaging: 0,
+  //     ...query,
+  //   });
+  //   let delCount = 0;
+  //   if (files.length) {
+  //     const deletionPromises = files.map(async (element) => {
+  //       let delThumbnailFlag = true;
+  //       if (element.file_type === FileType.Image) {
+  //         delThumbnailFlag = this.deleteLocalFile(
+  //           BaseConst.ThumbnailDir,
+  //           element.file_name,
+  //         );
+  //       }
+  //       const delUploadFlag = this.deleteLocalFile(
+  //         BaseConst.uploadDir,
+  //         element.file_name,
+  //       );
+  //       if ((delUploadFlag && delThumbnailFlag) || isForce) {
+  //         try {
+  //           const delRes = await this.fileRepository
+  //             .createQueryBuilder('file')
+  //             .delete()
+  //             .where('file.id = :id', { id: element.id })
+  //             .execute();
+  //           if (delRes.affected) {
+  //             delCount += 1;
+  //           }
+  //         } catch (err) {
+  //           console.error(`删除文件 ${element.file_name} 时出错: `, err);
+  //           // 记录或处理错误
+  //         }
+  //       }
+  //     });
+  //     await Promise.all(deletionPromises);
+  //   }
 
-    return ResultMsg.ok(`共${files.length}个文件，成功删除${delCount}个`);
+  //   return ResultMsg.ok(`共${files.length}个文件，成功删除${delCount}个`);
+  // }
+
+  /* 软删除文件 */
+  async deleteFile(query: IdsDto) {
+    const { ids = [] } = query || {};
+    const delRes = await this.fileRepository
+      .createQueryBuilder('user')
+      .softDelete()
+      .where('id IN (:...ids)', { ids })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
   }
 
   /* 为已有文件生成哈希值 */
@@ -265,7 +280,7 @@ export class FileService {
   }
 
   /* 删除指定文件 */
-  deleteFile(filePath: string, name: string): boolean {
+  deleteLocalFile(filePath: string, name: string): boolean {
     if (fs.existsSync(filePath)) {
       const files = fs.readdirSync(filePath); //返回文件和子目录的数组
       if (files.includes(name)) {

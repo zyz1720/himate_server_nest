@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import {
+  IsDateString,
   IsEmail,
   IsNotEmpty,
   IsNumber,
@@ -7,7 +8,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { FindAllUserDto } from './findAll-user.dto';
+import { FindAllUserDto } from './findall-user.dto';
 import { Request } from 'express';
 import { IJwtSign } from 'src/core/auth/auth.service';
 import { Role } from 'src/commom/constants/base-enum.const';
@@ -55,6 +56,7 @@ export class UpdateUserDto extends PickType(FindAllUserDto, [
     required: false,
   })
   @IsOptional()
+  @IsDateString()
   readonly birthday?: string;
 
   // 动态验证user_role字段

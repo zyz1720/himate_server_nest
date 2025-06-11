@@ -25,7 +25,6 @@ import {
 } from './dto/edit-music.dto';
 import { FindOneMusicDto } from './dto/findone-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
-import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
 
@@ -43,7 +42,7 @@ export class MusicController {
 
   @ApiOperation({ summary: '查找音乐' })
   @Get('list')
-  async findAll(@Query(BooleanFromStringPipe) query: FindAllMusicDto) {
+  async findAll(@Query() query: FindAllMusicDto) {
     return this.musicService.findAllMusic(query);
   }
 
@@ -82,7 +81,7 @@ export class FavoritesController {
 
   @ApiOperation({ summary: '收藏夹详情' })
   @Get('detail')
-  async findOne(@Query(BooleanFromStringPipe) query: FindOneFavoritesDto) {
+  async findOne(@Query() query: FindOneFavoritesDto) {
     return this.musicService.findOneFavorites(query);
   }
 
@@ -114,7 +113,7 @@ export class musicMoreController {
   @ApiOperation({ summary: '查找音乐播放地址' })
   @Roles(Role.Admin)
   @Get('detail')
-  async findOne(@Query(BooleanFromStringPipe) query: FindMusicUrlDto) {
+  async findOne(@Query() query: FindMusicUrlDto) {
     return this.musicService.findMusicUrl(query);
   }
 

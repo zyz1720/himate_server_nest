@@ -17,7 +17,11 @@ async function bootstrap() {
   app.useGlobalInterceptors(new HttpReqTransformInterceptor());
 
   // 全局应用管道 对输入数据进行转换或者验证
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
 
   // 设置全局路由前缀
   app.setGlobalPrefix('api');

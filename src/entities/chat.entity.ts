@@ -2,6 +2,7 @@ import {
   BeforeInsert,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   ManyToOne,
@@ -19,7 +20,7 @@ import {
 @Entity('chat')
 export class chatEntity {
   @PrimaryGeneratedColumn({ comment: '聊天自增id' })
-  id: number; // 标记为主列，值自动生成
+  id: number;
 
   @Column({ length: 36, comment: '客户端消息id' })
   clientMsg_id: string;
@@ -77,6 +78,9 @@ export class chatEntity {
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 
   @BeforeInsert()
   addClientMsgId() {

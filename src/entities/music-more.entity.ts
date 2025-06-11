@@ -6,13 +6,14 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
+  DeleteDateColumn,
 } from 'typeorm';
 import { musicEntity } from './music.entity';
 
 @Entity('music_more')
 export class musicMoreEntity {
   @PrimaryGeneratedColumn({ comment: '音乐扩展信息自增id' })
-  id: number; // 标记为主列，值自动生成
+  id: number;
 
   @Index({ unique: true })
   @Column({ type: 'int', comment: '本地音乐id' })
@@ -55,4 +56,7 @@ export class musicMoreEntity {
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 }

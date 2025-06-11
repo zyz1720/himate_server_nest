@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -17,7 +18,7 @@ import { MessageType, ChatType } from 'src/commom/constants/base-enum.const';
 @Entity('session')
 export class sessionEntity {
   @PrimaryGeneratedColumn({ comment: '会话自增id' })
-  id: number; // 标记为主列，值自动生成
+  id: number;
 
   @Index({ unique: true })
   @Column({ length: 36, comment: '会话id(好友id或群组id)' })
@@ -93,4 +94,7 @@ export class sessionEntity {
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 }

@@ -85,7 +85,7 @@ export class EditFavoritesDto {
     description: '是否公开(0:私密, 1:公开)',
     enum: NumericStatus,
   })
-  readonly is_public?: string;
+  readonly is_public?: number;
 }
 
 export class EditDefaultFavoritesDto extends PickType(EditFavoritesDto, [

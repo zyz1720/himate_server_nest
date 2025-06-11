@@ -5,6 +5,7 @@ import {
   FileUseType,
   MessageType as FileType,
 } from 'src/commom/constants/base-enum.const';
+import { Transform, Type } from 'class-transformer';
 
 export class FindAllFileDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({
@@ -12,10 +13,13 @@ export class FindAllFileDto extends PartialType(FindAllDto) {
     type: 'array',
     items: { type: 'number' },
   })
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  @Type(() => Number)
   readonly ids?: number[];
 
-  @ApiPropertyOptional({ description: '是否分页', default: true })
-  readonly isPaging?: boolean;
+  @ApiPropertyOptional({ description: '是否分页', default: 1 })
+  @Type(() => Number)
+  readonly isPaging?: number;
 
   @ApiPropertyOptional({
     description: '文件名称',

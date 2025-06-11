@@ -94,7 +94,21 @@ export class AppPackageService {
   async removeAppPackage(id: number) {
     const delRes = await this.appPackageRepository
       .createQueryBuilder('app_package')
-      .delete()
+      .softDelete()
+      .where('app_package.id = :id', { id })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
+  }
+
+  /* 恢复应用包 */
+  async restoreAppPackage(id: number) {
+    const delRes = await this.appPackageRepository
+      .createQueryBuilder('app_package')
+      .restore()
       .where('app_package.id = :id', { id })
       .execute();
     if (delRes.affected) {

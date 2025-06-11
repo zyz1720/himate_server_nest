@@ -55,4 +55,11 @@ export class AppPackageController {
   remove(@Query('id') id: number) {
     return this.appPackageService.removeAppPackage(id);
   }
+
+  @ApiOperation({ summary: '恢复app包' })
+  @Roles(Role.Admin)
+  @Post('restore')
+  restore(@Query('id') id: number) {
+    return this.appPackageService.restoreAppPackage(id);
+  }
 }

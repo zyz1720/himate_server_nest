@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsEmail, Length } from 'class-validator';
 
 export class UserLoginBycodeDto {
-  //ApiProperty是对数据类型的描述
   @ApiProperty({ description: '邮箱号', required: true })
   @IsNotEmpty({ message: '缺少邮箱号' })
   @IsString()

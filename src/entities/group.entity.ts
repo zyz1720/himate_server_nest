@@ -6,6 +6,7 @@ import {
   Index,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { groupMemberEntity } from './group-member.entity';
 import { MemberStatus as GroupStatus } from 'src/commom/constants/base-enum.const';
@@ -32,7 +33,13 @@ export class groupEntity {
   })
   group_avatar: string;
 
-  @Column({ length: 200, default: null, comment: '群组简介' })
+  @Column({
+    type: 'text',
+    charset: 'utf8mb4',
+    collation: 'utf8mb4_unicode_ci',
+    default: null,
+    comment: '群组简介',
+  })
   group_introduce: string;
 
   @Column({
@@ -51,4 +58,7 @@ export class groupEntity {
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 }

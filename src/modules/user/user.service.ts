@@ -7,15 +7,16 @@ import { encryptPassword } from 'src/commom/utils/base';
 import { UserLoginBycodeDto } from './dto/user-login-code.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
-import { FindAllUserDto } from './dto/findAll-user.dto';
+import { FindAllUserDto } from './dto/findall-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AvatarUpdatedEvent } from './events/update-avatar.event';
 import { UserNameUpdatedEvent } from './events/update-userName.event';
 import { ResultList, ResultMsg } from 'src/commom/utils/result';
 import { Msg } from 'src/commom/constants/base-msg.const';
 import { BaseConst } from 'src/commom/constants/base.const';
-import { FindOneUserDto } from './dto/findOne-user.dto';
+import { FindOneUserDto } from './dto/findone-user.dto';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { IdsDto } from 'src/commom/dto/commom.dto';
 
 @Injectable()
 export class UserService {
@@ -74,7 +75,6 @@ export class UserService {
   async findOneUser(query: FindOneUserDto) {
     const { id, account, self_account, password } = query || {};
     const qb = this.userRepository.createQueryBuilder('user');
-    qb.where('user.user_status = :status', { status: '1' });
     if (id) {
       qb.andWhere('user.id = :id', { id });
     }
@@ -99,7 +99,7 @@ export class UserService {
     const {
       pageNum = 1,
       pageSize = 10,
-      isPaging = true,
+      isPaging = 1,
       ids,
       account,
       self_account,
@@ -219,26 +219,44 @@ export class UserService {
   }
 
   /* 假刪除用户 */
-  async removeUser(id: number) {
-    const existPost = await this.findOneUser({ id });
-    if (!existPost) {
-      return ResultMsg.fail(Msg.DATA_NOEXIST);
-    }
-    const res = this.userRepository.merge(existPost, { user_status: '0' });
-    const saveres = await this.userRepository.save(res);
-    if (saveres) {
+  async softDeleteUser(data: IdsDto) {
+    const { ids = [] } = data || {};
+    console.log(data);
+
+    const delRes = await this.userRepository
+      .createQueryBuilder('user')
+      .softDelete()
+      .where('id IN (:...ids)', { ids })
+      .execute();
+    if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
   }
 
+  /* 恢复用户数据 */
+  async restoreUser(data: IdsDto) {
+    const { ids = [] } = data || {};
+    const delRes = await this.userRepository
+      .createQueryBuilder('user')
+      .restore()
+      .where('id IN (:...ids)', { ids })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(Msg.RESTORE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.RESTORE_FAIL);
+    }
+  }
+
   /* 真刪除用户*/
-  async deleteUser(id: number) {
+  async deleteUser(data: IdsDto) {
+    const { ids = [] } = data || {};
     const delRes = await this.userRepository
       .createQueryBuilder('user')
       .delete()
-      .where('id = :id', { id })
+      .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);

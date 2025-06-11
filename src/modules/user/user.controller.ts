@@ -17,11 +17,12 @@ import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UserLoginBypasswordDto } from './dto/user-login-password.dto';
 import { MailOrAccountValidationPipe } from './pipe/mail-or-account.pipe';
 import { UserLoginBycodeDto } from './dto/user-login-code.dto';
-import { FindAllUserDto } from './dto/findAll-user.dto';
+import { FindAllUserDto } from './dto/findall-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { FindOneUserDto } from './dto/findOne-user.dto';
-import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
+import { FindOneUserDto } from './dto/findone-user.dto';
+import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
 import { Request } from 'express';
+import { IdsDto } from 'src/commom/dto/commom.dto';
 
 @ApiTags('用户信息')
 @ApiBearerAuth()
@@ -72,13 +73,13 @@ export class UserController {
   @ApiOperation({ summary: '获取所有用户信息' })
   @Roles(Role.Admin)
   @Get('list')
-  async findAll(@Query(BooleanFromStringPipe) query: FindAllUserDto) {
+  async findAll(@Query(EmptyQueryPipe) query: FindAllUserDto) {
     return await this.userService.findAllUser(query);
   }
 
   @ApiOperation({ summary: '获取指定用户信息' })
   @Get('detail')
-  async findById(@Query() query: FindOneUserDto) {
+  async findById(@Query(EmptyQueryPipe) query: FindOneUserDto) {
     return await this.userService.findOneUser(query);
   }
 
@@ -89,10 +90,24 @@ export class UserController {
     return await this.userService.updateUser(updateUserDto);
   }
 
-  @ApiOperation({ summary: '删除用户' })
+  @ApiOperation({ summary: '软删除用户' })
   @Roles(Role.Admin)
   @Delete('del')
-  async remove(@Query('id') id: number) {
-    return await this.userService.removeUser(id);
+  async remove(@Query() query: IdsDto) {
+    return await this.userService.softDeleteUser(query);
+  }
+
+  @ApiOperation({ summary: '恢复用户' })
+  @Roles(Role.Admin)
+  @Post('restore')
+  async restore(@Query() query: IdsDto) {
+    return await this.userService.restoreUser(query);
+  }
+
+  @ApiOperation({ summary: '真删除用户' })
+  @Roles(Role.Admin)
+  @Delete('realDel')
+  async realRemove(@Query() query: IdsDto) {
+    return await this.userService.deleteUser(query);
   }
 }

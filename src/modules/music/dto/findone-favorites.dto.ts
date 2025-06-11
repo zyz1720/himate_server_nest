@@ -5,8 +5,8 @@ export class FindOneFavoritesDto {
   @ApiPropertyOptional({ description: '歌单id' })
   readonly id?: number;
 
-  @ApiPropertyOptional({ description: '是否查找音乐', default: true })
-  readonly isFindMusic?: boolean;
+  @ApiPropertyOptional({ description: '是否查找音乐', enum: NumericStatus })
+  readonly isFindMusic?: number;
 
   @ApiPropertyOptional({ description: '创建者id' })
   readonly creator_uid?: number;
@@ -15,5 +15,5 @@ export class FindOneFavoritesDto {
   readonly favorites_name?: string;
 
   @ApiPropertyOptional({ description: '是否是默认收藏夹', enum: NumericStatus })
-  readonly is_default?: string;
+  readonly is_default?: number;
 }

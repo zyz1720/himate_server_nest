@@ -12,7 +12,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { FindAllGroupDto } from './dto/findall-group.dto';
-import { BooleanFromStringPipe } from 'src/commom/pipe/string-boolean.pipe';
 
 @ApiTags('群组')
 @ApiBearerAuth()
@@ -28,7 +27,7 @@ export class GroupController {
 
   @ApiOperation({ summary: '群组列表' })
   @Get('list')
-  findAll(@Query(BooleanFromStringPipe) query: FindAllGroupDto) {
+  findAll(@Query() query: FindAllGroupDto) {
     return this.groupService.findAllGroup(query);
   }
 

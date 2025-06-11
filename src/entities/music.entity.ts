@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { favoritesEntity } from './favorites.entity';
 import { musicMoreEntity } from './music-more.entity';
@@ -14,7 +15,7 @@ import { musicMoreEntity } from './music-more.entity';
 @Entity('music')
 export class musicEntity {
   @PrimaryGeneratedColumn({ comment: '音乐自增id' })
-  id: number; // 标记为主列，值自动生成
+  id: number;
 
   @Column({ length: 96, comment: '文件名' })
   file_name: string;
@@ -64,4 +65,7 @@ export class musicEntity {
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 }

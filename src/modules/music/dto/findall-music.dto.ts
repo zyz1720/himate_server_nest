@@ -11,8 +11,12 @@ export class FindAllMusicDto extends PartialType(FindAllDto) {
   })
   readonly ids?: number[];
 
-  @ApiPropertyOptional({ description: '是否分页', default: true })
-  readonly isPaging?: boolean;
+  @ApiPropertyOptional({
+    description: '是否分页',
+    enum: NumericStatus,
+    default: NumericStatus.True,
+  })
+  readonly isPaging?: number;
 
   @ApiPropertyOptional({
     description: '文件名称',
@@ -79,10 +83,10 @@ export class FindAllFavoritesDto extends PartialType(FindAllDto) {
     description: '是否公开(0:私密, 1:公开)',
     enum: NumericStatus,
   })
-  readonly is_public?: string;
+  readonly is_public?: number;
 
   @ApiPropertyOptional({ description: '是否是默认收藏夹', enum: NumericStatus })
-  readonly is_default?: string;
+  readonly is_default?: number;
 }
 
 export class FindMusicMoreDto {

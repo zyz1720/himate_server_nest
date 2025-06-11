@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -13,7 +14,7 @@ import { NumericStatus } from 'src/commom/constants/base-enum.const';
 @Entity('favorites')
 export class favoritesEntity {
   @PrimaryGeneratedColumn({ comment: '文件自增id' })
-  id: number; // 标记为主列，值自动生成
+  id: number;
 
   @Column({ type: 'int', comment: '创建者id' })
   creator_uid: number;
@@ -44,20 +45,18 @@ export class favoritesEntity {
   favorites_remark: string;
 
   @Column({
-    type: 'enum',
-    enum: NumericStatus,
+    type: 'tinyint',
     comment: '是否公开(0:私密, 1:公开)',
     default: NumericStatus.False,
   })
-  is_public: string;
+  is_public: number;
 
   @Column({
-    type: 'enum',
-    enum: NumericStatus,
+    type: 'tinyint',
     comment: '是否是默认收藏夹(0:否, 1:是)',
     default: NumericStatus.False,
   })
-  is_default: string;
+  is_default: number;
 
   @ManyToMany(() => musicEntity, {
     cascade: true,
@@ -72,4 +71,7 @@ export class favoritesEntity {
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 }

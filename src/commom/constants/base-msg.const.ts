@@ -28,4 +28,6 @@ export const Msg = {
   EXPORT_FAIL: '导出失败',
   IMPORT_SUCCESS: '导入成功',
   IMPORT_FAIL: '导入失败',
+  RESTORE_SUCCESS: '恢复成功',
+  RESTORE_FAIL: '恢复失败',
 };

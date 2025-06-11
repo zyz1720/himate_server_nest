@@ -4,6 +4,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Index,
+  DeleteDateColumn,
 } from 'typeorm';
 import {
   MessageType as FileType,
@@ -42,4 +43,7 @@ export class fileEntity {
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 }

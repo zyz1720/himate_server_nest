@@ -37,6 +37,7 @@ import {
   FileUseType,
   MessageType as FileType,
   HandleType,
+  NumericStatus,
 } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
@@ -247,7 +248,7 @@ export class MusicService {
   async addFavorites(data: AddMusicFavoritesDto) {
     const { creator_uid } = data || {};
     const existPost = await this.findOneFavorites({
-      isFindMusic: false,
+      isFindMusic: NumericStatus.False,
       ...data,
     });
     if (existPost) {
@@ -287,7 +288,7 @@ export class MusicService {
     if (musicIds) {
       const musicRes = await this.findAllMusic({
         ids: musicIds,
-        isPaging: false,
+        isPaging: NumericStatus.False,
       });
       if (handleType === HandleType.Add) {
         existPost.music.unshift(...musicRes.list);
@@ -327,7 +328,7 @@ export class MusicService {
       where: {
         creator_uid,
         favorites_name: BaseConst.DefaultFavoritesName,
-        is_default: '1',
+        is_default: NumericStatus.True,
       },
     });
     if (!existPost) {
@@ -337,7 +338,7 @@ export class MusicService {
       }
       const favoritesForm = {
         ...data,
-        is_default: '1',
+        is_default: NumericStatus.True,
         favorites_name: BaseConst.DefaultFavoritesName,
         creator_name: user.user_name,
         creator_avatar: user.user_avatar,
@@ -633,7 +634,7 @@ export class MusicService {
           }
           const existPost = await this.findOneFavorites({
             creator_uid: uid,
-            isFindMusic: false,
+            isFindMusic: NumericStatus.False,
             favorites_name: title,
           });
           if (existPost) {

@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   PrimaryGeneratedColumn,
@@ -11,7 +12,7 @@ import { MateStatus } from 'src/commom/constants/base-enum.const';
 @Entity('mate')
 export class mateEntity {
   @PrimaryGeneratedColumn({ comment: '好友自增id' })
-  id: number; // 标记为主列，值自动生成
+  id: number;
 
   @Index({ unique: true })
   @Column({ length: 36, comment: '随机好友id' })
@@ -51,4 +52,7 @@ export class mateEntity {
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 }

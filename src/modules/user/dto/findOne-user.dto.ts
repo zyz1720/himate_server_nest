@@ -1,5 +1,5 @@
 import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
-import { FindAllUserDto } from './findAll-user.dto';
+import { FindAllUserDto } from './findall-user.dto';
 
 export class FindOneUserDto extends PickType(FindAllUserDto, [
   'account',

@@ -3,6 +3,7 @@ import {
   BeforeUpdate,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -22,7 +23,7 @@ import { Exclude } from 'class-transformer';
 @Entity('user')
 export class userEntity {
   @PrimaryGeneratedColumn({ comment: '用户id' })
-  id: number; // 标记为主列，值自动生成
+  id: number;
 
   @Column({ length: 48, default: '普通用户', comment: '用户名' })
   user_name: string;
@@ -68,18 +69,20 @@ export class userEntity {
   password: string;
 
   @Column({
-    type: 'enum',
-    enum: NumericStatus,
-    default: NumericStatus.True,
+    type: 'tinyint',
     comment: '用户状态(1:正常 0:禁用)',
+    default: NumericStatus.True,
   })
-  user_status: string;
+  user_status: number;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
 
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
+  delete_time: Date;
 
   @BeforeInsert()
   handleUserData() {

@@ -1,13 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import { IsDateString, IsNotEmpty, IsEmail } from 'class-validator';
 
 // 分页查询参数
 export class FindAllDto {
   //ApiProperty是对数据类型的描述
   @ApiPropertyOptional({ description: '页数', default: 1 })
+  @Type(() => Number)
   readonly pageNum?: number;
 
   @ApiPropertyOptional({ description: '条数', default: 10 })
+  @Type(() => Number)
   readonly pageSize?: number;
 }
 
@@ -37,6 +40,9 @@ export class IdsDto {
     items: { type: 'number' },
     required: true,
   })
+  @IsNotEmpty({ message: 'id列表不能为空' })
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  @Type(() => Number)
   readonly ids: number[];
 }
 
