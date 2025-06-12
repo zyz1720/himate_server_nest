@@ -42,6 +42,7 @@ export class ChatController {
   }
 
   @ApiOperation({ summary: '修改消息' })
+  @Roles(Role.Admin)
   @Put('edit')
   update(@Body() data: UpdateChatDto) {
     return this.chatService.updateChatmsg(data);

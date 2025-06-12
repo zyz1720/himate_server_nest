@@ -29,11 +29,16 @@ export class AppPackageService {
 
   /* 查询所有应用包 */
   async findAllAppPackage(query: FindAllDto) {
-    const { pageNum = 0, pageSize = 10 } = query || {};
+    const { pageNum = 0, pageSize = 10, isPaging = 1, ids } = query || {};
     const qb = this.appPackageRepository.createQueryBuilder('app_package');
+    if (ids) {
+      qb.andWhere('id IN (:...ids)', { ids });
+    }
     qb.orderBy('create_time');
-    qb.limit(pageSize);
-    qb.offset(pageSize * pageNum);
+    if (isPaging) {
+      qb.limit(pageSize);
+      qb.offset(pageSize * pageNum);
+    }
     const count = await qb.getCount();
     const data = await qb.getMany();
     return ResultList.list(data, count);
@@ -53,8 +58,8 @@ export class AppPackageService {
       });
     }
     if (app_version) {
-      qb.andWhere('app_version LIKE :version', {
-        version: `%${app_version}%`,
+      qb.andWhere('app_version = :version', {
+        version: app_version,
       });
     }
     if (app_description) {

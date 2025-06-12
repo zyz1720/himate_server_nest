@@ -31,7 +31,6 @@ export class AppPackageController {
   }
 
   @ApiOperation({ summary: 'app包列表' })
-  @Roles(Role.Admin)
   @Get('list')
   findAll(@Query() query: FindAllDto) {
     return this.appPackageService.findAllAppPackage(query);
