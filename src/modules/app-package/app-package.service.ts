@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { AddAppPackageDto } from './dto/add-app-package.dto';
 import { FindOneAppPackageDto } from './dto/findone-app-package.dto';
 import { UpdateAppPackageDto } from './dto/update-app-package.dto';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
+import { FindAllDto, IdsDto } from 'src/commom/dto/commom.dto';
 import { ResultList, ResultMsg } from 'src/commom/utils/result';
 import { Msg } from 'src/commom/constants/base-msg.const';
 
@@ -29,11 +29,11 @@ export class AppPackageService {
 
   /* 查询所有应用包 */
   async findAllAppPackage(query: FindAllDto) {
-    const { pageNum = 1, pageSize = 10 } = query || {};
+    const { pageNum = 0, pageSize = 10 } = query || {};
     const qb = this.appPackageRepository.createQueryBuilder('app_package');
-    qb.orderBy('app_package.create_time');
+    qb.orderBy('create_time');
     qb.limit(pageSize);
-    qb.offset(pageSize * (pageNum - 1));
+    qb.offset(pageSize * pageNum);
     const count = await qb.getCount();
     const data = await qb.getMany();
     return ResultList.list(data, count);
@@ -45,29 +45,29 @@ export class AppPackageService {
       query || {};
     const qb = this.appPackageRepository.createQueryBuilder('app_package');
     if (id) {
-      qb.where('app_package.id = :id', { id });
+      qb.andWhere('id = :id', { id });
     }
     if (app_name) {
-      qb.where('app_package.app_name = :name', {
+      qb.andWhere('app_name = :name', {
         name: app_name,
       });
     }
     if (app_version) {
-      qb.where('app_package.app_version LIKE :version', {
+      qb.andWhere('app_version LIKE :version', {
         version: `%${app_version}%`,
       });
     }
     if (app_description) {
-      qb.where('app_package.app_description LIKE :description', {
+      qb.andWhere('app_description LIKE :description', {
         description: `%${app_description}%`,
       });
     }
     if (app_fileName) {
-      qb.where('app_package.app_fileName LIKE :fileName', {
+      qb.andWhere('app_fileName LIKE :fileName', {
         fileName: `%${app_fileName}%`,
       });
     }
-    qb.orderBy('app_package.create_time', 'DESC');
+    qb.orderBy('create_time', 'DESC');
     qb.take(1);
     const appPackageData = await qb.getOne();
     return appPackageData;
@@ -76,12 +76,11 @@ export class AppPackageService {
   /* 修改应用包 */
   async updateAppPackage(data: UpdateAppPackageDto) {
     const { id } = data || {};
-    delete data.id;
     const updateRes = await this.appPackageRepository
       .createQueryBuilder('app_package')
       .update()
       .set({ ...data })
-      .where('app_package.id = :id', { id })
+      .where('id = :id', { id })
       .execute();
     if (updateRes.affected) {
       return ResultMsg.ok(Msg.UPDATE_SUCCESS, updateRes.generatedMaps[0]);
@@ -90,12 +89,13 @@ export class AppPackageService {
     }
   }
 
-  /* 删除应用包 */
-  async removeAppPackage(id: number) {
+  /* 软删除应用包 */
+  async softDeleteAppPackage(data: IdsDto) {
+    const { ids = [] } = data || {};
     const delRes = await this.appPackageRepository
       .createQueryBuilder('app_package')
       .softDelete()
-      .where('app_package.id = :id', { id })
+      .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);
@@ -105,11 +105,27 @@ export class AppPackageService {
   }
 
   /* 恢复应用包 */
-  async restoreAppPackage(id: number) {
+  async restoreAppPackage(data: IdsDto) {
+    const { ids = [] } = data || {};
     const delRes = await this.appPackageRepository
       .createQueryBuilder('app_package')
       .restore()
-      .where('app_package.id = :id', { id })
+      .where('id IN (:...ids)', { ids })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(Msg.RESTORE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.RESTORE_FAIL);
+    }
+  }
+
+  /* 真刪除应用包*/
+  async deleteAppPackage(data: IdsDto) {
+    const { ids = [] } = data || {};
+    const delRes = await this.appPackageRepository
+      .createQueryBuilder('app_package')
+      .delete()
+      .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);

@@ -93,21 +93,21 @@ export class UserController {
   @ApiOperation({ summary: '软删除用户' })
   @Roles(Role.Admin)
   @Delete('del')
-  async remove(@Query() query: IdsDto) {
-    return await this.userService.softDeleteUser(query);
+  async remove(@Body() data: IdsDto) {
+    return await this.userService.softDeleteUser(data);
   }
 
   @ApiOperation({ summary: '恢复用户' })
   @Roles(Role.Admin)
   @Post('restore')
-  async restore(@Query() query: IdsDto) {
-    return await this.userService.restoreUser(query);
+  async restore(@Body() data: IdsDto) {
+    return await this.userService.restoreUser(data);
   }
 
   @ApiOperation({ summary: '真删除用户' })
   @Roles(Role.Admin)
   @Delete('realDel')
-  async realRemove(@Query() query: IdsDto) {
-    return await this.userService.deleteUser(query);
+  async realRemove(@Body() data: IdsDto) {
+    return await this.userService.deleteUser(data);
   }
 }

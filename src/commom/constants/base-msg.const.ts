@@ -30,4 +30,6 @@ export const Msg = {
   IMPORT_FAIL: '导入失败',
   RESTORE_SUCCESS: '恢复成功',
   RESTORE_FAIL: '恢复失败',
+  PARAMS_EMPTY: '未提供参数',
+  PARAMS_ERROR: '无效的参数',
 };

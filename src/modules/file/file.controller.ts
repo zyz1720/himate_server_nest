@@ -6,6 +6,7 @@ import { DownloadFileDto } from './dto/add-file.dto';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
 import { IdsDto } from 'src/commom/dto/commom.dto';
+import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
 
 @ApiTags('文件管理')
 @ApiBearerAuth()
@@ -23,17 +24,13 @@ export class FileController {
 
   @ApiOperation({ summary: '查找文件' })
   @Get('list')
-  async findAll(@Query() query: FindAllFileDto) {
-    console.log(query);
-
+  async findAll(@Query(EmptyQueryPipe) query: FindAllFileDto) {
     return this.fileService.findAllFile(query);
   }
 
   @ApiOperation({ summary: '删除文件' })
   @Delete('del')
   async remove(@Query() query: IdsDto) {
-    console.log(query);
-
     return this.fileService.deleteFile(query);
   }
 

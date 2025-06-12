@@ -36,7 +36,7 @@ export class UploadController {
     @UploadedFile(
       // 文件验证
       new ParseFilePipe({
-        validators: [new MaxFileSizeValidator({ maxSize: 1000000000 })],
+        validators: [new MaxFileSizeValidator({ maxSize: 1000 * 1024 * 1024 })],
       }),
     )
     file: Express.Multer.File,

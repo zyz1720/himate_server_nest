@@ -17,6 +17,7 @@ import { BaseConst } from 'src/commom/constants/base.const';
 import { FindOneUserDto } from './dto/findone-user.dto';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
 import { IdsDto } from 'src/commom/dto/commom.dto';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class UserService {
@@ -97,9 +98,9 @@ export class UserService {
   /* 获取用户列表 */
   async findAllUser(query: FindAllUserDto) {
     const {
-      pageNum = 1,
+      pageNum = 0,
       pageSize = 10,
-      isPaging = 1,
+      isPaging = NumericStatus.True,
       ids,
       account,
       self_account,
@@ -132,7 +133,7 @@ export class UserService {
     const count = await qb.getCount();
     if (isPaging) {
       qb.limit(pageSize);
-      qb.offset(pageSize * (pageNum - 1));
+      qb.offset(pageSize * pageNum);
     }
     const data = await qb.getMany();
     return ResultList.list(data, count);
@@ -221,8 +222,6 @@ export class UserService {
   /* 假刪除用户 */
   async softDeleteUser(data: IdsDto) {
     const { ids = [] } = data || {};
-    console.log(data);
-
     const delRes = await this.userRepository
       .createQueryBuilder('user')
       .softDelete()

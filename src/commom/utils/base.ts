@@ -53,7 +53,7 @@ export function createRandomNumber(): string {
 }
 
 /* 计算年龄 */
-export function CalculateAge(time: Date): number {
+export function calculateAge(time: Date): number {
   const nowDate = new Date();
   const nowYear = nowDate.getFullYear();
   const birthDate = new Date(time);

@@ -1,11 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
-import { ChatType, MessageType } from 'src/commom/constants/base-enum.const';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsUUID,
+  Max,
+  IsByteLength,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
+import {
+  ChatType,
+  MessageType,
+  DataLength,
+} from 'src/commom/constants/base-enum.const';
 
 export class CreateChatDto {
   @ApiProperty({ description: '会话id', required: true })
   @IsNotEmpty({ message: '缺少会话id' })
   @IsString()
+  @IsUUID()
   readonly session_id: string;
 
   @ApiProperty({
@@ -13,10 +27,13 @@ export class CreateChatDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少发送方id' })
+  @Max(DataLength.INT)
   @IsNumber()
   send_uid: number;
 
   @ApiPropertyOptional({ description: '发送方iP' })
+  @IsByteLength(0, DataLength.Medium)
+  @IsOptional()
   send_ip?: string;
 
   @ApiProperty({ description: '消息数据', required: true })
@@ -25,6 +42,8 @@ export class CreateChatDto {
   msgdata: string;
 
   @ApiPropertyOptional({ description: '消息秘钥' })
+  @IsOptional()
+  @IsByteLength(0, DataLength.Long)
   msg_secret?: string;
 
   @ApiProperty({
@@ -34,7 +53,7 @@ export class CreateChatDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少会话类型' })
-  @IsString()
+  @IsEnum(ChatType)
   chat_type: string;
 
   @ApiProperty({
@@ -44,6 +63,6 @@ export class CreateChatDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少消息类型' })
-  @IsString()
+  @IsEnum(MessageType)
   msg_type: string;
 }

@@ -136,7 +136,7 @@ export class SessionService {
   /* 查询用户会话列表 */
   async findAllSessionByUid(query: FindAllSessionDto) {
     const {
-      pageNum = 1,
+      pageNum = 0,
       pageSize = 10,
       uid,
       msg_status,
@@ -178,7 +178,7 @@ export class SessionService {
     // 3. 分页逻辑
     const count = await qb.getCount();
     qb.limit(pageSize);
-    qb.offset(pageSize * (pageNum - 1));
+    qb.offset(pageSize * pageNum);
 
     const data = await qb.getMany();
 

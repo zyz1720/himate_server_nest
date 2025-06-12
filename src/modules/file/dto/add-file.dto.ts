@@ -1,13 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsIn, IsNotEmpty, IsNumber } from 'class-validator';
 import {
   FileUseType,
   MessageType as FileType,
+  NumericStatus,
 } from 'src/commom/constants/base-enum.const';
 
 export class AddFileDto {
   @ApiProperty({ description: '用户id', required: true })
   @IsNotEmpty({ message: '缺少用户id' })
+  @IsNumber()
   readonly uid: number;
 
   @ApiProperty({
@@ -16,6 +18,7 @@ export class AddFileDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少文件类型' })
+  @IsIn(Object.values(FileType))
   readonly file_type: string;
 
   @ApiProperty({
@@ -24,19 +27,22 @@ export class AddFileDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少文件使用场景' })
+  @IsIn(Object.values(FileUseType))
   readonly use_type: string;
 
   @ApiPropertyOptional({
     description: '是否解析文件',
-    default: true,
+    default: NumericStatus.False,
   })
-  readonly isParser?: boolean;
+  @IsIn(Object.values(NumericStatus))
+  readonly isParser?: number;
 
   @ApiPropertyOptional({
     description: '是否为文件名添加时间戳',
-    default: false,
+    default: NumericStatus.False,
   })
-  readonly isAddTimeStamp?: boolean;
+  @IsIn(Object.values(NumericStatus))
+  readonly isAddTimeStamp?: number;
 }
 
 export class DownloadFileDto extends AddFileDto {

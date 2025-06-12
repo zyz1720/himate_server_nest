@@ -9,7 +9,10 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { groupMemberEntity } from './group-member.entity';
-import { MemberStatus as GroupStatus } from 'src/commom/constants/base-enum.const';
+import {
+  MemberStatus as GroupStatus,
+  DataLength,
+} from 'src/commom/constants/base-enum.const';
 
 @Entity('group')
 export class groupEntity {
@@ -17,17 +20,17 @@ export class groupEntity {
   id: number; // 标记为主列，值自动生成
 
   @Index({ unique: true })
-  @Column({ length: 36, comment: '群组uuid' })
+  @Column({ length: DataLength.UUID, comment: '群组uuid' })
   group_id: string;
 
   @Column({ type: 'int', comment: '群组所属用户id' })
   creator_uid: number;
 
-  @Column({ length: 48, default: null, comment: '群组名称' })
+  @Column({ length: DataLength.Medium, default: null, comment: '群组名称' })
   group_name: string;
 
   @Column({
-    length: 96,
+    length: DataLength.Long,
     default: 'default_group_avatar.jpg',
     comment: '群组头像',
   })

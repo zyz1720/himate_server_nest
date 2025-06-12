@@ -15,6 +15,7 @@ import {
   ChatType,
   MessageType,
   MessageStatus,
+  DataLength,
 } from 'src/commom/constants/base-enum.const';
 
 @Entity('chat')
@@ -22,17 +23,17 @@ export class chatEntity {
   @PrimaryGeneratedColumn({ comment: '聊天自增id' })
   id: number;
 
-  @Column({ length: 36, comment: '客户端消息id' })
+  @Column({ length: DataLength.UUID, comment: '客户端消息id' })
   clientMsg_id: string;
 
   @Index()
-  @Column({ length: 36, comment: '关联生成的会话id' })
+  @Column({ length: DataLength.UUID, comment: '关联生成的会话id' })
   session_id: string;
 
   @Column({ type: 'int', comment: '发送方id' })
   send_uid: number;
 
-  @Column({ length: 48, default: null, comment: '发送方ip' })
+  @Column({ length: DataLength.Medium, default: null, comment: '发送方ip' })
   send_ip: string;
 
   @Column({
@@ -43,7 +44,7 @@ export class chatEntity {
   })
   msgdata: string;
 
-  @Column({ length: 96, default: null, comment: '消息密钥' })
+  @Column({ length: DataLength.Long, default: null, comment: '消息密钥' })
   msg_secret: string;
 
   @Column({

@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import {
-  CalculateAge,
+  calculateAge,
   createUUID,
   encryptPassword,
 } from 'src/commom/utils/base';
@@ -17,6 +17,7 @@ import {
   Gender,
   Role,
   NumericStatus,
+  DataLength,
 } from 'src/commom/constants/base-enum.const';
 import { Exclude } from 'class-transformer';
 
@@ -25,11 +26,11 @@ export class userEntity {
   @PrimaryGeneratedColumn({ comment: '用户id' })
   id: number;
 
-  @Column({ length: 48, default: '普通用户', comment: '用户名' })
+  @Column({ length: DataLength.Medium, default: '普通用户', comment: '用户名' })
   user_name: string;
 
   @Column({
-    length: 96,
+    length: DataLength.Long,
     default: 'default_user_avatar.jpg',
     comment: '用户头像',
   })
@@ -49,10 +50,10 @@ export class userEntity {
   @Column({ type: 'tinyint', default: null, comment: '年龄' })
   age: number;
 
-  @Column({ length: 48, comment: '账号' })
+  @Column({ length: DataLength.Medium, comment: '账号' })
   account: string;
 
-  @Column({ length: 48, comment: '自定义账号' })
+  @Column({ length: DataLength.Medium, comment: '自定义账号' })
   self_account: string;
 
   @Column({
@@ -65,7 +66,7 @@ export class userEntity {
 
   // 查询时隐藏密码
   @Exclude()
-  @Column({ length: 200, select: false, comment: '用户密码' })
+  @Column({ length: DataLength.HASH, select: false, comment: '用户密码' })
   password: string;
 
   @Column({
@@ -93,6 +94,6 @@ export class userEntity {
   @BeforeUpdate()
   updateAge() {
     // 计算年龄
-    this.age = CalculateAge(this.birthday);
+    this.age = calculateAge(this.birthday);
   }
 }

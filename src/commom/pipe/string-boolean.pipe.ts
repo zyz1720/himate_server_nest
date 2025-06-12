@@ -5,7 +5,6 @@ export class BooleanFromStringPipe implements PipeTransform {
   private readonly booleanKeys = [
     'isPaging',
     'isFindMusic',
-    'isForce',
     'ekey',
     'isParser',
   ];

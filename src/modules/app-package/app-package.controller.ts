@@ -12,9 +12,10 @@ import { AppPackageService } from './app-package.service';
 import { AddAppPackageDto } from './dto/add-app-package.dto';
 import { FindOneAppPackageDto } from './dto/findone-app-package.dto';
 import { UpdateAppPackageDto } from './dto/update-app-package.dto';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
+import { FindAllDto, IdsDto } from 'src/commom/dto/commom.dto';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
+import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
 
 @ApiTags('应用包管理')
 @ApiBearerAuth()
@@ -38,7 +39,7 @@ export class AppPackageController {
 
   @ApiOperation({ summary: '获取app包详情' })
   @Get('detail')
-  findOne(@Query() query: FindOneAppPackageDto) {
+  findOne(@Query(EmptyQueryPipe) query: FindOneAppPackageDto) {
     return this.appPackageService.findOneAppPackage(query);
   }
 
@@ -49,17 +50,24 @@ export class AppPackageController {
     return this.appPackageService.updateAppPackage(data);
   }
 
-  @ApiOperation({ summary: '删除app包' })
+  @ApiOperation({ summary: '软删除app包' })
   @Roles(Role.Admin)
   @Delete('del')
-  remove(@Query('id') id: number) {
-    return this.appPackageService.removeAppPackage(id);
+  remove(@Body() data: IdsDto) {
+    return this.appPackageService.softDeleteAppPackage(data);
   }
 
   @ApiOperation({ summary: '恢复app包' })
   @Roles(Role.Admin)
   @Post('restore')
-  restore(@Query('id') id: number) {
-    return this.appPackageService.restoreAppPackage(id);
+  restore(@Body() data: IdsDto) {
+    return this.appPackageService.restoreAppPackage(data);
+  }
+
+  @ApiOperation({ summary: '真删除app包' })
+  @Roles(Role.Admin)
+  @Delete('realDel')
+  realRemove(@Body() data: IdsDto) {
+    return this.appPackageService.deleteAppPackage(data);
   }
 }

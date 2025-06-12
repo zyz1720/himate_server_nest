@@ -1,9 +1,8 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
 import { MateStatus } from 'src/commom/constants/base-enum.const';
 
-export class FindMateStatusDto extends PartialType(FindAllDto) {
+export class FindMateStatusDto {
   @ApiProperty({ description: '用户自己的id', required: true })
   @IsNotEmpty({ message: '缺少用户自己的id' })
   readonly selfUid: number;

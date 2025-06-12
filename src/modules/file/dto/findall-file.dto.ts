@@ -1,59 +1,62 @@
-import { ApiPropertyOptional, ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsDateString, IsOptional } from 'class-validator';
+import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsEnum,
+  IsHash,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { FindAllDto } from 'src/commom/dto/commom.dto';
 import {
   FileUseType,
   MessageType as FileType,
 } from 'src/commom/constants/base-enum.const';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export class FindAllFileDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({
-    description: '文件id列表',
-    type: 'array',
-    items: { type: 'number' },
-  })
-  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
-  @Type(() => Number)
-  readonly ids?: number[];
-
-  @ApiPropertyOptional({ description: '是否分页', default: 1 })
-  @Type(() => Number)
-  readonly isPaging?: number;
-
-  @ApiPropertyOptional({
     description: '文件名称',
   })
+  @IsOptional()
   readonly file_name?: string;
 
   @ApiPropertyOptional({
     description: '文件大小',
   })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
   readonly file_size?: number;
 
   @ApiPropertyOptional({
     description: '文件类型',
     enum: FileType,
   })
+  @IsOptional()
+  @IsEnum(FileType)
   readonly file_type?: string;
 
   @ApiPropertyOptional({
     description: '使用场景',
     enum: FileUseType,
   })
+  @IsOptional()
+  @IsEnum(FileUseType)
   readonly use_type?: string;
 
-  @ApiPropertyOptional({ description: '文件hash值' })
+  @ApiPropertyOptional({ description: '文件hash值', required: false })
+  @IsOptional()
+  @IsHash('sha256')
   readonly file_hash?: string;
 
   @ApiPropertyOptional({
     description: '上传用户id',
   })
+  @IsOptional()
   readonly upload_uid?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '上传时间',
-    required: false,
   })
   @IsOptional()
   @IsDateString()

@@ -8,8 +8,9 @@ import { Msg } from 'src/commom/constants/base-msg.const';
 import { ResultMsg, ResultList } from 'src/commom/utils/result';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { SessionService } from '../session/session.service';
-import { DateDto, IdsDto } from 'src/commom/dto/commom.dto';
+import { IdsDto } from 'src/commom/dto/commom.dto';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class ChatService {
@@ -66,9 +67,9 @@ export class ChatService {
       msgdata,
       msg_status,
       session_id,
-      pageNum = 1,
+      pageNum = 0,
       pageSize = 10,
-      isPaging = true,
+      isPaging = NumericStatus.True,
     } = query || {};
     const qb = this.chatRepository.createQueryBuilder('chat');
     if (send_uid) {
@@ -92,7 +93,7 @@ export class ChatService {
     qb.orderBy('chat.create_time', 'DESC');
     if (isPaging) {
       qb.limit(pageSize);
-      qb.offset(pageSize * (pageNum - 1));
+      qb.offset(pageSize * pageNum);
     }
 
     const count = await qb.getCount();
@@ -125,12 +126,26 @@ export class ChatService {
     }
   }
 
-  /* 删除聊天信息 */
-  async removeChatmsg(data: IdsDto) {
+  /* 软删除某个会话的全部聊天信息 */
+  async removeMoreChatmsg(session_id: string) {
+    const delRes = await this.chatRepository
+      .createQueryBuilder('chat')
+      .softDelete()
+      .where('session_id = :id', { id: session_id })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
+  }
+
+  /* 软删除聊天信息 */
+  async softDeleteChatmsg(data: IdsDto) {
     const { ids } = data || {};
     const delRes = await this.chatRepository
       .createQueryBuilder('chat')
-      .delete()
+      .softDelete()
       .where('id IN (:...ids)', { ids: [...ids] })
       .execute();
     if (delRes.affected) {
@@ -140,31 +155,28 @@ export class ChatService {
     }
   }
 
-  /* 删除某个会话的全部聊天信息 */
-  async removeMoreChatmsg(session_id: string) {
+  /* 恢复聊天信息 */
+  async restoreChatmsg(data: IdsDto) {
+    const { ids = [] } = data || {};
     const delRes = await this.chatRepository
       .createQueryBuilder('chat')
-      .delete()
-      .where('chat.session_id = :id', { id: session_id })
+      .restore()
+      .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(Msg.RESTORE_SUCCESS);
     } else {
-      return ResultMsg.fail(Msg.DELETE_FAIL);
+      return ResultMsg.fail(Msg.RESTORE_FAIL);
     }
   }
 
-  /* 删除某段时间之前的已读的全部聊天信息 */
-  async removeReadChatmsg(query: DateDto) {
-    const { date } = query || {};
-    const prevDate = new Date(date);
+  /* 真刪除聊天信息*/
+  async deleteChatmsg(data: IdsDto) {
+    const { ids = [] } = data || {};
     const delRes = await this.chatRepository
       .createQueryBuilder('chat')
       .delete()
-      .where('chat.create_time < :date AND chat.msg_status = :status', {
-        date: prevDate,
-        status: 'read',
-      })
+      .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);

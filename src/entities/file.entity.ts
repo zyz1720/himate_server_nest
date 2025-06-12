@@ -9,6 +9,7 @@ import {
 import {
   MessageType as FileType,
   FileUseType,
+  DataLength,
 } from 'src/commom/constants/base-enum.const';
 
 @Entity('file')
@@ -17,7 +18,7 @@ export class fileEntity {
   id: number;
 
   @Index({ unique: true })
-  @Column({ length: 96, comment: '文件名' })
+  @Column({ length: DataLength.Long, comment: '文件名' })
   file_name: string;
 
   @Column({ type: 'int', comment: '文件大小' })
@@ -35,7 +36,7 @@ export class fileEntity {
   use_type: string;
 
   @Index()
-  @Column({ length: 64, comment: '文件hash' })
+  @Column({ length: DataLength.HASH, comment: '文件hash' })
   file_hash: string;
 
   @Column({ type: 'int', comment: '上传者id' })

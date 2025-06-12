@@ -9,7 +9,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { musicEntity } from './music.entity';
-import { NumericStatus } from 'src/commom/constants/base-enum.const';
+import {
+  NumericStatus,
+  DataLength,
+} from 'src/commom/constants/base-enum.const';
 
 @Entity('favorites')
 export class favoritesEntity {
@@ -19,17 +22,17 @@ export class favoritesEntity {
   @Column({ type: 'int', comment: '创建者id' })
   creator_uid: number;
 
-  @Column({ length: 48, comment: '创建者昵称' })
+  @Column({ length: DataLength.Medium, comment: '创建者昵称' })
   creator_name: string;
 
-  @Column({ length: 96, comment: '创建者头像' })
+  @Column({ length: DataLength.Long, comment: '创建者头像' })
   creator_avatar: string;
 
-  @Column({ length: 96, comment: '收藏夹名' })
+  @Column({ length: DataLength.Long, comment: '收藏夹名' })
   favorites_name: string;
 
   @Column({
-    length: 96,
+    length: DataLength.Long,
     comment: '收藏夹封面',
     default: 'default_favorites_cover.jpg',
   })

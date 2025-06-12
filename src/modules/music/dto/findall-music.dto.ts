@@ -12,13 +12,6 @@ export class FindAllMusicDto extends PartialType(FindAllDto) {
   readonly ids?: number[];
 
   @ApiPropertyOptional({
-    description: '是否分页',
-    enum: NumericStatus,
-    default: NumericStatus.True,
-  })
-  readonly isPaging?: number;
-
-  @ApiPropertyOptional({
     description: '文件名称',
   })
   readonly file_name?: string;

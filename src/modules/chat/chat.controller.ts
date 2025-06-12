@@ -6,13 +6,14 @@ import {
   Put,
   Delete,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindAllChatDto } from './dto/findall-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
-import { DateDto, IdsDto } from 'src/commom/dto/commom.dto';
+import { IdsDto } from 'src/commom/dto/commom.dto';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
 
@@ -36,7 +37,7 @@ export class ChatController {
 
   @ApiOperation({ summary: '获取消息详情' })
   @Get('detail')
-  findOne(@Query('id') id: number) {
+  findOne(@Query('id', ParseIntPipe) id: number) {
     return this.chatService.findOneChatmsgbyId(id);
   }
 
@@ -46,23 +47,29 @@ export class ChatController {
     return this.chatService.updateChatmsg(data);
   }
 
-  @ApiOperation({ summary: '删除消息' })
-  @Delete('del')
-  remove(@Query() query: IdsDto) {
-    return this.chatService.removeChatmsg(query);
-  }
-
   @ApiOperation({ summary: '删除某个会话的所有消息' })
-  @Roles(Role.Admin)
   @Delete('delMore')
   removeMore(@Query('session_id') session_id: string) {
     return this.chatService.removeMoreChatmsg(session_id);
   }
 
-  @ApiOperation({ summary: '删除某段时间前的所有消息' })
+  @ApiOperation({ summary: '软删除消息' })
+  @Delete('del')
+  remove(@Body() data: IdsDto) {
+    return this.chatService.softDeleteChatmsg(data);
+  }
+
+  @ApiOperation({ summary: '恢复消息' })
   @Roles(Role.Admin)
-  @Delete('delRead')
-  removeRead(@Query() query: DateDto) {
-    return this.chatService.removeReadChatmsg(query);
+  @Post('restore')
+  restore(@Body() data: IdsDto) {
+    return this.chatService.restoreChatmsg(data);
+  }
+
+  @ApiOperation({ summary: '真删除消息' })
+  @Roles(Role.Admin)
+  @Delete('realDel')
+  realRemove(@Body() data: IdsDto) {
+    return this.chatService.deleteChatmsg(data);
   }
 }

@@ -11,6 +11,7 @@ import { GroupService } from '../group/group.service';
 import { FindJoinGroupDto } from './dto/findjoin-group.dto';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
 import { FindOneGroupMemberDto } from './dto/findOne-group-member.dto';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class GroupMemberService {
@@ -111,11 +112,11 @@ export class GroupMemberService {
 
   /* 查询用户加入的所有群组详情*/
   findAllJoinGroupDetail = async (query: FindJoinGroupDto) => {
-    const { pageNum = 1, pageSize = 10, uid } = query || {};
+    const { pageNum = 0, pageSize = 10, uid } = query || {};
     const qb = this.groupmemberRepository.createQueryBuilder('group_member');
     qb.where('group_member.member_uid = :uid', { uid });
     qb.limit(pageSize);
-    qb.offset(pageSize * (pageNum - 1));
+    qb.offset(pageSize * pageNum);
     const data = await qb.getMany();
     let newlist = [];
 
@@ -127,7 +128,7 @@ export class GroupMemberService {
     if (newlist.length) {
       return await this.groupService.findAllGroup({
         gIdList: newlist,
-        isPaging: false,
+        isPaging: NumericStatus.False,
       });
     }
     return ResultList.list();

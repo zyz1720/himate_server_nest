@@ -14,7 +14,6 @@ export class MailController {
   @Public()
   @Get('code')
   async loginCode(@Query() query: AccountDto) {
-    const { account } = query || {};
-    return this.mailService.seedUserCode(account);
+    return this.mailService.seedUserCode(query);
   }
 }

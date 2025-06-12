@@ -13,7 +13,11 @@ import {
 import { chatEntity } from './chat.entity';
 import { mateEntity } from './mate.entity';
 import { groupEntity } from './group.entity';
-import { MessageType, ChatType } from 'src/commom/constants/base-enum.const';
+import {
+  MessageType,
+  ChatType,
+  DataLength,
+} from 'src/commom/constants/base-enum.const';
 
 @Entity('session')
 export class sessionEntity {
@@ -21,10 +25,14 @@ export class sessionEntity {
   id: number;
 
   @Index({ unique: true })
-  @Column({ length: 36, comment: '会话id(好友id或群组id)' })
+  @Column({ length: DataLength.UUID, comment: '会话id(好友id或群组id)' })
   session_id: string;
 
-  @Column({ length: 48, default: null, comment: '用户设备唯一id' })
+  @Column({
+    length: DataLength.Medium,
+    default: null,
+    comment: '用户设备唯一id',
+  })
   device_id: string;
 
   @Column({ type: 'int', comment: '创建者id' })
@@ -50,7 +58,7 @@ export class sessionEntity {
   last_msgUid: number;
 
   @Column({
-    length: 96,
+    length: DataLength.Long,
     default: null,
     comment: '最后一条消息的秘钥',
   })

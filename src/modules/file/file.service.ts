@@ -15,6 +15,7 @@ import { getFileNameFromUrl } from 'src/commom/utils/base';
 import {
   FileUseType,
   MessageType as FileType,
+  NumericStatus,
 } from 'src/commom/constants/base-enum.const';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -32,7 +33,7 @@ export class FileService {
 
   // 下载文件并记录
   async downloadSaveFile(url: string, query: AddFileDto) {
-    const { isAddTimeStamp = false } = query || {};
+    const { isAddTimeStamp = NumericStatus.False } = query || {};
     const downloadRes = await this.downloadFile(
       url,
       BaseConst.uploadDir,
@@ -98,7 +99,7 @@ export class FileService {
   /* 获取用户上传的文件列表 */
   async findAllFile(query: FindAllFileDto) {
     const {
-      pageNum = 1,
+      pageNum = 0,
       pageSize = 10,
       ids,
       upload_uid,
@@ -108,7 +109,7 @@ export class FileService {
       use_type,
       file_hash,
       create_time,
-      isPaging = 1,
+      isPaging = NumericStatus.True,
     } = query || {};
     const qb = this.fileRepository.createQueryBuilder('file');
     if (ids) {
@@ -140,7 +141,7 @@ export class FileService {
     const count = await qb.getCount();
     if (isPaging) {
       qb.limit(pageSize);
-      qb.offset(pageSize * (pageNum - 1));
+      qb.offset(pageSize * pageNum);
     }
     const data = await qb.getMany();
     return ResultList.list(data, count);
@@ -324,7 +325,7 @@ export class FileService {
   async downloadFile(
     url: string,
     outputPath = BaseConst.uploadDir,
-    isAddTimeStamp = false,
+    isAddTimeStamp = NumericStatus.False,
   ): Promise<{ filePath: string; fileName: string }> {
     try {
       // 创建目录（如果不存在）

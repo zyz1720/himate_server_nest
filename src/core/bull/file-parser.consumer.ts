@@ -35,7 +35,7 @@ export class FileParserConsumer {
       }
       miusicData = musicForm;
     } catch (error) {
-      console.log('解析音乐信息失败', error);
+      console.error('解析音乐信息失败', error);
     }
     const insertRes = await this.musicService.addMusic(miusicData);
     if (insertRes.success) {

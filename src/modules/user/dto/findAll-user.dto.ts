@@ -14,13 +14,6 @@ export class FindAllUserDto extends PartialType(FindAllDto) {
   })
   readonly ids?: number[];
 
-  @ApiPropertyOptional({
-    description: '是否分页',
-    enum: NumericStatus,
-    default: NumericStatus.False,
-  })
-  readonly isPaging?: number;
-
   @ApiPropertyOptional({ description: '用户名' })
   readonly user_name?: string;
 

@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { MateStatus } from 'src/commom/constants/base-enum.const';
+import { MateStatus, DataLength } from 'src/commom/constants/base-enum.const';
 
 @Entity('mate')
 export class mateEntity {
@@ -15,28 +15,28 @@ export class mateEntity {
   id: number;
 
   @Index({ unique: true })
-  @Column({ length: 36, comment: '随机好友id' })
+  @Column({ length: DataLength.UUID, comment: '随机好友id' })
   mate_id: string;
 
   @Column({ type: 'int', comment: '申请用户id' })
   apply_uid: number;
 
-  @Column({ length: 48, comment: '同意者给申请人的备注' })
+  @Column({ length: DataLength.Medium, comment: '同意者给申请人的备注' })
   apply_remark: string;
 
-  @Column({ length: 96, comment: '申请人头像' })
+  @Column({ length: DataLength.Long, comment: '申请人头像' })
   apply_avatar: string;
 
   @Column({ type: 'int', comment: '同意用户id' })
   agree_uid: number;
 
-  @Column({ length: 48, comment: '申请人给同意者的备注' })
+  @Column({ length: DataLength.Medium, comment: '申请人给同意者的备注' })
   agree_remark: string;
 
-  @Column({ length: 96, comment: '同意者头像' })
+  @Column({ length: DataLength.Long, comment: '同意者头像' })
   agree_avatar: string;
 
-  @Column({ length: 200, default: null, comment: '验证消息' })
+  @Column({ length: DataLength.Longer, default: null, comment: '验证消息' })
   validate_msg: string;
 
   @Column({

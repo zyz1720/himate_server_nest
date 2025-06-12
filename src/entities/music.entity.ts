@@ -11,13 +11,14 @@ import {
 } from 'typeorm';
 import { favoritesEntity } from './favorites.entity';
 import { musicMoreEntity } from './music-more.entity';
+import { DataLength } from 'src/commom/constants/base-enum.const';
 
 @Entity('music')
 export class musicEntity {
   @PrimaryGeneratedColumn({ comment: '音乐自增id' })
   id: number;
 
-  @Column({ length: 96, comment: '文件名' })
+  @Column({ length: DataLength.Long, comment: '文件名' })
   file_name: string;
 
   @Column({ type: 'int', comment: '文件大小' })
@@ -35,16 +36,16 @@ export class musicEntity {
   @Column({ type: 'int', default: null, comment: '音乐时长' })
   duration: number;
 
-  @Column({ length: 96, comment: '音乐名称' })
+  @Column({ length: DataLength.Long, comment: '音乐名称' })
   title: string;
 
-  @Column({ length: 96, default: null, comment: '音乐艺术家' })
+  @Column({ length: DataLength.Long, default: null, comment: '音乐艺术家' })
   artist: string;
 
   @Column({ type: 'json', default: null, comment: '音乐艺术家集合' })
   artists: Array<string>;
 
-  @Column({ length: 96, default: null, comment: '专辑名' })
+  @Column({ length: DataLength.Long, default: null, comment: '专辑名' })
   album: string;
 
   @ManyToMany(() => favoritesEntity, {

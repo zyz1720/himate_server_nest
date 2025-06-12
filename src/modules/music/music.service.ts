@@ -74,7 +74,7 @@ export class MusicService {
   /* 获取所有音乐 */
   async findAllMusic(query: FindAllMusicDto) {
     const {
-      pageNum = 1,
+      pageNum = 0,
       pageSize = 10,
       ids,
       upload_uid,
@@ -83,7 +83,7 @@ export class MusicService {
       title,
       artist,
       album,
-      isPaging = true,
+      isPaging = NumericStatus.True,
       isMusicMore,
       create_time,
     } = query || {};
@@ -126,7 +126,7 @@ export class MusicService {
 
     if (isPaging) {
       qb.limit(pageSize);
-      qb.offset(pageSize * (pageNum - 1));
+      qb.offset(pageSize * pageNum);
     }
     const data = await qb.getMany();
     return ResultList.list(data, count);
@@ -360,7 +360,7 @@ export class MusicService {
   /* 获取音乐收藏列表 */
   async findAllFavorites(query: FindAllFavoritesDto) {
     const {
-      pageNum = 1,
+      pageNum = 0,
       pageSize = 10,
       creator_uid,
       creator_name,
@@ -394,7 +394,7 @@ export class MusicService {
     qb.orderBy('favorites.create_time', 'DESC');
     const count = await qb.getCount();
     qb.limit(pageSize);
-    qb.offset(pageSize * (pageNum - 1));
+    qb.offset(pageSize * pageNum);
     const data = await qb.getRawMany();
     const formatData = data.map(
       (item) => formatleftJoinData(item, 'favorites_') as favoritesEntity,
@@ -406,7 +406,7 @@ export class MusicService {
   async findOneFavorites(query: FindOneFavoritesDto) {
     const {
       id,
-      isFindMusic = true,
+      isFindMusic = NumericStatus.True,
       creator_uid,
       favorites_name,
       is_default,
@@ -424,7 +424,7 @@ export class MusicService {
     if (is_default) {
       qb.andWhere('favorites.is_default = :status', { status: is_default });
     }
-    if (isFindMusic == true) {
+    if (isFindMusic) {
       qb.leftJoinAndSelect('favorites.music', 'music');
     }
     const data = await qb.getOne();
@@ -664,7 +664,7 @@ export class MusicService {
                 uid: uid,
                 use_type: FileUseType.Music,
                 file_type: FileType.Image,
-                isAddTimeStamp: true,
+                isAddTimeStamp: NumericStatus.False,
               },
             );
             if (downloadRes.success) {
@@ -727,7 +727,7 @@ export class MusicService {
                 uid,
                 use_type: FileUseType.Music,
                 file_type: FileType.Audio,
-                isParser: false,
+                isParser: NumericStatus.False,
               });
               if (downloadRes.success) {
                 const { file_name, file_size, upload_uid } = downloadRes.data;

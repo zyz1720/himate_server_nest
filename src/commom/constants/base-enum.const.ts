@@ -75,3 +75,14 @@ export enum Role {
   Admin = 'admin',
   VIP = 'vip',
 }
+
+// 数据长度枚举
+export enum DataLength {
+  Short = 16,
+  Medium = 48,
+  Long = 120,
+  Longer = 240,
+  UUID = 36,
+  HASH = 64,
+  INT = 2147483647,
+}

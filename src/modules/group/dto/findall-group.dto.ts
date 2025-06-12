@@ -15,9 +15,6 @@ export class FindAllGroupDto extends PartialType(FindAllDto) {
   })
   readonly group_status?: string;
 
-  @ApiPropertyOptional({ description: '是否分页', default: true })
-  readonly isPaging?: boolean;
-
   @ApiPropertyOptional({ description: '群组id列表' })
   readonly gIdList?: number[];
 }

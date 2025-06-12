@@ -9,6 +9,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { musicEntity } from './music.entity';
+import { DataLength } from 'src/commom/constants/base-enum.const';
 
 @Entity('music_more')
 export class musicMoreEntity {
@@ -19,19 +20,19 @@ export class musicMoreEntity {
   @Column({ type: 'int', comment: '本地音乐id' })
   music_id: number;
 
-  @Column({ length: 16, comment: '匹配第三方音乐id' })
+  @Column({ length: DataLength.Short, comment: '匹配第三方音乐id' })
   match_id: string;
 
-  @Column({ length: 96, comment: '音乐名称' })
+  @Column({ length: DataLength.Long, comment: '音乐名称' })
   music_name: string;
 
-  @Column({ length: 96, comment: '音乐作者' })
+  @Column({ length: DataLength.Long, comment: '音乐作者' })
   music_singer: string;
 
-  @Column({ length: 96, comment: '专辑名' })
+  @Column({ length: DataLength.Long, comment: '专辑名' })
   music_album: string;
 
-  @Column({ length: 96, comment: '音乐封面' })
+  @Column({ length: DataLength.Long, comment: '音乐封面' })
   music_cover: string;
 
   @Column({ type: 'mediumtext', default: null, comment: '标准歌词' })

@@ -1,24 +1,51 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsDateString, IsNotEmpty, IsEmail } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsEmail,
+  IsOptional,
+  IsArray,
+  ArrayNotEmpty,
+  IsEnum,
+  IsNumber,
+} from 'class-validator';
+import { NumericStatus } from '../constants/base-enum.const';
 
-// 分页查询参数
+// 查询列表参数
 export class FindAllDto {
-  //ApiProperty是对数据类型的描述
-  @ApiPropertyOptional({ description: '页数', default: 1 })
+  @ApiPropertyOptional({ description: '页数', default: 0 })
+  @IsOptional()
   @Type(() => Number)
+  @IsNumber()
   readonly pageNum?: number;
 
   @ApiPropertyOptional({ description: '条数', default: 10 })
+  @IsOptional()
   @Type(() => Number)
+  @IsNumber()
   readonly pageSize?: number;
-}
 
-// 日期查询参数
-export class DateDto {
-  @ApiProperty({ description: '日期', required: true })
-  @IsDateString()
-  readonly date: string;
+  @ApiPropertyOptional({
+    description: '是否分页',
+    default: NumericStatus.True,
+    enum: NumericStatus,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsEnum(NumericStatus)
+  @IsNumber()
+  readonly isPaging?: number;
+
+  @ApiPropertyOptional({
+    description: '文件id列表',
+    type: 'array',
+    items: { type: 'number' },
+  })
+  @IsOptional()
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  @IsArray()
+  @ArrayNotEmpty({ message: 'id列表不能为空' })
+  readonly ids?: number[];
 }
 
 // 文件上传参数
@@ -28,11 +55,11 @@ export class FileUploadDto {
     format: 'binary',
     required: true,
   })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '文件不能为空' })
   readonly file: Express.Multer.File;
 }
 
-// ids查询参数
+// ids提交参数
 export class IdsDto {
   @ApiProperty({
     description: 'id列表',
@@ -40,13 +67,12 @@ export class IdsDto {
     items: { type: 'number' },
     required: true,
   })
-  @IsNotEmpty({ message: 'id列表不能为空' })
-  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
-  @Type(() => Number)
+  @IsArray()
+  @ArrayNotEmpty({ message: 'id列表不能为空' })
   readonly ids: number[];
 }
 
-// 邮箱号查询参数
+// 邮箱号参数
 export class AccountDto {
   @ApiProperty({ description: '邮箱号', required: true })
   @IsNotEmpty({ message: '邮箱不能为空' })
@@ -56,8 +82,15 @@ export class AccountDto {
 
 // socket响应参数
 export class SocketResDto {
+  @ApiProperty({ description: '发送方id', required: true })
   send_uid: number;
+
+  @ApiPropertyOptional({ description: '会话uuid' })
   session_id?: string;
+
+  @ApiPropertyOptional({ description: '消息id' })
   MsgId?: number;
+
+  @ApiPropertyOptional({ description: '是否是重发' })
   isReSend?: boolean;
 }

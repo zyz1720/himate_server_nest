@@ -20,6 +20,8 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
+      whitelist: true, // 排除dto中不存在的字段
+      forbidNonWhitelisted: true, // 禁止非白名单字段的输入
     }),
   );
 

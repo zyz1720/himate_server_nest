@@ -12,6 +12,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GroupDeleteEvent } from './events/delete-group.event';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
 import { createUUID } from 'src/commom/utils/base';
+import { NumericStatus } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class GroupService {
@@ -54,13 +55,13 @@ export class GroupService {
     const qb = this.groupRepository.createQueryBuilder('group');
     const count = await qb.getCount();
     const {
-      pageNum = 1,
+      pageNum = 0,
       pageSize = 10,
       creator_uid,
       group_name,
       group_status,
       gIdList,
-      isPaging = true,
+      isPaging = NumericStatus.True,
     } = query || {};
     if (gIdList) {
       qb.where('group.group_id IN (:...gIdList)', { gIdList });
@@ -76,7 +77,7 @@ export class GroupService {
     }
     if (isPaging) {
       qb.limit(pageSize);
-      qb.offset(pageSize * (pageNum - 1));
+      qb.offset(pageSize * pageNum);
     }
     const data = await qb.getMany();
     return ResultList.list(data, count);

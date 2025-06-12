@@ -93,7 +93,7 @@ export class MateService {
 
   /* 用户好友列表 */
   async findUserMate(query: FindAllMateDto) {
-    const { pageNum = 1, pageSize = 10, uid, mate_status } = query || {};
+    const { pageNum = 0, pageSize = 10, uid, mate_status } = query || {};
     const qb = this.mateRepository.createQueryBuilder('mate');
     qb.where(
       new Brackets((qb) => {
@@ -104,7 +104,7 @@ export class MateService {
       }),
     ).andWhere('mate.mate_status = :status', { status: mate_status });
     qb.limit(pageSize);
-    qb.offset(pageSize * (pageNum - 1));
+    qb.offset(pageSize * pageNum);
     qb.orderBy('mate.create_time');
 
     const count = await qb.getCount();
@@ -138,12 +138,12 @@ export class MateService {
 
   /*  加我的列表 */
   async findAllApplyUser(query: FindAllMateDto) {
-    const { pageNum = 1, pageSize = 10, uid } = query || {};
+    const { pageNum = 0, pageSize = 10, uid } = query || {};
     const qb = this.mateRepository.createQueryBuilder('mate');
     qb.where('mate.mate_status = :status', { status: 'waiting' });
     qb.andWhere('mate.agree_uid = :userId', { userId: uid });
     qb.limit(pageSize);
-    qb.offset(pageSize * (pageNum - 1));
+    qb.offset(pageSize * pageNum);
     qb.orderBy('mate.create_time');
     const count = await qb.getCount();
     const data = await qb.getMany();
