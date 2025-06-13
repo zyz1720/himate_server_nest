@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   Index,
   DeleteDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import {
   MessageType as FileType,
@@ -42,8 +43,20 @@ export class fileEntity {
   @Column({ type: 'int', comment: '上传者id' })
   upload_uid: number;
 
+  @Column({ type: 'int', comment: '创建者id' })
+  create_by: number;
+
+  @Column({ type: 'int', comment: '修改者id' })
+  update_by: number;
+
+  @Column({ type: 'int', comment: '删除者id' })
+  delete_by: number;
+
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
+  update_time: Date;
 
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;

@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from './roles.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
+import { IS_PUBLIC_KEY } from '../auth.decorator';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -23,13 +23,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context.getHandler(),
       context.getClass(),
     ]);
-    const type = context.getType();
+
     // 一旦使用Public注解，就通过
     if (isPublic) {
       return true;
     }
 
     // 单独处理Socket验证
+    const type = context.getType();
     if (type === 'ws') {
       const client = context.switchToWs().getClient();
       const token = client.handshake?.auth?.Authorization;

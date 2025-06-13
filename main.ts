@@ -25,6 +25,12 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors({
+    origin: ['http://localhost:8080', 'http://192.168.110.35'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   // 设置全局路由前缀
   app.setGlobalPrefix('api');
 

@@ -1,8 +1,8 @@
 import { Query, Controller, Get } from '@nestjs/common';
 import { MailService } from './mail.service';
-import { Public } from '../auth/roles.decorator';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountDto } from 'src/commom/dto/commom.dto';
+import { Public } from '../auth/auth.decorator';
 
 @ApiTags('验证码')
 @ApiBearerAuth()

@@ -1,6 +1,7 @@
 import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 import { Msg } from '../constants/base-msg.const';
 
+/* ids转换管道，暂不使用 */
 @Injectable()
 export class EmptyQueryPipe implements PipeTransform {
   transform(value: any) {

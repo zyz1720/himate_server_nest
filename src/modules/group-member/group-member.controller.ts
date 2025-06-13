@@ -13,7 +13,7 @@ import { UpdateGroupMemberDto } from './dto/update-group-member.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindJoinGroupDto } from './dto/findjoin-group.dto';
 import { FindOneGroupMemberDto } from './dto/findOne-group-member.dto';
-import { Roles } from 'src/core/auth/roles.decorator';
+import { Roles } from 'src/core/auth/auth.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
 
 @ApiTags('群成员')

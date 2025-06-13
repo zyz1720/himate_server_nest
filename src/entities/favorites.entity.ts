@@ -19,7 +19,7 @@ export class favoritesEntity {
   @PrimaryGeneratedColumn({ comment: '文件自增id' })
   id: number;
 
-  @Column({ type: 'int', comment: '创建者id' })
+  @Column({ type: 'int', comment: '群组所属用户id' })
   creator_uid: number;
 
   @Column({ length: DataLength.Medium, comment: '创建者昵称' })
@@ -68,6 +68,15 @@ export class favoritesEntity {
   })
   @JoinTable()
   music: musicEntity[];
+
+  @Column({ type: 'int', comment: '创建者id' })
+  create_by: number;
+
+  @Column({ type: 'int', comment: '修改者id' })
+  update_by: number;
+
+  @Column({ type: 'int', comment: '删除者id' })
+  delete_by: number;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;

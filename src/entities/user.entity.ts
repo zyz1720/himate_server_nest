@@ -76,6 +76,15 @@ export class userEntity {
   })
   user_status: number;
 
+  @Column({ type: 'int', default: 0, comment: '创建者id' })
+  create_by: number;
+
+  @Column({ type: 'int', comment: '修改者id' })
+  update_by: number;
+
+  @Column({ type: 'int', comment: '删除者id' })
+  delete_by: number;
+
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
 
@@ -86,7 +95,7 @@ export class userEntity {
   delete_time: Date;
 
   @BeforeInsert()
-  handleUserData() {
+  initUserInfo() {
     this.password = encryptPassword(this.password);
     this.self_account = 'mate_' + createUUID().slice(0, 8);
   }

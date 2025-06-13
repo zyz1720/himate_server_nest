@@ -28,15 +28,15 @@ export class sessionEntity {
   @Column({ length: DataLength.UUID, comment: '会话id(好友id或群组id)' })
   session_id: string;
 
+  @Column({ type: 'int', comment: '创建者id' })
+  creator_uid: number;
+
   @Column({
     length: DataLength.Medium,
     default: null,
     comment: '用户设备唯一id',
   })
   device_id: string;
-
-  @Column({ type: 'int', comment: '创建者id' })
-  creator_uid: number;
 
   @Column({
     type: 'text',
@@ -96,6 +96,15 @@ export class sessionEntity {
   })
   @JoinColumn()
   group: groupEntity;
+
+  @Column({ type: 'int', comment: '创建者id' })
+  create_by: number;
+
+  @Column({ type: 'int', comment: '修改者id' })
+  update_by: number;
+
+  @Column({ type: 'int', comment: '删除者id' })
+  delete_by: number;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;

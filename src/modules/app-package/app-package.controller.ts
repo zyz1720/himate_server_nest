@@ -13,7 +13,7 @@ import { AddAppPackageDto } from './dto/add-app-package.dto';
 import { FindOneAppPackageDto } from './dto/findone-app-package.dto';
 import { UpdateAppPackageDto } from './dto/update-app-package.dto';
 import { FindAllDto, IdsDto } from 'src/commom/dto/commom.dto';
-import { Roles } from 'src/core/auth/roles.decorator';
+import { Roles } from 'src/core/auth/auth.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
 import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
 
@@ -50,7 +50,7 @@ export class AppPackageController {
   }
 
   @ApiOperation({ summary: '软删除app包' })
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.VIP)
   @Delete('del')
   remove(@Body() data: IdsDto) {
     return this.appPackageService.softDeleteAppPackage(data);

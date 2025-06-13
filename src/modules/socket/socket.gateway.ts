@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from 'src/core/auth/jwt.auth.guard';
+import { JwtAuthGuard } from 'src/core/auth/guards/jwt.auth.guard';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,

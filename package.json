@@ -43,6 +43,7 @@
     "ioredis": "^5.4.1",
     "music-metadata": "^10.5.1",
     "mysql": "^2.18.1",
+    "nestjs-request-context": "^4.0.0",
     "nodemailer": "^6.9.13",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

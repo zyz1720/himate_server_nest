@@ -52,6 +52,15 @@ export class musicMoreEntity {
   })
   music: musicEntity;
 
+  @Column({ type: 'int', comment: '创建者id' })
+  create_by: number;
+
+  @Column({ type: 'int', comment: '修改者id' })
+  update_by: number;
+
+  @Column({ type: 'int', comment: '删除者id' })
+  delete_by: number;
+
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
 

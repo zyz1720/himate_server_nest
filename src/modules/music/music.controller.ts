@@ -25,7 +25,7 @@ import {
 } from './dto/edit-music.dto';
 import { FindOneMusicDto } from './dto/findone-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
-import { Roles } from 'src/core/auth/roles.decorator';
+import { Roles } from 'src/core/auth/auth.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
 
 @ApiTags('音乐')

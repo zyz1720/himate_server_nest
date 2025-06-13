@@ -12,7 +12,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/commom/constants/base-enum.const';
-import { Roles, Public } from 'src/core/auth/roles.decorator';
+import { Roles } from 'src/core/auth/auth.decorator';
+import { Public } from 'src/core/auth/auth.decorator';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UserLoginBypasswordDto } from './dto/user-login-password.dto';
 import { MailOrAccountValidationPipe } from './pipe/mail-or-account.pipe';
@@ -44,7 +45,7 @@ export class UserController {
   @Public()
   @Post('login')
   async userlogin(
-    @Body(new MailOrAccountValidationPipe()) user: UserLoginBypasswordDto,
+    @Body(MailOrAccountValidationPipe) user: UserLoginBypasswordDto,
   ) {
     return await this.authService.userlogin(user);
   }

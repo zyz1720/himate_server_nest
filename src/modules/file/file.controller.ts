@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileService } from './file.service';
 import { FindAllFileDto } from './dto/findall-file.dto';
 import { DownloadFileDto } from './dto/add-file.dto';
-import { Roles } from 'src/core/auth/roles.decorator';
+import { Roles, Ownership } from 'src/core/auth/auth.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
 import { IdsDto } from 'src/commom/dto/commom.dto';
 import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
@@ -23,6 +23,7 @@ export class FileController {
   }
 
   @ApiOperation({ summary: '查找文件' })
+  @Ownership('file')
   @Get('list')
   async findAll(@Query(EmptyQueryPipe) query: FindAllFileDto) {
     return this.fileService.findAllFile(query);

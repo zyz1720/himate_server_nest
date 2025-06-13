@@ -9,3 +9,8 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 // 路由添加角色控制
 export const ROLES_KEY = 'roles';
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+
+// 路由添加用户使用权限控制
+export const OWNERSHIP_KEY = 'ownership';
+export const Ownership = (entityName: string) =>
+  SetMetadata(OWNERSHIP_KEY, entityName);

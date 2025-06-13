@@ -1,17 +1,17 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './core/auth/auth.module';
-import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
-import { RolesGuard } from './core/auth/roles.guard';
+import { JwtAuthGuard } from './core/auth/guards/jwt.auth.guard';
+import { RolesGuard } from './core/auth/guards/roles.guard';
+import { OwnershipGuard } from './core/auth/guards/ownership.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { MailModule } from './core/mail/mail.module';
 import { RedisModule } from './core/Redis/redis.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { CorsMiddleware } from './commom/middleware/cors.middleware';
 import { diskStorage } from 'multer';
 import { MateModule } from './modules/mate/mate.module';
 import { SessionModule } from './modules/session/session.module';
@@ -28,7 +28,9 @@ import { FileModule } from './modules/file/file.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { BaseConst } from './commom/constants/base.const';
 import { BullModule } from '@nestjs/bull';
+import { UserSubscriber } from './commom/subscriber/user.subscriber';
 import envConfig from '../config/env';
+import { RequestContextModule } from 'nestjs-request-context';
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import envConfig from '../config/env';
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql', // 数据库类型
         entities: [__dirname + '/**/*.entity{.ts,.js}'], // 数据表实体
+        subscribers: [UserSubscriber], // 订阅者
         host: configService.get('DB_HOST'), // 主机
         port: configService.get<number>('DB_PORT'), // 端口号
         username: configService.get('DB_USER'), // 用户名
@@ -121,6 +124,7 @@ import envConfig from '../config/env';
     AppPackageModule,
     MusicModule,
     FileModule,
+    RequestContextModule,
   ],
   // 此处必须添加'UploadController',否则上传配置无法生效
   controllers: [AppController, UploadController],
@@ -134,10 +138,10 @@ import envConfig from '../config/env';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: OwnershipGuard,
+    },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorsMiddleware).forRoutes('*'); // 设置需要应用中间件的路由路径，此处为所有路由
-  }
-}
+export class AppModule {}
