@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { mateEntity } from 'src/entities/mate.entity';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { MateStatus } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class UserAvatarUpdatedListener {
@@ -20,7 +21,7 @@ export class UserAvatarUpdatedListener {
     const { userId, newAvatar } = payload || {};
     const mateRes = await this.mateRepository
       .createQueryBuilder('mate')
-      .where('mate.mate_status = :status', { status: 'agreed' })
+      .where('mate.mate_status = :status', { status: MateStatus.Agreed })
       .andWhere('mate.agree_uid = :userId OR mate.apply_uid = :userId', {
         userId,
       })

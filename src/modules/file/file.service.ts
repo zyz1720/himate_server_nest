@@ -26,7 +26,7 @@ import { IdsDto } from 'src/commom/dto/commom.dto';
 @Injectable()
 export class FileService {
   constructor(
-    @InjectQueue('fileParser') private readonly fileParserQueue: Queue,
+    @InjectQueue('fileHandle') private readonly fileHandleQueue: Queue,
     @InjectRepository(fileEntity)
     private readonly fileRepository: Repository<fileEntity>,
   ) {}
@@ -50,7 +50,12 @@ export class FileService {
 
   // 添加文件到数据库
   async addFile(filePath: string, fileName: string, query: AddFileDto) {
-    const { uid, file_type, use_type, isParser = true } = query || {};
+    const {
+      uid,
+      file_type,
+      use_type,
+      isParser = NumericStatus.True,
+    } = query || {};
     const fileHash = await this.generateFileHash(filePath);
     if (!fileHash) {
       return ResultMsg.fail('读取文件失败！');
@@ -82,11 +87,11 @@ export class FileService {
     if (insertRes.identifiers.length) {
       if (isParser) {
         if (file_type === FileType.Audio && use_type === FileUseType.Music) {
-          this.fileParserQueue.add('addMusic', fileForm);
+          this.fileHandleQueue.add('addMusic', fileForm);
           return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
         }
         if (file_type === FileType.Image) {
-          this.fileParserQueue.add('createThumbnail', fileForm);
+          this.fileHandleQueue.add('createThumbnail', fileForm);
           return ResultMsg.ok(Msg.CREATE_SUCCESS, fileData);
         }
       }
@@ -96,8 +101,8 @@ export class FileService {
     }
   }
 
-  /* 获取用户上传的文件列表 */
-  async findAllFile(query: FindAllFileDto) {
+  /* 获取文件列表 */
+  async findAllFile(query: FindAllFileDto, uid?: number) {
     const {
       pageNum = 0,
       pageSize = 10,
@@ -113,31 +118,34 @@ export class FileService {
     } = query || {};
     const qb = this.fileRepository.createQueryBuilder('file');
     if (ids) {
-      qb.andWhere('file.id IN (:...ids)', { ids: ids });
+      qb.andWhere('id IN (:...ids)', { ids: ids });
     }
     if (upload_uid) {
-      qb.andWhere('file.upload_uid = :uid', { uid: upload_uid });
+      qb.andWhere('upload_uid = :uid', { uid: upload_uid });
     }
     if (file_name) {
-      qb.andWhere('file.file_name LIKE :name', { name: `%${file_name}%` });
+      qb.andWhere('file_name LIKE :name', { name: `%${file_name}%` });
     }
     if (file_size) {
-      qb.andWhere('file.file_size > :size', { size: file_size });
+      qb.andWhere('file_size > :size', { size: file_size });
     }
     if (file_type) {
-      qb.andWhere('file.file_type = :type', { type: file_type });
+      qb.andWhere('file_type = :type', { type: file_type });
     }
     if (use_type) {
-      qb.andWhere('file.use_type = :useType', { useType: use_type });
+      qb.andWhere('use_type = :useType', { useType: use_type });
     }
     if (file_hash) {
-      qb.andWhere('file.file_hash = :fileHash', { fileHash: file_hash });
+      qb.andWhere('file_hash = :fileHash', { fileHash: file_hash });
     }
     if (create_time) {
       const time = new Date(create_time);
-      qb.andWhere('file.create_time < :time', { time: time });
+      qb.andWhere('create_time < :time', { time: time });
     }
-    qb.orderBy('file.create_time', 'DESC');
+    if (uid) {
+      qb.andWhere('upload_uid = :uid', { uid });
+    }
+    qb.orderBy('create_time', 'DESC');
     const count = await qb.getCount();
     if (isPaging) {
       qb.limit(pageSize);
@@ -147,59 +155,90 @@ export class FileService {
     return ResultList.list(data, count);
   }
 
-  // /* 删除用户上传的文件 */
-  // async deleteMoreFile(query: DelFileDto) {
-  //   const { isForce } = query || {};
-  //   const { list: files } = await this.findAllFile({
-  //     isPaging: 0,
-  //     ...query,
-  //   });
-  //   let delCount = 0;
-  //   if (files.length) {
-  //     const deletionPromises = files.map(async (element) => {
-  //       let delThumbnailFlag = true;
-  //       if (element.file_type === FileType.Image) {
-  //         delThumbnailFlag = this.deleteLocalFile(
-  //           BaseConst.ThumbnailDir,
-  //           element.file_name,
-  //         );
-  //       }
-  //       const delUploadFlag = this.deleteLocalFile(
-  //         BaseConst.uploadDir,
-  //         element.file_name,
-  //       );
-  //       if ((delUploadFlag && delThumbnailFlag) || isForce) {
-  //         try {
-  //           const delRes = await this.fileRepository
-  //             .createQueryBuilder('file')
-  //             .delete()
-  //             .where('file.id = :id', { id: element.id })
-  //             .execute();
-  //           if (delRes.affected) {
-  //             delCount += 1;
-  //           }
-  //         } catch (err) {
-  //           console.error(`删除文件 ${element.file_name} 时出错: `, err);
-  //           // 记录或处理错误
-  //         }
-  //       }
-  //     });
-  //     await Promise.all(deletionPromises);
-  //   }
-
-  //   return ResultMsg.ok(`共${files.length}个文件，成功删除${delCount}个`);
-  // }
-
   /* 软删除文件 */
-  async deleteFile(query: IdsDto) {
-    const { ids = [] } = query || {};
+  async softDeleteFile(data: IdsDto, uid?: number) {
+    const { ids } = data || {};
+    const qb = this.fileRepository.createQueryBuilder('file');
+    qb.where('id IN (:...ids)', { ids });
+    if (uid) {
+      qb.andWhere('upload_uid = :uid', { uid });
+    }
+    const delRes = await qb.softDelete().execute();
+    if (delRes.affected) {
+      // 移入回收站
+      const qb = this.fileRepository.createQueryBuilder('file');
+      qb.where('id IN (:...ids)', { ids });
+      qb.andWhere('delete_time IS NOT NULL');
+      qb.withDeleted();
+      if (uid) {
+        qb.andWhere('upload_uid = :uid', { uid });
+      }
+      const softDeleteFiles = await qb.getMany();
+      if (softDeleteFiles.length) {
+        const waitFiles = softDeleteFiles.map((ele) => ({
+          source_path: BaseConst.uploadDir,
+          flie_name: ele.file_name,
+          destination_path: BaseConst.recycleDir,
+        }));
+        this.fileHandleQueue.add('moveFile', waitFiles);
+      }
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
+  }
+
+  /* 恢复文件 */
+  async restoreFile(data: IdsDto) {
+    const { ids } = data || {};
     const delRes = await this.fileRepository
-      .createQueryBuilder('user')
-      .softDelete()
+      .createQueryBuilder('file')
       .where('id IN (:...ids)', { ids })
+      .restore()
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      // 移出回收站
+      const softDeleteFiles = await this.fileRepository
+        .createQueryBuilder('file')
+        .where('id IN (:...ids)', { ids })
+        .getMany();
+      if (softDeleteFiles.length) {
+        const waitFiles = softDeleteFiles.map((ele) => ({
+          source_path: BaseConst.recycleDir,
+          flie_name: ele.file_name,
+          destination_path: BaseConst.uploadDir,
+        }));
+        this.fileHandleQueue.add('moveFile', waitFiles);
+      }
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.RESTORE_FAIL);
+    }
+  }
+
+  /* 真删除文件 */
+  async deleteFile(data: IdsDto) {
+    const { ids } = data || {};
+    // 删除本地文件
+    const deleteRes = await this.fileRepository
+      .createQueryBuilder('file')
+      .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
+      .withDeleted()
+      .getMany();
+    const deleteFiles = deleteRes.map((ele) => ({
+      file_path: BaseConst.recycleDir,
+      flie_name: ele.file_name,
+    }));
+    this.fileHandleQueue.add('deleteFile', deleteFiles);
+    const delRes = await this.fileRepository
+      .createQueryBuilder('file')
+      .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
+      .delete()
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
@@ -220,7 +259,7 @@ export class FileService {
           .createQueryBuilder('file')
           .update()
           .set({ file_hash: fileHash })
-          .where('file.id = :id', { id: element.id })
+          .where('id = :id', { id: element.id })
           .execute();
         if (updateRes.affected) {
           count += 1;
@@ -229,7 +268,7 @@ export class FileService {
         const delRes = await this.fileRepository
           .createQueryBuilder('file')
           .delete()
-          .where('file.id = :id', { id: element.id })
+          .where('id = :id', { id: element.id })
           .execute();
         if (delRes.affected) {
           delCount += 1;
@@ -280,7 +319,44 @@ export class FileService {
     );
   }
 
-  /* 删除指定文件 */
+  /* 移动指定文件到另一个目录 */
+  moveLocalFile(
+    sourceFilePath: string,
+    sourceFileName: string,
+    destinationFilePath: string,
+  ): boolean {
+    const sourcePath = path.join(sourceFilePath, sourceFileName);
+    const destinationPath = path.join(destinationFilePath, sourceFileName);
+
+    // 检查源文件是否存在
+    if (!fs.existsSync(sourcePath)) {
+      console.error('源文件不存在');
+      return false;
+    }
+
+    // 检查源路径是否为文件
+    if (fs.statSync(sourcePath).isDirectory()) {
+      console.error('是文件夹而非文件');
+      return false;
+    }
+
+    // 检查目标目录是否存在，如果不存在则创建
+    if (!fs.existsSync(destinationFilePath)) {
+      fs.mkdirSync(destinationFilePath, { recursive: true });
+    }
+
+    // 尝试移动文件
+    try {
+      fs.renameSync(sourcePath, destinationPath);
+      // console.log('移动文件成功' + destinationPath);
+      return true;
+    } catch (error) {
+      console.error('移动文件失败', error);
+      return false;
+    }
+  }
+
+  /* 删除本地文件 */
   deleteLocalFile(filePath: string, name: string): boolean {
     if (fs.existsSync(filePath)) {
       const files = fs.readdirSync(filePath); //返回文件和子目录的数组

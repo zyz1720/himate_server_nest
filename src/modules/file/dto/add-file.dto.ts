@@ -1,15 +1,26 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsNotEmpty, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsUrl,
+  Max,
+} from 'class-validator';
 import {
   FileUseType,
   MessageType as FileType,
   NumericStatus,
+  DataLength,
 } from 'src/commom/constants/base-enum.const';
 
 export class AddFileDto {
   @ApiProperty({ description: '用户id', required: true })
   @IsNotEmpty({ message: '缺少用户id' })
+  @Max(DataLength.INT)
   @IsNumber()
+  @Type(() => Number)
   readonly uid: number;
 
   @ApiProperty({
@@ -18,8 +29,8 @@ export class AddFileDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少文件类型' })
-  @IsIn(Object.values(FileType))
-  readonly file_type: string;
+  @IsEnum(FileType)
+  readonly file_type: FileType;
 
   @ApiProperty({
     description: '使用场景',
@@ -27,26 +38,33 @@ export class AddFileDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少文件使用场景' })
-  @IsIn(Object.values(FileUseType))
-  readonly use_type: string;
+  @IsEnum(FileUseType)
+  readonly use_type: FileUseType;
 
   @ApiPropertyOptional({
     description: '是否解析文件',
     default: NumericStatus.False,
   })
-  @IsIn(Object.values(NumericStatus))
-  readonly isParser?: number;
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @IsEnum(NumericStatus)
+  readonly isParser?: NumericStatus;
 
   @ApiPropertyOptional({
     description: '是否为文件名添加时间戳',
     default: NumericStatus.False,
   })
-  @IsIn(Object.values(NumericStatus))
-  readonly isAddTimeStamp?: number;
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @IsEnum(NumericStatus)
+  readonly isAddTimeStamp?: NumericStatus;
 }
 
 export class DownloadFileDto extends AddFileDto {
   @ApiProperty({ description: '下载链接', required: true })
   @IsNotEmpty({ message: '下载链接不能为空' })
+  @IsUrl()
   readonly url: string;
 }

@@ -12,6 +12,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { FindAllGroupDto } from './dto/findall-group.dto';
+import { FindOneGroupDto } from './dto/findone-group.dto';
+import { UserId } from 'src/core/auth/decorators/user.decorator';
+import { Roles } from 'src/core/auth/decorators/roles.decorator';
+import { Role } from 'src/commom/constants/base-enum.const';
+import { GroupIdsDto } from './dto/group-id.dto';
+import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
 
 @ApiTags('群组')
 @ApiBearerAuth()
@@ -31,27 +37,35 @@ export class GroupController {
     return this.groupService.findAllGroup(query);
   }
 
-  @ApiOperation({ summary: '获取群组详情id' })
+  @ApiOperation({ summary: '获取群组详情' })
   @Get('detail')
-  findOne(@Query('id') id: number) {
-    return this.groupService.findOneGroup(id);
-  }
-
-  @ApiOperation({ summary: '获取群组详情(通过group_id)' })
-  @Get('detailBygId')
-  findOneByGid(@Query('group_id') group_id: string) {
-    return this.groupService.findOneGroupBygroupId(group_id);
+  findOne(@Query(EmptyQueryPipe) query: FindOneGroupDto) {
+    return this.groupService.findOneGroup(query);
   }
 
   @ApiOperation({ summary: '修改群组' })
   @Put('edit')
-  update(@Body() data: UpdateGroupDto) {
-    return this.groupService.updateGroup(data);
+  update(@Body() data: UpdateGroupDto, @UserId() uid: number) {
+    return this.groupService.updateGroup(data, uid);
   }
 
-  @ApiOperation({ summary: '删除群组' })
+  @ApiOperation({ summary: '软删除群组' })
   @Delete('del')
-  remove(@Query('id') id: number) {
-    return this.groupService.removeGroup(id);
+  remove(@Body() data: GroupIdsDto, @UserId() uid: number) {
+    return this.groupService.softDeleteGroup(data, uid);
+  }
+
+  @ApiOperation({ summary: '恢复群组' })
+  @Roles(Role.Admin)
+  @Post('restore')
+  restore(@Body() data: GroupIdsDto) {
+    return this.groupService.restoreGroup(data);
+  }
+
+  @ApiOperation({ summary: '真删除群组' })
+  @Roles(Role.Admin)
+  @Delete('realDel')
+  realRemove(@Body() data: GroupIdsDto) {
+    return this.groupService.deleteGroup(data);
   }
 }

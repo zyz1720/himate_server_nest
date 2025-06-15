@@ -14,8 +14,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindAllChatDto } from './dto/findall-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { IdsDto } from 'src/commom/dto/commom.dto';
-import { Roles } from 'src/core/auth/auth.decorator';
+import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
+import { UserId } from 'src/core/auth/decorators/user.decorator';
 
 @ApiTags('聊天消息')
 @ApiBearerAuth()
@@ -31,24 +32,24 @@ export class ChatController {
 
   @ApiOperation({ summary: '聊天消息列表' })
   @Get('list')
-  findAll(@Query() query: FindAllChatDto) {
-    return this.chatService.findAllChatmsg(query);
+  findAll(@Query() query: FindAllChatDto, @UserId() uid: number) {
+    return this.chatService.findAllChatmsg(query, uid);
   }
 
   @ApiOperation({ summary: '获取消息详情' })
   @Get('detail')
-  findOne(@Query('id', ParseIntPipe) id: number) {
-    return this.chatService.findOneChatmsgbyId(id);
+  findOne(@Query('id', ParseIntPipe) id: number, @UserId() uid: number) {
+    return this.chatService.findOneChatmsgbyId(id, uid);
   }
 
   @ApiOperation({ summary: '修改消息' })
-  @Roles(Role.Admin)
   @Put('edit')
-  update(@Body() data: UpdateChatDto) {
-    return this.chatService.updateChatmsg(data);
+  update(@Body() data: UpdateChatDto, @UserId() uid: number) {
+    return this.chatService.updateChatmsg(data, uid);
   }
 
-  @ApiOperation({ summary: '删除某个会话的所有消息' })
+  @ApiOperation({ summary: '软删除某个会话的所有消息' })
+  @Roles(Role.Admin)
   @Delete('delMore')
   removeMore(@Query('session_id') session_id: string) {
     return this.chatService.removeMoreChatmsg(session_id);
@@ -56,8 +57,8 @@ export class ChatController {
 
   @ApiOperation({ summary: '软删除消息' })
   @Delete('del')
-  remove(@Body() data: IdsDto) {
-    return this.chatService.softDeleteChatmsg(data);
+  remove(@Body() data: IdsDto, @UserId() uid: number) {
+    return this.chatService.softDeleteChatmsg(data, uid);
   }
 
   @ApiOperation({ summary: '恢复消息' })

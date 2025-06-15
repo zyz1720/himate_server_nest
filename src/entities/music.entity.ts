@@ -21,7 +21,7 @@ export class musicEntity {
   @Column({ length: DataLength.Long, comment: '文件名' })
   file_name: string;
 
-  @Column({ type: 'int', comment: '文件大小' })
+  @Column({ type: 'bigint', comment: '文件大小' })
   file_size: number;
 
   @Column({ type: 'int', comment: '上传者id' })
@@ -64,11 +64,8 @@ export class musicEntity {
   @Column({ type: 'int', comment: '创建者id' })
   create_by: number;
 
-  @Column({ type: 'int', comment: '修改者id' })
+  @Column({ type: 'int', default: null, comment: '修改者id' })
   update_by: number;
-
-  @Column({ type: 'int', comment: '删除者id' })
-  delete_by: number;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;

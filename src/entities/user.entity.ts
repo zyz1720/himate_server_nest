@@ -76,14 +76,11 @@ export class userEntity {
   })
   user_status: number;
 
-  @Column({ type: 'int', default: 0, comment: '创建者id' })
+  @Column({ type: 'int', default: null, comment: '创建者id' })
   create_by: number;
 
-  @Column({ type: 'int', comment: '修改者id' })
+  @Column({ type: 'int', default: null, comment: '修改者id' })
   update_by: number;
-
-  @Column({ type: 'int', comment: '删除者id' })
-  delete_by: number;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;

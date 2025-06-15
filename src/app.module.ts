@@ -7,7 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './core/auth/auth.module';
 import { JwtAuthGuard } from './core/auth/guards/jwt.auth.guard';
 import { RolesGuard } from './core/auth/guards/roles.guard';
-import { OwnershipGuard } from './core/auth/guards/ownership.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { MailModule } from './core/mail/mail.module';
 import { RedisModule } from './core/Redis/redis.module';
@@ -69,10 +68,10 @@ import { RequestContextModule } from 'nestjs-request-context';
         // 指定文件存储目录
         destination: BaseConst.uploadDir,
         filename: (_, file, callback) => {
-          const fileName = Buffer.from(file.originalname, 'latin1').toString(
-            'utf8',
-          );
-          return callback(null, fileName);
+          // const fileName = Buffer.from(file.originalname, 'latin1').toString(
+          //   'utf8',
+          // );
+          return callback(null, file.originalname);
         },
       }),
     }),
@@ -137,10 +136,6 @@ import { RequestContextModule } from 'nestjs-request-context';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: OwnershipGuard,
     },
   ],
 })

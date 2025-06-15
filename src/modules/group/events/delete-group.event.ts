@@ -1,3 +1,3 @@
 export class GroupDeleteEvent {
-  constructor(public readonly group_id: string) {}
+  constructor(public readonly ids: string[]) {}
 }

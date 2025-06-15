@@ -23,8 +23,8 @@ export class ChatService {
 
   /* 添加一条消息 */
   async createChatmsg(data: CreateChatDto) {
-    const session = await this.sessionService.findOneSession(data);
-    if (!session) {
+    const sessionRes = await this.sessionService.findOneSession(data);
+    if (!sessionRes.success) {
       return ResultMsg.fail(Msg.DATA_NOEXIST);
     }
 
@@ -38,7 +38,7 @@ export class ChatService {
       const chatData = tx_chatRepository.create(data);
       const insertRes = await tx_chatRepository.insert(chatData);
       if (insertRes.identifiers.length) {
-        chatData.session = session;
+        chatData.session = sessionRes.data;
         const saveRes = await tx_chatRepository.save(chatData);
         if (saveRes) {
           Result = saveRes;
@@ -59,7 +59,7 @@ export class ChatService {
   }
 
   /* 查询所有消息 */
-  async findAllChatmsg(query: FindAllChatDto) {
+  async findAllChatmsg(query: FindAllChatDto, uid?: number) {
     const {
       send_uid,
       msg_type,
@@ -73,24 +73,27 @@ export class ChatService {
     } = query || {};
     const qb = this.chatRepository.createQueryBuilder('chat');
     if (send_uid) {
-      qb.andWhere('chat.send_uid = :send_uid', { send_uid });
+      qb.andWhere('send_uid = :send_uid', { send_uid });
     }
     if (session_id) {
-      qb.andWhere('chat.session_id = :session_id', { session_id });
+      qb.andWhere('session_id = :session_id', { session_id });
     }
     if (msg_type) {
-      qb.andWhere('chat.msg_type = :msg_type', { msg_type });
+      qb.andWhere('msg_type = :msg_type', { msg_type });
     }
     if (msg_status) {
-      qb.andWhere('chat.msg_status = :msg_status', { msg_status });
+      qb.andWhere('msg_status = :msg_status', { msg_status });
     }
     if (msgdata) {
-      qb.andWhere('chat.msgdata LIKE :msgdata', { msgdata: `%${msgdata}%` });
+      qb.andWhere('msgdata LIKE :msgdata', { msgdata: `%${msgdata}%` });
     }
     if (chat_type) {
-      qb.andWhere('chat.chat_type = :chat_type', { chat_type });
+      qb.andWhere('chat_type = :chat_type', { chat_type });
     }
-    qb.orderBy('chat.create_time', 'DESC');
+    if (uid) {
+      qb.andWhere('send_uid = :uid', { uid });
+    }
+    qb.orderBy('create_time', 'DESC');
     if (isPaging) {
       qb.limit(pageSize);
       qb.offset(pageSize * pageNum);
@@ -102,22 +105,28 @@ export class ChatService {
   }
 
   /*  查询指定消息 */
-  async findOneChatmsgbyId(id: number) {
-    const Chatres = await this.chatRepository.findOne({
-      where: { id },
-    });
-    return Chatres;
+  async findOneChatmsgbyId(id: number, uid?: number) {
+    const qb = this.chatRepository.createQueryBuilder('chat');
+    qb.where('id = :id', { id });
+    if (uid) {
+      qb.andWhere('send_uid = :uid', { uid });
+    }
+    const chatRes = await qb.getOne();
+    return chatRes;
   }
 
   /* 修改聊天信息 */
-  async updateChatmsg(data: UpdateChatDto) {
+  async updateChatmsg(data: UpdateChatDto, uid?: number) {
     const { id } = data || {};
     delete data.id;
-    const updateRes = await this.chatRepository
-      .createQueryBuilder('chat')
+    const qb = this.chatRepository.createQueryBuilder('chat');
+    qb.where('id = :id', { id });
+    if (uid) {
+      qb.andWhere('send_uid = :uid', { uid });
+    }
+    const updateRes = await qb
       .update()
       .set({ ...data })
-      .where('chat.id = :id', { id })
       .execute();
     if (updateRes.affected) {
       return ResultMsg.ok(Msg.UPDATE_SUCCESS, updateRes.generatedMaps[0]);
@@ -134,22 +143,23 @@ export class ChatService {
       .where('session_id = :id', { id: session_id })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
   }
 
   /* 软删除聊天信息 */
-  async softDeleteChatmsg(data: IdsDto) {
+  async softDeleteChatmsg(data: IdsDto, uid?: number) {
     const { ids } = data || {};
-    const delRes = await this.chatRepository
-      .createQueryBuilder('chat')
-      .softDelete()
-      .where('id IN (:...ids)', { ids: [...ids] })
-      .execute();
+    const qb = this.chatRepository.createQueryBuilder('chat');
+    qb.where('id IN (:...ids)', { ids });
+    if (uid) {
+      qb.andWhere('send_uid = :uid', { uid });
+    }
+    const delRes = await qb.softDelete().execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
@@ -164,7 +174,7 @@ export class ChatService {
       .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.RESTORE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.RESTORE_FAIL);
     }
@@ -177,9 +187,10 @@ export class ChatService {
       .createQueryBuilder('chat')
       .delete()
       .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }

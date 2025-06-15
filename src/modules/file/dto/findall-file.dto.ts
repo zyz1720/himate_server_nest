@@ -1,17 +1,10 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsHash,
-  IsNumber,
-  IsOptional,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsHash, IsOptional } from 'class-validator';
 import { FindAllDto } from 'src/commom/dto/commom.dto';
 import {
   FileUseType,
   MessageType as FileType,
 } from 'src/commom/constants/base-enum.const';
-import { Type } from 'class-transformer';
 
 export class FindAllFileDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({
@@ -24,8 +17,6 @@ export class FindAllFileDto extends PartialType(FindAllDto) {
     description: '文件大小',
   })
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
   readonly file_size?: number;
 
   @ApiPropertyOptional({
@@ -34,7 +25,7 @@ export class FindAllFileDto extends PartialType(FindAllDto) {
   })
   @IsOptional()
   @IsEnum(FileType)
-  readonly file_type?: string;
+  readonly file_type?: FileType;
 
   @ApiPropertyOptional({
     description: '使用场景',
@@ -42,7 +33,7 @@ export class FindAllFileDto extends PartialType(FindAllDto) {
   })
   @IsOptional()
   @IsEnum(FileUseType)
-  readonly use_type?: string;
+  readonly use_type?: FileUseType;
 
   @ApiPropertyOptional({ description: '文件hash值', required: false })
   @IsOptional()

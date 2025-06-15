@@ -1,16 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
-import { ChatType } from 'src/commom/constants/base-enum.const';
+import { IsNotEmpty, IsNumber, Max, IsUUID, IsEnum } from 'class-validator';
+import { ChatType, DataLength } from 'src/commom/constants/base-enum.const';
 
 export class CreateSessionDto {
   @ApiProperty({ description: '用户id', required: true })
   @IsNotEmpty({ message: '缺少用户id' })
+  @Max(DataLength.INT)
   @IsNumber()
   readonly creator_uid: number;
 
   @ApiProperty({ description: '会话id', required: true })
   @IsNotEmpty({ message: '缺少会话id' })
-  @IsString()
+  @IsUUID()
   readonly session_id: string;
 
   @ApiProperty({
@@ -19,6 +20,6 @@ export class CreateSessionDto {
     required: true,
   })
   @IsNotEmpty({ message: '缺少会话类型' })
-  @IsString()
-  readonly chat_type: string;
+  @IsEnum(ChatType)
+  readonly chat_type: ChatType;
 }

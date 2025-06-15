@@ -1,26 +1,43 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { CreateGroupDto } from './create-group.dto';
-import { IsNotEmpty, IsNumber } from 'class-validator';
-import { MemberStatus as GroupStatus } from 'src/commom/constants/base-enum.const';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsByteLength,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  Max,
+} from 'class-validator';
+import {
+  DataLength,
+  MemberStatus as GroupStatus,
+} from 'src/commom/constants/base-enum.const';
 
-export class UpdateGroupDto extends PartialType(CreateGroupDto) {
+export class UpdateGroupDto {
   @ApiProperty({ description: '群组自增id', required: true })
   @IsNotEmpty({ message: '缺少群自增id' })
+  @Max(DataLength.INT)
   @IsNumber()
   readonly id: number;
 
   @ApiPropertyOptional({ description: '群名' })
+  @IsOptional()
+  @IsByteLength(0, DataLength.Medium)
   readonly group_name?: string;
 
   @ApiPropertyOptional({ description: '群头像' })
+  @IsOptional()
+  @IsByteLength(0, DataLength.Long)
   readonly group_avatar?: string;
 
   @ApiPropertyOptional({ description: '群组简介' })
+  @IsOptional()
   readonly group_introduce?: string;
 
   @ApiPropertyOptional({
     description: '群状态',
     enum: GroupStatus,
   })
-  readonly group_status?: string;
+  @IsOptional()
+  @IsEnum(GroupStatus)
+  readonly group_status?: GroupStatus;
 }

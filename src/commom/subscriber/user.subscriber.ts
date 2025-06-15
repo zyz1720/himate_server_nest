@@ -2,7 +2,6 @@ import {
   EntitySubscriberInterface,
   EventSubscriber,
   InsertEvent,
-  SoftRemoveEvent,
   UpdateEvent,
 } from 'typeorm';
 import { RequestContext } from 'nestjs-request-context';
@@ -10,30 +9,25 @@ import { RequestContext } from 'nestjs-request-context';
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface {
   readonly whiteEntitys = [];
-  readonly user = RequestContext.currentContext?.req?.user;
 
-  excludeEntity(entity: string) {
-    return this.whiteEntitys.includes(entity);
+  editEntity(entity: any, field: string) {
+    const req = RequestContext.currentContext?.req;
+    const user = req?.user;
+
+    if (!entity) {
+      return;
+    }
+    const entityName = entity.constructor.name;
+    if (!this.whiteEntitys.includes(entityName)) {
+      entity[field] = user?.userId ?? 0;
+    }
   }
 
   beforeInsert(event: InsertEvent<any>) {
-    const entityName = event.entity.constructor.name;
-    if (!this.excludeEntity(entityName) && this.user) {
-      event.entity.create_by = this.user.userId || 0;
-    }
+    this.editEntity(event.entity, 'create_by');
   }
 
   beforeUpdate(event: UpdateEvent<any>) {
-    const entityName = event.entity.constructor.name;
-    if (!this.excludeEntity(entityName) && this.user) {
-      event.entity.update_by = this.user.userId || 0;
-    }
-  }
-
-  beforeSoftRemove(event: SoftRemoveEvent<any>) {
-    const entityName = event.entity.constructor.name;
-    if (!this.excludeEntity(entityName) && this.user) {
-      event.entity.delete_by = this.user.userId || 0;
-    }
+    this.editEntity(event.entity, 'update_by');
   }
 }

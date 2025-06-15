@@ -4,17 +4,17 @@ import { FileController } from './file.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { fileEntity } from 'src/entities/file.entity';
 import { BullModule } from '@nestjs/bull';
-import { FileParserConsumer } from 'src/commom/bull/file-parser.consumer';
+import { fileHandleConsumer } from 'src/commom/bull/file-handle.consumer';
 import { MusicModule } from '../music/music.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([fileEntity]),
     forwardRef(() => MusicModule),
-    BullModule.registerQueue({ name: 'fileParser' }),
+    BullModule.registerQueue({ name: 'fileHandle' }),
   ],
   controllers: [FileController],
-  providers: [FileParserConsumer, FileService],
+  providers: [fileHandleConsumer, FileService],
   exports: [FileService],
 })
 export class FileModule {}

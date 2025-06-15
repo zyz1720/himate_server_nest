@@ -10,7 +10,7 @@ export class GroupDeletedListener {
   /*  监听群删除事件 */
   @OnEvent('group.deleted')
   async handleGroupDeletedEvent(payload: GroupDeleteEvent): Promise<boolean> {
-    const { group_id } = payload || {};
+    const { ids } = payload || {};
     try {
       // 开启事务
       await this.queryRunnerFactory.startTransaction();
@@ -20,7 +20,8 @@ export class GroupDeletedListener {
       const delRes = await tx_groupmemberRepository
         .createQueryBuilder('group_member')
         .delete()
-        .where('group_member.group_id = :gId', { gId: group_id })
+        .where('group_id IN (:...ids)', { ids })
+        .andWhere('delete_time IS NULL')
         .execute();
       if (delRes.affected) {
         await this.queryRunnerFactory.commitTransaction();

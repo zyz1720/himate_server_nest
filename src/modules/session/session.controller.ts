@@ -4,6 +4,11 @@ import { FindAllSessionDto } from './dto/findall-session.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindOneSessionDto } from './dto/findone-session.dto';
 import { CreateSessionDto } from './dto/create-session.dto';
+import { UserId } from 'src/core/auth/decorators/user.decorator';
+import { Roles } from 'src/core/auth/decorators/roles.decorator';
+import { Role } from 'src/commom/constants/base-enum.const';
+import { IdsDto } from 'src/commom/dto/commom.dto';
+import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
 
 @ApiTags('会话')
 @ApiBearerAuth()
@@ -19,19 +24,36 @@ export class SessionController {
 
   @ApiOperation({ summary: '用户会话列表' })
   @Get('list')
-  findAll(@Query() query: FindAllSessionDto) {
-    return this.sessionService.findAllSessionByUid(query);
+  findAll(@Query() query: FindAllSessionDto, @UserId() uid: number) {
+    return this.sessionService.findAllSessionByUid(query, uid);
   }
 
   @ApiOperation({ summary: '会话详情' })
   @Get('detail')
-  findOneBySid(@Query() query: FindOneSessionDto) {
-    return this.sessionService.findOneSession(query);
+  findOneBySid(
+    @Query(EmptyQueryPipe) query: FindOneSessionDto,
+    @UserId() uid: number,
+  ) {
+    return this.sessionService.findOneSession(query, uid);
   }
 
-  @ApiOperation({ summary: '删除会话' })
+  @ApiOperation({ summary: '软删除会话' })
   @Delete('del')
-  remove(@Query('id') id: number) {
-    return this.sessionService.removeSession(id);
+  softDelete(@Query('id') id: number, @UserId() uid: number) {
+    return this.sessionService.removeSession(id, uid);
+  }
+
+  @ApiOperation({ summary: '恢复会话' })
+  @Roles(Role.Admin)
+  @Post('restore')
+  restore(@Body() data: IdsDto) {
+    return this.sessionService.restoreSession(data);
+  }
+
+  @ApiOperation({ summary: '真删除恢复会话' })
+  @Roles(Role.Admin)
+  @Delete('realDel')
+  realRemove(@Body() data: IdsDto) {
+    return this.sessionService.realDeletSession(data);
   }
 }

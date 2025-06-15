@@ -25,8 +25,10 @@ import {
 } from './dto/edit-music.dto';
 import { FindOneMusicDto } from './dto/findone-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
-import { Roles } from 'src/core/auth/auth.decorator';
+import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
+import { UserId } from 'src/core/auth/decorators/user.decorator';
+import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
 
 @ApiTags('音乐')
 @ApiBearerAuth()
@@ -36,28 +38,42 @@ export class MusicController {
 
   @ApiOperation({ summary: '获取音乐详情' })
   @Get('detail')
-  async findOne(@Query() query: FindOneMusicDto) {
+  findOne(@Query(EmptyQueryPipe) query: FindOneMusicDto) {
     return this.musicService.findOneMusic(query);
   }
 
   @ApiOperation({ summary: '查找音乐' })
   @Get('list')
-  async findAll(@Query() query: FindAllMusicDto) {
+  findAll(@Query() query: FindAllMusicDto) {
     return this.musicService.findAllMusic(query);
   }
 
   @ApiOperation({ summary: '修改音乐信息' })
   @Roles(Role.Admin)
   @Put('edit')
-  async update(@Body() user: EditMusicDto) {
-    return await this.musicService.updateMusic(user);
+  update(@Body() user: EditMusicDto) {
+    return this.musicService.updateMusic(user);
   }
 
-  @ApiOperation({ summary: '删除音乐' })
+  @ApiOperation({ summary: '软删除音乐' })
   @Roles(Role.Admin)
   @Delete('del')
-  async remove(@Query() query: IdsDto) {
-    return this.musicService.deleteMusic(query);
+  remove(@Body() data: IdsDto) {
+    return this.musicService.deleteMusic(data);
+  }
+
+  @ApiOperation({ summary: '恢复音乐' })
+  @Roles(Role.Admin)
+  @Post('restore')
+  restore(@Body() data: IdsDto) {
+    return this.musicService.restoreMusic(data);
+  }
+
+  @ApiOperation({ summary: '真删除音乐' })
+  @Roles(Role.Admin)
+  @Delete('realDel')
+  realRemove(@Body() data: IdsDto) {
+    return this.musicService.realDeleteMusic(data);
   }
 }
 
@@ -69,38 +85,52 @@ export class FavoritesController {
 
   @ApiOperation({ summary: '创建收藏夹' })
   @Post('add')
-  async create(@Body() data: AddMusicFavoritesDto) {
+  create(@Body() data: AddMusicFavoritesDto) {
     return this.musicService.addFavorites(data);
   }
 
   @ApiOperation({ summary: '查找收藏夹' })
   @Get('list')
-  async findAll(@Query() query: FindAllFavoritesDto) {
+  findAll(@Query() query: FindAllFavoritesDto) {
     return this.musicService.findAllFavorites(query);
   }
 
   @ApiOperation({ summary: '收藏夹详情' })
   @Get('detail')
-  async findOne(@Query() query: FindOneFavoritesDto) {
+  findOne(@Query(EmptyQueryPipe) query: FindOneFavoritesDto) {
     return this.musicService.findOneFavorites(query);
   }
 
   @ApiOperation({ summary: '修改收藏夹信息' })
   @Put('edit')
-  async update(@Body() data: EditFavoritesDto) {
-    return await this.musicService.updateFavorites(data);
+  update(@Body() data: EditFavoritesDto, @UserId() uid: number) {
+    return this.musicService.updateFavorites(data, uid);
   }
 
   @ApiOperation({ summary: '默认收藏夹' })
   @Post('default')
-  async updateDefault(@Body() data: EditDefaultFavoritesDto) {
-    return await this.musicService.updateDefaultFavorites(data);
+  updateDefault(@Body() data: EditDefaultFavoritesDto, @UserId() uid: number) {
+    return this.musicService.updateDefaultFavorites(data, uid);
   }
 
-  @ApiOperation({ summary: '删除收藏夹' })
+  @ApiOperation({ summary: '软删除收藏夹' })
   @Delete('del')
-  async remove(@Query() query: IdsDto) {
-    return this.musicService.deleteFavorites(query);
+  remove(@Body() data: IdsDto, @UserId() uid: number) {
+    return this.musicService.deleteFavorites(data, uid);
+  }
+
+  @ApiOperation({ summary: '恢复收藏夹' })
+  @Roles(Role.Admin)
+  @Post('restore')
+  restore(@Body() data: IdsDto) {
+    return this.musicService.restoreFavorites(data);
+  }
+
+  @ApiOperation({ summary: '真删除收藏夹' })
+  @Roles(Role.Admin)
+  @Delete('realDel')
+  realRemove(@Body() data: IdsDto) {
+    return this.musicService.realDeleteFavorites(data);
   }
 }
 
@@ -113,34 +143,34 @@ export class musicMoreController {
   @ApiOperation({ summary: '查找音乐播放地址' })
   @Roles(Role.Admin)
   @Get('detail')
-  async findOne(@Query() query: FindMusicUrlDto) {
+  findOne(@Query() query: FindMusicUrlDto) {
     return this.musicService.findMusicUrl(query);
   }
 
   @ApiOperation({ summary: '查找音乐' })
   @Roles(Role.Admin)
   @Get('list')
-  async findMore(@Query() query: FindMusicMoreDto) {
+  findMore(@Query() query: FindMusicMoreDto) {
     return this.musicService.findMusicMoreList(query);
   }
 
   @ApiOperation({ summary: '查找歌词' })
   @Roles(Role.Admin)
   @Get('lyric')
-  async findLyric(@Query('id') id: number) {
+  findLyric(@Query('id') id: string) {
     return this.musicService.findMusicLyric(id);
   }
 
   @ApiOperation({ summary: '匹配音乐信息' })
   @Roles(Role.Admin)
   @Get('match')
-  async matchInfo(@Query() query: MatchMusicMoreDto) {
+  matchInfo(@Query() query: MatchMusicMoreDto) {
     return this.musicService.matchMusicInfo(query);
   }
 
   @ApiOperation({ summary: '同步收藏夹' })
   @Post('sync')
-  async syncFavorite(@Body() data: SyncFavoritesDto) {
+  syncFavorite(@Body() data: SyncFavoritesDto) {
     return this.musicService.syncMoreFavorites(data);
   }
 }

@@ -5,8 +5,9 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../auth.decorator';
+import { ROLES_KEY } from '../decorators/roles.decorator';
 import { Role } from 'src/commom/constants/base-enum.const';
+import { Msg } from 'src/commom/constants/base-msg.const';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -26,12 +27,12 @@ export class RolesGuard implements CanActivate {
     // 获取当前用户角色
     const { user } = context.switchToHttp().getRequest();
     if (!user) {
-      throw new ForbiddenException('请登录!');
+      throw new ForbiddenException(Msg.NO_LOGIN);
     }
 
     const hasRole = requiredRoles.some((role) => user?.UserRole == role);
     if (!hasRole) {
-      throw new ForbiddenException('您没有此操作权限');
+      throw new ForbiddenException(Msg.NO_PERMISSION);
     }
 
     return true;

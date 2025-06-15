@@ -27,7 +27,7 @@ export class FindAllChatDto extends PartialType(FindAllDto) {
   })
   @IsOptional()
   @IsEnum(MessageStatus)
-  msg_status?: string;
+  msg_status?: MessageStatus;
 
   @ApiPropertyOptional({
     description: '消息类型',
@@ -35,7 +35,7 @@ export class FindAllChatDto extends PartialType(FindAllDto) {
   })
   @IsOptional()
   @IsEnum(MessageType)
-  msg_type?: string;
+  msg_type?: MessageType;
 
   @ApiPropertyOptional({
     description: '会话类型',
@@ -43,5 +43,5 @@ export class FindAllChatDto extends PartialType(FindAllDto) {
   })
   @IsOptional()
   @IsEnum(ChatType)
-  chat_type?: string;
+  chat_type?: ChatType;
 }

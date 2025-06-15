@@ -6,8 +6,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
-import { WsException } from '@nestjs/websockets';
-import { IS_PUBLIC_KEY } from '../auth.decorator';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { Msg } from 'src/commom/constants/base-msg.const';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -31,7 +31,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     // 单独处理Socket验证
     const type = context.getType();
-    if (type === 'ws') {
+    if (type == 'ws') {
       const client = context.switchToWs().getClient();
       const token = client.handshake?.auth?.Authorization;
       try {
@@ -39,24 +39,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         if (decoded) {
           return true;
         }
-        throw new WsException('请登录！');
+        return false;
       } catch (error) {
-        console.log(error);
-        throw new WsException('验证失败！');
+        console.log('JwtAuthGuard ws', error);
+        return false;
       }
     }
 
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any, info: any) {
-    // console.log(info);
-    if (err || !user) {
-      throw (
-        err ||
-        new UnauthorizedException('请登录！') ||
-        new WsException('请登录！')
-      );
+  handleRequest(error: any, user: any) {
+    // console.log('JwtAuthGuard', error, user, info);
+    if (error || !user) {
+      throw error || new UnauthorizedException(Msg.NO_LOGIN);
     }
     return user;
   }

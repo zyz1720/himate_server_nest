@@ -34,10 +34,10 @@ export class FindAllDto {
   @Type(() => Number)
   @IsEnum(NumericStatus)
   @IsNumber()
-  readonly isPaging?: number;
+  readonly isPaging?: NumericStatus;
 
   @ApiPropertyOptional({
-    description: '文件id列表',
+    description: 'id列表',
     type: 'array',
     items: { type: 'number' },
   })

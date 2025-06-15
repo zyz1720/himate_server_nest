@@ -7,12 +7,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  BeforeInsert,
 } from 'typeorm';
 import { groupMemberEntity } from './group-member.entity';
 import {
   MemberStatus as GroupStatus,
   DataLength,
 } from 'src/commom/constants/base-enum.const';
+import { createUUID } from 'src/commom/utils/base';
 
 @Entity('group')
 export class groupEntity {
@@ -59,11 +61,8 @@ export class groupEntity {
   @Column({ type: 'int', comment: '创建者id' })
   create_by: number;
 
-  @Column({ type: 'int', comment: '修改者id' })
+  @Column({ type: 'int', default: null, comment: '修改者id' })
   update_by: number;
-
-  @Column({ type: 'int', comment: '删除者id' })
-  delete_by: number;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
@@ -73,4 +72,9 @@ export class groupEntity {
 
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @BeforeInsert()
+  createGroupUUID() {
+    this.group_id = createUUID();
+  }
 }

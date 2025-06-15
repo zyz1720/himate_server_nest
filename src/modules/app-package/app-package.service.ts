@@ -96,14 +96,14 @@ export class AppPackageService {
 
   /* 软删除应用包 */
   async softDeleteAppPackage(data: IdsDto) {
-    const { ids = [] } = data || {};
+    const { ids } = data || {};
     const delRes = await this.appPackageRepository
       .createQueryBuilder('app_package')
       .softDelete()
       .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
@@ -111,14 +111,14 @@ export class AppPackageService {
 
   /* 恢复应用包 */
   async restoreAppPackage(data: IdsDto) {
-    const { ids = [] } = data || {};
+    const { ids } = data || {};
     const delRes = await this.appPackageRepository
       .createQueryBuilder('app_package')
       .restore()
       .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.RESTORE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.RESTORE_FAIL);
     }
@@ -126,14 +126,15 @@ export class AppPackageService {
 
   /* 真刪除应用包*/
   async deleteAppPackage(data: IdsDto) {
-    const { ids = [] } = data || {};
+    const { ids } = data || {};
     const delRes = await this.appPackageRepository
       .createQueryBuilder('app_package')
       .delete()
       .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }

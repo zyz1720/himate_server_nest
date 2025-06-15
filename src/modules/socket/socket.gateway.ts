@@ -15,6 +15,7 @@ import { RedisService } from 'src/core/Redis/redis.service';
 import { ResultMsg } from 'src/commom/utils/result';
 import { BaseConst } from 'src/commom/constants/base.const';
 import { CreateChatDto } from '../chat/dto/create-chat.dto';
+import { MessageStatus } from 'src/commom/constants/base-enum.const';
 
 interface IClientMsg {
   type: string;
@@ -63,7 +64,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
         const readRes = await this.chatService.updateChatmsg({
           id: data.msgId,
-          msg_status: 'read',
+          msg_status: MessageStatus.Read,
         });
         const unreadCountRes =
           await this.sessionService.updateSessionUnreadCount(data.sId);
@@ -136,11 +137,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
 
     /* 查询会话是否存在 */
-    const sessionData = await this.sessionService.findOneSession({
+    const sessionRes = await this.sessionService.findOneSession({
       session_id,
     });
-    if (sessionData) {
-      return addNewMsg(sessionData, payload);
+    if (sessionRes.success) {
+      return addNewMsg(sessionRes.data, payload);
     } else {
       const addSessionRes = await this.sessionService.createChatSession({
         creator_uid: send_uid,

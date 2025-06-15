@@ -54,7 +54,7 @@ export class CreateChatDto {
   })
   @IsNotEmpty({ message: '缺少会话类型' })
   @IsEnum(ChatType)
-  chat_type: string;
+  chat_type: ChatType;
 
   @ApiProperty({
     description: '消息类型',
@@ -64,5 +64,5 @@ export class CreateChatDto {
   })
   @IsNotEmpty({ message: '缺少消息类型' })
   @IsEnum(MessageType)
-  msg_type: string;
+  msg_type: MessageType;
 }

@@ -122,13 +122,14 @@ export class MusicService {
       }
     }
     qb.orderBy('music.create_time', 'DESC');
-    const count = await qb.getCount();
 
     if (isPaging) {
       qb.limit(pageSize);
       qb.offset(pageSize * pageNum);
     }
     const data = await qb.getMany();
+    const count = await qb.getCount();
+
     return ResultList.list(data, count);
   }
 
@@ -229,16 +230,47 @@ export class MusicService {
     }
   }
 
-  /* 删除音乐 */
+  /* 软删除音乐 */
   async deleteMusic(data: IdsDto) {
     const { ids } = data || {};
     const delRes = await this.musicRepository
       .createQueryBuilder('music')
-      .delete()
+      .softDelete()
       .where('id IN (:...ids)', { ids: [...ids] })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(Msg.DELETE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
+  }
+
+  /* 恢复聊天音乐 */
+  async restoreMusic(data: IdsDto) {
+    const { ids = [] } = data || {};
+    const delRes = await this.musicRepository
+      .createQueryBuilder('music')
+      .restore()
+      .where('id IN (:...ids)', { ids })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.RESTORE_FAIL);
+    }
+  }
+
+  /* 真刪除聊天音乐*/
+  async realDeleteMusic(data: IdsDto) {
+    const { ids = [] } = data || {};
+    const delRes = await this.musicRepository
+      .createQueryBuilder('music')
+      .delete()
+      .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
@@ -279,11 +311,14 @@ export class MusicService {
   }
 
   /* 修改音乐收藏 */
-  async updateFavorites(data: EditFavoritesDto) {
+  async updateFavorites(data: EditFavoritesDto, uid?: number) {
     const { id, musicIds, handleType } = data || {};
     const existPost = await this.findOneFavorites({ id });
     if (!existPost) {
       return ResultMsg.fail(Msg.DATA_NOEXIST);
+    }
+    if (uid && uid != existPost.creator_uid) {
+      return ResultMsg.fail(Msg.NO_PERMISSION);
     }
     if (musicIds) {
       const musicRes = await this.findAllMusic({
@@ -322,7 +357,7 @@ export class MusicService {
   }
 
   /* 默认收藏夹 */
-  async updateDefaultFavorites(data: EditDefaultFavoritesDto) {
+  async updateDefaultFavorites(data: EditDefaultFavoritesDto, uid?: number) {
     const { creator_uid, musicIds, handleType } = data || {};
     const existPost = await this.favoritesRepository.findOne({
       where: {
@@ -353,6 +388,9 @@ export class MusicService {
         });
       }
     } else {
+      if (uid && uid != existPost.creator_uid) {
+        return ResultMsg.fail(Msg.NO_PERMISSION);
+      }
       return this.updateFavorites({ id: existPost.id, musicIds, handleType });
     }
   }
@@ -431,16 +469,50 @@ export class MusicService {
     return data;
   }
 
-  /* 删除音乐收藏 */
-  async deleteFavorites(data: IdsDto) {
+  /* 软删除音乐收藏 */
+  async deleteFavorites(data: IdsDto, uid?: number) {
     const { ids } = data || {};
+    const qb = this.favoritesRepository
+      .createQueryBuilder('favorites')
+      .softDelete();
+    qb.where('id IN (:...ids)', { ids: [...ids] });
+    if (uid) {
+      qb.andWhere('creator_uid = :uid', { uid });
+    }
+    const delRes = await qb.execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
+  }
+
+  /* 恢复聊天音乐收藏 */
+  async restoreFavorites(data: IdsDto) {
+    const { ids = [] } = data || {};
+    const delRes = await this.favoritesRepository
+      .createQueryBuilder('favorites')
+      .restore()
+      .where('id IN (:...ids)', { ids })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.RESTORE_FAIL);
+    }
+  }
+
+  /* 真刪除音乐收藏*/
+  async realDeleteFavorites(data: IdsDto) {
+    const { ids = [] } = data || {};
     const delRes = await this.favoritesRepository
       .createQueryBuilder('favorites')
       .delete()
-      .where('id IN (:...ids)', { ids: [...ids] })
+      .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
@@ -479,7 +551,7 @@ export class MusicService {
   }
 
   /* 第三方api获取歌词 */
-  async findMusicLyric(id: number) {
+  async findMusicLyric(id: string) {
     try {
       const lyricRes = await axios.get(
         this.configService.get('MUSIC_API') + '/lyric',

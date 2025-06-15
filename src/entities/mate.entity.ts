@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -8,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { MateStatus, DataLength } from 'src/commom/constants/base-enum.const';
+import { createUUID } from 'src/commom/utils/base';
 
 @Entity('mate')
 export class mateEntity {
@@ -50,11 +52,8 @@ export class mateEntity {
   @Column({ type: 'int', comment: '创建者id' })
   create_by: number;
 
-  @Column({ type: 'int', comment: '修改者id' })
+  @Column({ type: 'int', default: null, comment: '修改者id' })
   update_by: number;
-
-  @Column({ type: 'int', comment: '删除者id' })
-  delete_by: number;
 
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
@@ -64,4 +63,9 @@ export class mateEntity {
 
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @BeforeInsert()
+  createMateUUID() {
+    this.mate_id = createUUID();
+  }
 }

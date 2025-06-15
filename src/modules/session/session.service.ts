@@ -11,6 +11,19 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { FindOneSessionDto } from './dto/findone-session.dto';
 import { GroupService } from '../group/group.service';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { mateEntity } from 'src/entities/mate.entity';
+import {
+  ChatType,
+  MateStatus,
+  MessageStatus,
+} from 'src/commom/constants/base-enum.const';
+import { IdsDto } from 'src/commom/dto/commom.dto';
+
+interface IIsUserSession {
+  id?: number;
+  session_id?: string;
+  uid: number;
+}
 
 @Injectable()
 export class SessionService {
@@ -31,11 +44,11 @@ export class SessionService {
       const tx_sessionRepository =
         this.queryRunnerFactory.getRepository(sessionEntity);
 
-      if (chat_type === 'personal') {
+      if (chat_type == ChatType.Personal) {
         // 查询是否为好友
         const mateRes = await this.mateService.findOneMateBymateId({
           mate_id: session_id,
-          mate_status: 'agreed',
+          mate_status: MateStatus.Agreed,
         });
         if (mateRes) {
           const sessionData = {
@@ -46,7 +59,7 @@ export class SessionService {
           const newSession = tx_sessionRepository.create(sessionData);
           const insertRes = await tx_sessionRepository.insert(newSession);
           if (insertRes.identifiers.length) {
-            newSession.mate = mateRes;
+            newSession.mate = mateRes as mateEntity;
             const saveRes = await tx_sessionRepository.save(newSession);
 
             await this.queryRunnerFactory.commitTransaction();
@@ -61,9 +74,10 @@ export class SessionService {
         }
       }
 
-      if (chat_type === 'group') {
-        const groupRes =
-          await this.groupService.findOneGroupBygroupId(session_id);
+      if (chat_type == ChatType.Group) {
+        const groupRes = await this.groupService.findOneGroup({
+          group_id: session_id,
+        });
         if (groupRes) {
           const sessionData = {
             creator_uid,
@@ -95,8 +109,15 @@ export class SessionService {
   }
 
   /* 查询会话详情 */
-  async findOneSession(query: FindOneSessionDto) {
+  async findOneSession(query: FindOneSessionDto, _uid?: number) {
     const { id, session_id, msg_status, chat_type } = query || {};
+    if (_uid) {
+      const session = await this.isUserSession({ id, session_id, uid: _uid });
+      if (!session) {
+        return ResultMsg.fail(Msg.NO_PERMISSION);
+      }
+    }
+
     const qb = this.sessionRepository.createQueryBuilder('session');
     if (id) {
       qb.andWhere('session.id = :id ', { id });
@@ -120,21 +141,42 @@ export class SessionService {
     if (chat_type) {
       qb.andWhere('session.chat_type = :type', { type: chat_type });
     }
-    if (chat_type === 'personal') {
+    if (chat_type == ChatType.Personal) {
       qb.leftJoinAndSelect('session.mate', 'mate');
     }
-    if (chat_type === 'group') {
+    if (chat_type == ChatType.Group) {
       qb.innerJoinAndSelect('session.group', 'group').innerJoinAndSelect(
         'group.members',
         'member',
       );
     }
     const session = await qb.getOne();
+    return ResultMsg.ok(Msg.GET_SUCCESS, session);
+  }
+
+  /* 查询是否是用户的会话  */
+  async isUserSession(data: IIsUserSession) {
+    const { id, session_id, uid } = data || {};
+    const qb = this.sessionRepository.createQueryBuilder('session');
+    if (id) {
+      qb.where('session.id = :s_id', { s_id: id });
+    }
+    if (session_id) {
+      qb.where('session.session_id = :se_id', { se_id: session_id });
+    }
+    qb.leftJoinAndSelect('session.mate', 'mate')
+      .leftJoinAndSelect('session.group', 'group')
+      .leftJoinAndSelect('group.members', 'member')
+      .where(
+        '(mate.apply_uid = :uid OR mate.agree_uid = :uid) OR (member.member_uid = :uid)',
+        { uid },
+      );
+    const session = await qb.getOne();
     return session;
   }
 
   /* 查询用户会话列表 */
-  async findAllSessionByUid(query: FindAllSessionDto) {
+  async findAllSessionByUid(query: FindAllSessionDto, _uid?: number) {
     const {
       pageNum = 0,
       pageSize = 10,
@@ -142,15 +184,19 @@ export class SessionService {
       msg_status,
       chat_type,
     } = query || {};
-    const qb = this.sessionRepository.createQueryBuilder('session');
 
+    if (_uid && _uid != uid) {
+      return ResultMsg.fail(Msg.NO_PERMISSION);
+    }
+
+    const qb = this.sessionRepository.createQueryBuilder('session');
     // 1. 处理会话类型条件
-    if (chat_type === 'personal') {
+    if (chat_type == ChatType.Personal) {
       qb.leftJoinAndSelect('session.mate', 'mate').where(
         'mate.apply_uid = :uid OR mate.agree_uid = :uid',
         { uid },
       );
-    } else if (chat_type === 'group') {
+    } else if (chat_type == ChatType.Group) {
       qb.leftJoinAndSelect('session.group', 'group')
         .leftJoinAndSelect('group.members', 'member')
         .where('member.member_uid = :uid', { uid });
@@ -185,7 +231,7 @@ export class SessionService {
     let newdata = [];
     if (data.length) {
       newdata = data.map((item) => {
-        if (item.chat_type === 'personal') {
+        if (item.chat_type == ChatType.Personal) {
           return {
             session_name:
               item.mate.apply_uid == uid
@@ -198,7 +244,7 @@ export class SessionService {
             ...item,
           };
         }
-        if (item.chat_type === 'group') {
+        if (item.chat_type == ChatType.Group) {
           return {
             session_name: item.group.group_name,
             session_avatar: item.group.group_avatar,
@@ -233,11 +279,14 @@ export class SessionService {
     };
 
     const sessionRes = await this.findOneSession({ id });
-    if (sessionRes) {
-      if (msg_status === 'unread') {
-        sessionData.unread_count = sessionRes.unread_count + 1;
+    if (sessionRes.success) {
+      if (msg_status == MessageStatus.Unread) {
+        sessionData.unread_count = sessionRes.data.unread_count + 1;
       }
-      const updatePost = this.sessionRepository.merge(sessionRes, sessionData);
+      const updatePost = this.sessionRepository.merge(
+        sessionRes.data,
+        sessionData,
+      );
       const updateRes = await this.sessionRepository.save(updatePost);
       if (updateRes) {
         return ResultMsg.ok(Msg.UPDATE_SUCCESS, updateRes);
@@ -252,8 +301,8 @@ export class SessionService {
   /* 更新会话信息未读数 */
   async updateSessionUnreadCount(id: number) {
     const sessionRes = await this.findOneSession({ id });
-    if (sessionRes) {
-      const updatePost = this.sessionRepository.merge(sessionRes, {
+    if (sessionRes.success) {
+      const updatePost = this.sessionRepository.merge(sessionRes.data, {
         unread_count: 0,
       });
       const updateRes = await this.sessionRepository.save(updatePost);
@@ -267,15 +316,52 @@ export class SessionService {
     }
   }
 
-  /* 删除会话 */
-  async removeSession(id: number) {
+  /* 软删除会话 */
+  async removeSession(id: number, _uid?: number) {
+    if (_uid) {
+      const session = await this.isUserSession({ id, uid: _uid });
+      if (!session) {
+        return ResultMsg.fail(Msg.NO_PERMISSION);
+      }
+    }
     const delRes = await this.sessionRepository
       .createQueryBuilder('session')
-      .delete()
+      .softDelete()
       .where('id = :id', { id })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.DELETE_FAIL);
+    }
+  }
+
+  /* 恢复会话 */
+  async restoreSession(data: IdsDto) {
+    const { ids = [] } = data || {};
+    const delRes = await this.sessionRepository
+      .createQueryBuilder('session')
+      .restore()
+      .where('id IN (:...ids)', { ids })
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
+    } else {
+      return ResultMsg.fail(Msg.RESTORE_FAIL);
+    }
+  }
+
+  /* 真刪除会话*/
+  async realDeletSession(data: IdsDto) {
+    const { ids = [] } = data || {};
+    const delRes = await this.sessionRepository
+      .createQueryBuilder('session')
+      .delete()
+      .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
+      .execute();
+    if (delRes.affected) {
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }

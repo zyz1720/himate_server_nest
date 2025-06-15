@@ -3,13 +3,19 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { ParseFileDto } from 'src/modules/file/dto/parser-file.dto';
 import { MusicService } from 'src/modules/music/music.service';
+import { FileService } from 'src/modules/file/file.service';
+import { MoveFileDto } from 'src/modules/file/dto/move-file.dto';
 import { BaseConst } from 'src/commom/constants/base.const';
 import * as fs from 'fs';
 import * as sharp from 'sharp';
+import { DelFileDto } from 'src/modules/file/dto/del-file.dto';
 
-@Processor('fileParser')
-export class FileParserConsumer {
-  constructor(private readonly musicService: MusicService) {}
+@Processor('fileHandle')
+export class fileHandleConsumer {
+  constructor(
+    private readonly musicService: MusicService,
+    private readonly fileService: FileService,
+  ) {}
 
   @Process('addMusic')
   async parseMusic(job: Job<ParseFileDto>): Promise<boolean> {
@@ -63,5 +69,25 @@ export class FileParserConsumer {
       console.error('压缩图片时发生错误:', error);
       return false;
     }
+  }
+
+  @Process('moveFile')
+  moveFile(job: Job<MoveFileDto[]>): boolean {
+    const files = job.data || [];
+    files.forEach((file) => {
+      const { source_path, flie_name, destination_path } = file;
+      this.fileService.moveLocalFile(source_path, flie_name, destination_path);
+    });
+    return true;
+  }
+
+  @Process('deleteFile')
+  deleteFile(job: Job<DelFileDto[]>): boolean {
+    const files = job.data || [];
+    files.forEach((file) => {
+      const { file_path, flie_name } = file;
+      this.fileService.deleteLocalFile(file_path, flie_name);
+    });
+    return true;
   }
 }

@@ -140,7 +140,7 @@ export class UserService {
   }
 
   /* 更新用户信息 */
-  async updateUser(data: UpdateUserDto) {
+  async updateUser(data: UpdateUserDto, uid?: number) {
     const {
       id,
       account,
@@ -149,7 +149,23 @@ export class UserService {
       user_avatar,
       password,
       oldpassword,
+      user_role,
+      user_status,
     } = data;
+    const updateData = { ...data };
+
+    if (uid) {
+      if (id != uid) {
+        return ResultMsg.fail(Msg.NO_PERMISSION);
+      }
+      if (user_role) {
+        delete updateData.user_role;
+      }
+      if (user_status) {
+        delete updateData.user_status;
+      }
+    }
+
     const existPost = await this.findOneUser({ id });
     if (!existPost) {
       return ResultMsg.fail(Msg.DATA_NOEXIST);
@@ -175,7 +191,7 @@ export class UserService {
       }
     }
     if (password) {
-      data.password = encryptPassword(password);
+      updateData.password = encryptPassword(password);
     }
     try {
       // 开启事务
@@ -183,7 +199,7 @@ export class UserService {
       const tx_userRepository =
         this.queryRunnerFactory.getRepository(userEntity);
       // 更新用户信息
-      const updatePost = tx_userRepository.merge(existPost, data);
+      const updatePost = tx_userRepository.merge(existPost, updateData);
       const saveRes = await tx_userRepository.save(updatePost);
       const eventFlags: boolean[] = [];
       if (saveRes) {
@@ -219,16 +235,17 @@ export class UserService {
     }
   }
 
-  /* 假刪除用户 */
-  async softDeleteUser(data: IdsDto) {
+  /* 软刪除用户 */
+  async softDeleteUser(data: IdsDto, uid?: number) {
     const { ids = [] } = data || {};
-    const delRes = await this.userRepository
-      .createQueryBuilder('user')
-      .softDelete()
-      .where('id IN (:...ids)', { ids })
-      .execute();
+    const qb = this.userRepository.createQueryBuilder('user').softDelete();
+    qb.where('id IN (:...ids)', { ids });
+    if (uid) {
+      qb.andWhere('id = :uid', { uid });
+    }
+    const delRes = await qb.execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
@@ -243,7 +260,7 @@ export class UserService {
       .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.RESTORE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.RESTORE_FAIL);
     }
@@ -256,9 +273,10 @@ export class UserService {
       .createQueryBuilder('user')
       .delete()
       .where('id IN (:...ids)', { ids })
+      .andWhere('delete_time IS NOT NULL')
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(Msg.DELETE_SUCCESS);
+      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {
       return ResultMsg.fail(Msg.DELETE_FAIL);
     }
