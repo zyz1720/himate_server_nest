@@ -736,7 +736,7 @@ export class MusicService {
                 uid: uid,
                 use_type: FileUseType.Music,
                 file_type: FileType.Image,
-                isAddTimeStamp: NumericStatus.False,
+                isAddTimeStamp: NumericStatus.True,
               },
             );
             if (downloadRes.success) {
