@@ -6,9 +6,19 @@ import { HttpReqTransformInterceptor } from './src/commom/interceptor/http-req.i
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import { BaseConst } from 'src/commom/constants/base.const';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+import fastifyCors from '@fastify/cors';
+import fastifyMultipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter({ logger: true }),
+  );
 
   // 全局异常过滤器
   app.useGlobalFilters(new AllExceptionFilter());
@@ -17,19 +27,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new HttpReqTransformInterceptor());
 
   // 全局应用管道 对输入数据进行转换或者验证
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true, // 排除dto中不存在的字段
-      forbidNonWhitelisted: true, // 禁止非白名单字段的输入
-    }),
-  );
-
-  app.enableCors({
-    origin: ['http://localhost:8080', 'http://192.168.110.35'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  app.useGlobalPipes(new ValidationPipe());
 
   // 设置全局路由前缀
   app.setGlobalPrefix('api');
@@ -44,9 +42,32 @@ async function bootstrap() {
   const documents = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('swagger', app, documents);
 
-  // 运行的端口
-  await app.listen(3000);
+  //  fastify-cors配置
+  await app.register(fastifyCors, {
+    origin: ['http://localhost:8080', 'http://192.168.110.35'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
+  // 注册 fastify-multipart 插件
+  await app.register(fastifyMultipart, {
+    limits: {
+      fileSize: 1000 * 1024 * 1024, // 1GB
+    },
+  });
+
+  // 注册压缩的静态资源服务
+  await app.register(fastifyStatic, {
+    root: BaseConst.ThumbnailDir,
+    serve: true,
+    prefix: '/Thumbnail',
+    index: false,
+  });
+
+  // 运行的端口
+  await app.listen(3000, '0.0.0.0');
+
+  // 静态资源服务
   const staticApp = express();
   staticApp.use('/static', express.static(BaseConst.uploadDir));
   staticApp.listen(3002);

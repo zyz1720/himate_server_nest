@@ -1,15 +1,15 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { FastifyRequest, FastifyReply } from 'fastify'; // 替换 Express 的类型
 
-/* boolean字符串转换管道，暂不使用，已使用app.enableCors() */
 @Injectable()
 export class CorsMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
-    const requestOrigin = req.header('Origin');
+  use(req: FastifyRequest['raw'], res: FastifyReply['raw'], next: () => void) {
+    // 使用 Fastify 的底层 Node.js 原生对象
+    const requestOrigin = req.headers['origin'];
 
-    const allowedOrigins = ['http://localhost:8080', 'http://192.168.110.35']; // 允许的源
+    const allowedOrigins = ['http://localhost:8080', 'http://192.168.110.35'];
     const isAllow = allowedOrigins.includes(requestOrigin);
-    // 在这里配置跨域相关的逻辑
+
     if (isAllow) {
       res.setHeader('Access-Control-Allow-Origin', requestOrigin);
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -19,11 +19,11 @@ export class CorsMiddleware implements NestMiddleware {
       );
     }
 
-    // 如果请求是预检请求（OPTIONS），则直接返回响应，不执行后续操作
     if (req.method === 'OPTIONS') {
-      res.status(200).send();
+      res.statusCode = 200; // Fastify 原生对象使用 statusCode
+      res.end();
     } else {
-      next(); // 继续执行后续中间件或控制器逻辑
+      next();
     }
   }
 }

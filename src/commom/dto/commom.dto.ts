@@ -8,8 +8,9 @@ import {
   ArrayNotEmpty,
   IsEnum,
   IsNumber,
+  IsByteLength,
 } from 'class-validator';
-import { NumericStatus } from '../constants/base-enum.const';
+import { DataLength, NumericStatus } from '../constants/base-enum.const';
 
 // 查询列表参数
 export class FindAllDto {
@@ -57,6 +58,26 @@ export class FileUploadDto {
   })
   @IsNotEmpty({ message: '文件不能为空' })
   readonly file: Express.Multer.File;
+}
+
+// 写入文件参数
+export class WriteFileDto {
+  @ApiProperty({
+    type: 'string',
+    required: true,
+    description: '文件路径',
+  })
+  @IsNotEmpty({ message: '文件路径不能为空' })
+  readonly path: string;
+
+  @ApiProperty({
+    type: 'string',
+    required: true,
+    description: '文件名',
+  })
+  @IsNotEmpty({ message: '文件名不能为空' })
+  @IsByteLength(0, DataLength.Long)
+  readonly filename: string;
 }
 
 // ids提交参数

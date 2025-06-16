@@ -10,8 +10,6 @@ import { RolesGuard } from './core/auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { MailModule } from './core/mail/mail.module';
 import { RedisModule } from './core/Redis/redis.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { MateModule } from './modules/mate/mate.module';
 import { SessionModule } from './modules/session/session.module';
 import { SocketModule } from './modules/socket/socket.module';
@@ -21,11 +19,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GroupMemberModule } from './modules/group-member/group-member.module';
 import { UploadModule } from './core/upload/upload.module';
 import { AppPackageModule } from './modules/app-package/app-package.module';
-import { UploadController } from './core/upload/upload.controller';
 import { MusicModule } from './modules/music/music.module';
 import { FileModule } from './modules/file/file.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { BaseConst } from './commom/constants/base.const';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './commom/subscriber/user.subscriber';
 import envConfig from '../config/env';
@@ -60,29 +55,6 @@ import { RequestContextModule } from 'nestjs-request-context';
           engine: 'InnoDB', // 指定数据库引擎
         },
       }),
-    }),
-
-    // 文件上传配置
-    MulterModule.register({
-      storage: diskStorage({
-        // 指定文件存储目录
-        destination: BaseConst.uploadDir,
-        filename: (_, file, callback) => {
-          // const fileName = Buffer.from(file.originalname, 'latin1').toString(
-          //   'utf8',
-          // );
-          return callback(null, file.originalname);
-        },
-      }),
-    }),
-
-    // 压缩后的静态资源配置
-    ServeStaticModule.forRoot({
-      rootPath: BaseConst.ThumbnailDir,
-      serveRoot: '/Thumbnail',
-      serveStaticOptions: {
-        index: false,
-      },
     }),
 
     // 事件配置
@@ -125,8 +97,8 @@ import { RequestContextModule } from 'nestjs-request-context';
     FileModule,
     RequestContextModule,
   ],
-  // 此处必须添加'UploadController',否则上传配置无法生效
-  controllers: [AppController, UploadController],
+
+  controllers: [AppController],
   providers: [
     AppService,
     {

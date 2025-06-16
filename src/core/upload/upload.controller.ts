@@ -1,13 +1,4 @@
-import {
-  Controller,
-  MaxFileSizeValidator,
-  ParseFilePipe,
-  Post,
-  Query,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, Post, Query, Req } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -18,6 +9,11 @@ import {
 import { FileUploadDto } from 'src/commom/dto/commom.dto';
 import { AddFileDto } from 'src/modules/file/dto/add-file.dto';
 import { UploadService } from './upload.service';
+import { FastifyRequest } from 'fastify';
+import { BaseConst } from 'src/commom/constants/base.const';
+import { ResultMsg } from 'src/commom/utils/result';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 
 @ApiTags('文件上传')
 @ApiBearerAuth()
@@ -27,21 +23,21 @@ export class UploadController {
 
   @ApiOperation({ summary: '单文件上传' })
   @Post('file')
-  @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     type: FileUploadDto,
   })
-  uploadFile(
-    @UploadedFile(
-      // 文件验证
-      new ParseFilePipe({
-        validators: [new MaxFileSizeValidator({ maxSize: 1000 * 1024 * 1024 })],
-      }),
-    )
-    file: Express.Multer.File,
-    @Query() query: AddFileDto,
-  ) {
-    return this.uploadService.upload(file, query);
+  async uploadFile(@Query() query: AddFileDto, @Req() req: FastifyRequest) {
+    const data = await req.file();
+    const fileBuffer = await data.toBuffer();
+    if (fileBuffer.length == 0) {
+      return ResultMsg.fail('请上传文件');
+    }
+
+    const filePath = join(BaseConst.uploadDir, data.filename);
+    await writeFile(filePath, fileBuffer);
+
+    const fileInfo = { path: filePath, filename: data.filename };
+    return await this.uploadService.upload(fileInfo, query);
   }
 }
