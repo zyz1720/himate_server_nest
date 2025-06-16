@@ -39,7 +39,7 @@ export class FindAllUserDto extends PartialType(FindAllDto) {
   readonly user_role?: Role;
 
   @ApiPropertyOptional({ description: '性别', enum: Gender })
-  @IsEnum(Role)
+  @IsEnum(Gender)
   @IsOptional()
   readonly sex?: Gender;
 
