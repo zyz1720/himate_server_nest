@@ -33,7 +33,7 @@ export class MateService {
     if (selfUid == otherUid) {
       return ResultMsg.fail('不能添加自己为好友');
     }
-    if (_uid && (selfUid != _uid || otherUid != _uid)) {
+    if (_uid && !(selfUid == _uid || otherUid == _uid)) {
       return ResultMsg.fail(Msg.NO_PERMISSION);
     }
     // 查询是否为好友
@@ -223,27 +223,30 @@ export class MateService {
 
   /* 修改好友信息 */
   async updateMate(data: UpdateMateDto, _uid?: number) {
+    console.log(data, _uid);
+
     const { id, uid, remark } = data || {};
     const mateRes = await this.findOneMateById(id);
-    if (mateRes) {
-      if (_uid && (mateRes.agree_uid != _uid || mateRes.apply_uid != _uid)) {
-        return ResultMsg.fail(Msg.NO_PERMISSION);
-      }
-      if (mateRes.agree_uid == uid) {
-        mateRes.apply_remark = remark;
-      }
-      if (mateRes.apply_uid == uid) {
-        mateRes.agree_remark = remark;
-      }
-      const updatePost = this.mateRepository.merge(mateRes, data);
-      const saveRes = await this.mateRepository.save(updatePost);
-      if (saveRes) {
-        return ResultMsg.ok(Msg.UPDATE_SUCCESS, saveRes);
-      } else {
-        return ResultMsg.fail(Msg.UPDATE_FAIL);
-      }
-    } else {
+    console.log(mateRes);
+
+    if (!mateRes) {
       return ResultMsg.fail(Msg.DATA_NOEXIST);
+    }
+    if (_uid && !(mateRes.agree_uid == _uid || mateRes.apply_uid == _uid)) {
+      return ResultMsg.fail(Msg.NO_PERMISSION);
+    }
+    if (mateRes.agree_uid == uid) {
+      mateRes.apply_remark = remark;
+    }
+    if (mateRes.apply_uid == uid) {
+      mateRes.agree_remark = remark;
+    }
+    const updatePost = this.mateRepository.merge(mateRes, data);
+    const saveRes = await this.mateRepository.save(updatePost);
+    if (saveRes) {
+      return ResultMsg.ok(Msg.UPDATE_SUCCESS, saveRes);
+    } else {
+      return ResultMsg.fail(Msg.UPDATE_FAIL);
     }
   }
 
@@ -269,6 +272,7 @@ export class MateService {
     }
   }
 
+  /* 查询所有好友关系 */
   async findAllMateList(query: FindAllMatelistDto) {
     const {
       pageNum = 0,
@@ -323,7 +327,7 @@ export class MateService {
     return ResultList.list(data, count);
   }
 
-  /*  修改群信息 */
+  /*  修改群好友关系 */
   async updateMateAll(data: UpdateAllMateDto) {
     const { id } = data || {};
     const updateRes = await this.mateRepository

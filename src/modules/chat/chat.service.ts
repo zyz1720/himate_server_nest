@@ -119,15 +119,12 @@ export class ChatService {
   async updateChatmsg(data: UpdateChatDto, uid?: number) {
     const { id } = data || {};
     delete data.id;
-    const qb = this.chatRepository.createQueryBuilder('chat');
+    const qb = this.chatRepository.createQueryBuilder('chat').update();
     qb.where('id = :id', { id });
     if (uid) {
       qb.andWhere('send_uid = :uid', { uid });
     }
-    const updateRes = await qb
-      .update()
-      .set({ ...data })
-      .execute();
+    const updateRes = await qb.set({ ...data }).execute();
     if (updateRes.affected) {
       return ResultMsg.ok(Msg.UPDATE_SUCCESS, updateRes.generatedMaps[0]);
     } else {
@@ -152,12 +149,12 @@ export class ChatService {
   /* 软删除聊天信息 */
   async softDeleteChatmsg(data: IdsDto, uid?: number) {
     const { ids } = data || {};
-    const qb = this.chatRepository.createQueryBuilder('chat');
+    const qb = this.chatRepository.createQueryBuilder('chat').softDelete();
     qb.where('id IN (:...ids)', { ids });
     if (uid) {
       qb.andWhere('send_uid = :uid', { uid });
     }
-    const delRes = await qb.softDelete().execute();
+    const delRes = await qb.execute();
     if (delRes.affected) {
       return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {

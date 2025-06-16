@@ -24,7 +24,7 @@ export class sessionEntity {
   @PrimaryGeneratedColumn({ comment: '会话自增id' })
   id: number;
 
-  @Index({ unique: true })
+  @Index()
   @Column({ length: DataLength.UUID, comment: '会话id(好友id或群组id)' })
   session_id: string;
 

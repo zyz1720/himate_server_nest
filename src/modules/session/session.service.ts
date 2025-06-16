@@ -151,6 +151,9 @@ export class SessionService {
       );
     }
     const session = await qb.getOne();
+    if (!session) {
+      return ResultMsg.fail(Msg.DATA_NOEXIST);
+    }
     return ResultMsg.ok(Msg.GET_SUCCESS, session);
   }
 

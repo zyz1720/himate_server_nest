@@ -140,6 +140,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const sessionRes = await this.sessionService.findOneSession({
       session_id,
     });
+
     if (sessionRes.success) {
       return addNewMsg(sessionRes.data, payload);
     } else {

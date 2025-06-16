@@ -158,12 +158,12 @@ export class FileService {
   /* 软删除文件 */
   async softDeleteFile(data: IdsDto, uid?: number) {
     const { ids } = data || {};
-    const qb = this.fileRepository.createQueryBuilder('file');
+    const qb = this.fileRepository.createQueryBuilder('file').softDelete();
     qb.where('id IN (:...ids)', { ids });
     if (uid) {
       qb.andWhere('upload_uid = :uid', { uid });
     }
-    const delRes = await qb.softDelete().execute();
+    const delRes = await qb.execute();
     if (delRes.affected) {
       // 移入回收站
       const qb = this.fileRepository.createQueryBuilder('file');

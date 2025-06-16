@@ -11,10 +11,7 @@ import { GroupService } from '../group/group.service';
 import { FindJoinGroupDto } from './dto/findjoin-group.dto';
 import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
 import { FindOneGroupMemberDto } from './dto/findOne-group-member.dto';
-import {
-  GroupMemberRole,
-  NumericStatus,
-} from 'src/commom/constants/base-enum.const';
+import { GroupMemberRole } from 'src/commom/constants/base-enum.const';
 
 @Injectable()
 export class GroupMemberService {
@@ -47,14 +44,21 @@ export class GroupMemberService {
         member_uid: uid,
       });
       if (!inGroup) {
-        return ResultMsg.fail(Msg.NO_PERMISSION);
+        const isGroupCreator = await this.groupService.findOneGroup({
+          id: gId,
+          group_id,
+          creator_uid: uid,
+        });
+        if (!isGroupCreator) {
+          return ResultMsg.fail(Msg.NO_PERMISSION);
+        }
       }
     }
     const newData = {
       member_avatar: userRes.user_avatar,
       member_remark: member_remark ? member_remark : userRes.user_name,
       member_role:
-        group.creator_uid === member_uid
+        group.creator_uid == member_uid
           ? GroupMemberRole.Owner
           : GroupMemberRole.Member,
       ...data,
@@ -130,7 +134,7 @@ export class GroupMemberService {
 
   /* 查询用户加入的所有群组详情*/
   findAllJoinGroupDetail = async (query: FindJoinGroupDto, uid?: number) => {
-    const { pageNum, pageSize, uid: user_uid } = query || {};
+    const { uid: user_uid } = query || {};
     const qb = this.groupmemberRepository.createQueryBuilder('group_member');
     qb.where('member_uid = :uid', { uid: user_uid });
     if (uid) {
@@ -147,8 +151,7 @@ export class GroupMemberService {
     if (newlist.length) {
       return await this.groupService.findAllGroup({
         gIdList: newlist,
-        pageNum,
-        pageSize,
+        ...query,
       });
     }
     return ResultList.list();
@@ -230,11 +233,7 @@ export class GroupMemberService {
       if (!inGroup) {
         return ResultMsg.fail(Msg.NO_PERMISSION);
       }
-      if (inGroup.creator_uid == uid) {
-        return ResultMsg.fail(Msg.NO_ALLOW);
-      }
       const memberSelf = inGroup.members[0];
-
       switch (memberSelf.member_role) {
         case GroupMemberRole.Member:
           if (uid != member.member_uid) {
@@ -271,10 +270,10 @@ export class GroupMemberService {
   }
 
   /* 删除一个群下的所有群成员 */
-  async removeMoreGroupMember(gId: string, uid?: number) {
+  async removeMoreGroupMember(group_id: string, uid?: number) {
     if (uid) {
       const member = await this.findOneGroupMember({
-        group_id: gId,
+        group_id: group_id,
         member_uid: uid,
       });
       if (!member) {
@@ -288,7 +287,7 @@ export class GroupMemberService {
     const delRes = await this.groupmemberRepository
       .createQueryBuilder('group_member')
       .softDelete()
-      .where('group_id = :gId', { gId })
+      .where('group_id = :gId', { gId: group_id })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
@@ -298,11 +297,11 @@ export class GroupMemberService {
   }
 
   /* 恢复一个群下的所有群成员 */
-  async restoreMoreGroupMember(gId: string) {
+  async restoreMoreGroupMember(group_id: string) {
     const delRes = await this.groupmemberRepository
       .createQueryBuilder('group_member')
       .restore()
-      .where('group_id = :gId', { gId })
+      .where('group_id = :gId', { gId: group_id })
       .execute();
     if (delRes.affected) {
       return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);

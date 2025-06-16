@@ -169,12 +169,12 @@ export class GroupService {
   /* 软删除群组 */
   async softDeleteGroup(data: GroupIdsDto, uid?: number) {
     const { group_ids } = data || {};
-    const qb = this.groupRepository.createQueryBuilder('group');
+    const qb = this.groupRepository.createQueryBuilder('group').softDelete();
     qb.where('group_id IN (:...ids)', { ids: group_ids });
     if (uid) {
       qb.andWhere('creator_uid = :uid', { uid });
     }
-    const delRes = await qb.softDelete().execute();
+    const delRes = await qb.execute();
     if (delRes.affected) {
       return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
     } else {

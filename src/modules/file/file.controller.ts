@@ -28,6 +28,20 @@ export class FileController {
     return this.fileService.findAllFile(query, uid);
   }
 
+  @ApiOperation({ summary: '生成文件hash值' })
+  @Roles(Role.Admin)
+  @Post('hash')
+  generateHash() {
+    return this.fileService.generateHashForFile();
+  }
+
+  @ApiOperation({ summary: '删除重复文件' })
+  @Roles(Role.Admin)
+  @Delete('delRepeat')
+  removeRepeatFile() {
+    return this.fileService.deleteRepeatFile();
+  }
+
   @ApiOperation({ summary: '软删除文件' })
   @Delete('del')
   remove(@Body() data: IdsDto, @UserId() uid: number) {
@@ -46,19 +60,5 @@ export class FileController {
   @Delete('realDel')
   realRemove(@Body() data: IdsDto) {
     return this.fileService.deleteFile(data);
-  }
-
-  @ApiOperation({ summary: '生成文件hash值' })
-  @Roles(Role.Admin)
-  @Post('hash')
-  generateHash() {
-    return this.fileService.generateHashForFile();
-  }
-
-  @ApiOperation({ summary: '删除重复文件' })
-  @Roles(Role.Admin)
-  @Delete('delRepeat')
-  removeRepeatFile() {
-    return this.fileService.deleteRepeatFile();
   }
 }

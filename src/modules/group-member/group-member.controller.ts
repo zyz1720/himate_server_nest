@@ -59,14 +59,14 @@ export class GroupMemberController {
 
   @ApiOperation({ summary: '删除某个群下的所有群成员' })
   @Delete('delMore')
-  removeMore(@Query('group_Id') group_Id: string, @UserId() uid: number) {
-    return this.groupMemberService.removeMoreGroupMember(group_Id, uid);
+  removeMore(@Query('group_id') group_id: string, @UserId() uid: number) {
+    return this.groupMemberService.removeMoreGroupMember(group_id, uid);
   }
 
   @ApiOperation({ summary: '恢复某个群下的所有群成员' })
   @Roles(Role.Admin)
   @Post('restore')
-  restore(@Query('group_Id') group_Id: string) {
-    return this.groupMemberService.restoreMoreGroupMember(group_Id);
+  restore(@Query('group_id') group_id: string) {
+    return this.groupMemberService.restoreMoreGroupMember(group_id);
   }
 }

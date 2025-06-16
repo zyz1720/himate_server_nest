@@ -62,7 +62,7 @@ export class AuthService {
         return ResultMsg.fail(Msg.PASSWORD_ERROR);
       }
     } else {
-      throw ResultMsg.fail('用户不存在');
+      return ResultMsg.fail('用户不存在');
     }
   }
 
