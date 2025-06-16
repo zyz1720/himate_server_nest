@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `favorites` (
   `creator_name` varchar(48) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '创建者昵称',
   `creator_avatar` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '创建者头像',
   `favorites_name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '收藏夹名',
-  `favorites_cover` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'default_favorites_cover.jpg' COMMENT '收藏夹封面',
+  `favorites_cover` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'default_assets/default_favorites_cover.jpg' COMMENT '收藏夹封面',
   `favorites_remark` text COLLATE utf8mb4_unicode_ci COMMENT '收藏夹描述',
   `is_public` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否公开(0:私密, 1:公开)',
   `is_default` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否是默认收藏夹(0:否, 1:是)',

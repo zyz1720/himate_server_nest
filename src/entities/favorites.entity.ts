@@ -34,7 +34,7 @@ export class favoritesEntity {
   @Column({
     length: DataLength.Long,
     comment: '收藏夹封面',
-    default: 'default_favorites_cover.jpg',
+    default: 'default_assets/default_favorites_cover.jpg',
   })
   favorites_cover: string;
 
