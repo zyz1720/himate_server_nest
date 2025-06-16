@@ -26,7 +26,6 @@ export class RolesGuard implements CanActivate {
 
     // 获取当前用户角色
     const { user } = context.switchToHttp().getRequest();
-    console.log(user);
 
     if (!user) {
       throw new ForbiddenException(Msg.NO_LOGIN);
