@@ -31,7 +31,7 @@ export class userEntity {
 
   @Column({
     length: DataLength.Long,
-    default: 'default_user_avatar.jpg',
+    default: 'default_assets/default_user_avatar.jpg',
     comment: '用户头像',
   })
   user_avatar: string;

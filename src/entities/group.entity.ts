@@ -33,7 +33,7 @@ export class groupEntity {
 
   @Column({
     length: DataLength.Long,
-    default: 'default_group_avatar.jpg',
+    default: 'default_assets/default_group_avatar.jpg',
     comment: '群组头像',
   })
   group_avatar: string;
