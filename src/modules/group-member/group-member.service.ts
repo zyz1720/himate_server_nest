@@ -189,8 +189,9 @@ export class GroupMemberService {
             delete updateData.member_role;
           }
           if (
-            member.member_role == GroupMemberRole.Admin ||
-            member.member_role == GroupMemberRole.Owner
+            member.member_uid != uid &&
+            (member.member_role == GroupMemberRole.Admin ||
+              member.member_role == GroupMemberRole.Owner)
           ) {
             return ResultMsg.fail(Msg.NO_PERMISSION);
           }
