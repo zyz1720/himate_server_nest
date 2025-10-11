@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Role } from 'src/common/constants/base-enum.const';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Public } from 'src/core/auth/decorators/public.decorator';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
@@ -20,8 +20,8 @@ import { UserLoginBycodeDto } from './dto/user-login-code.dto';
 import { FindAllUserDto } from './dto/findall-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindOneUserDto } from './dto/findone-user.dto';
-import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { EmptyQueryPipe } from 'src/common/pipe/empty-query.pipe';
+import { IdsDto } from 'src/common/dto/common.dto';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 
 @ApiTags('用户信息')

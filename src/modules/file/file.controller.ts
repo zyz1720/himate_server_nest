@@ -4,8 +4,8 @@ import { FileService } from './file.service';
 import { FindAllFileDto } from './dto/findall-file.dto';
 import { DownloadFileDto } from './dto/add-file.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { Role } from 'src/common/constants/base-enum.const';
+import { IdsDto } from 'src/common/dto/common.dto';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 
 @ApiTags('文件管理')

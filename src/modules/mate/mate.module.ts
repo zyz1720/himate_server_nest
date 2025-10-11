@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { mateEntity } from 'src/entities/mate.entity';
 import { UserModule } from '../user/user.module';
 import { UserAvatarUpdatedListener } from './listeners/user_avatar.update.listener';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 
 @Module({
   imports: [TypeOrmModule.forFeature([mateEntity]), UserModule],

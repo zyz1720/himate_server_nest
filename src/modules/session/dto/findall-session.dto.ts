@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
-import { ChatType, MessageStatus } from 'src/commom/constants/base-enum.const';
+import { FindAllDto } from 'src/common/dto/common.dto';
+import { ChatType, MessageStatus } from 'src/common/constants/base-enum.const';
 
 export class FindAllSessionDto extends PartialType(FindAllDto) {
   @ApiProperty({ description: '用户id', required: true })

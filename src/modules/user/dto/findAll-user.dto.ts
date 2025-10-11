@@ -1,11 +1,11 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
+import { FindAllDto } from 'src/common/dto/common.dto';
 import {
   Gender,
   Role,
   NumericStatus,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 import {
   IsByteLength,
   IsEmail,

@@ -5,8 +5,8 @@ import {
   PickType,
 } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
-import { MateStatus } from 'src/commom/constants/base-enum.const';
+import { FindAllDto } from 'src/common/dto/common.dto';
+import { MateStatus } from 'src/common/constants/base-enum.const';
 
 export class FindAllMateDto extends PickType(FindAllDto, [
   'pageNum',

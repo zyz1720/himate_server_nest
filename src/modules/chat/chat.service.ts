@@ -4,13 +4,13 @@ import { chatEntity } from 'src/entities/chat.entity';
 import { Repository } from 'typeorm';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { FindAllChatDto } from './dto/findall-chat.dto';
-import { Msg } from 'src/commom/constants/base-msg.const';
-import { ResultMsg, ResultList } from 'src/commom/utils/result';
+import { Msg } from 'src/common/constants/base-msg.const';
+import { ResultMsg, ResultList } from 'src/common/utils/result';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { SessionService } from '../session/session.service';
-import { IdsDto } from 'src/commom/dto/commom.dto';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
-import { NumericStatus } from 'src/commom/constants/base-enum.const';
+import { IdsDto } from 'src/common/dto/common.dto';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
+import { NumericStatus } from 'src/common/constants/base-enum.const';
 
 @Injectable()
 export class ChatService {

@@ -8,7 +8,7 @@ import {
   Length,
 } from 'class-validator';
 import { FindAllUserDto } from './findall-user.dto';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 export class UpdateUserDto extends PickType(FindAllUserDto, [
   'user_name',

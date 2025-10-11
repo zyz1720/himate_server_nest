@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsOptional } from 'class-validator';
-import { NumericStatus } from 'src/commom/constants/base-enum.const';
+import { NumericStatus } from 'src/common/constants/base-enum.const';
 
 export class FindOneFavoritesDto {
   @ApiPropertyOptional({ description: '歌单id' })

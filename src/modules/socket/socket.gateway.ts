@@ -12,10 +12,10 @@ import { SessionService } from '../session/session.service';
 import { ChatService } from '../chat/chat.service';
 import { sessionEntity } from 'src/entities/session.entity';
 import { RedisService } from 'src/core/Redis/redis.service';
-import { ResultMsg } from 'src/commom/utils/result';
-import { BaseConst } from 'src/commom/constants/base.const';
+import { ResultMsg } from 'src/common/utils/result';
+import { BaseConst } from 'src/common/constants/base.const';
 import { CreateChatDto } from '../chat/dto/create-chat.dto';
-import { MessageStatus } from 'src/commom/constants/base-enum.const';
+import { MessageStatus } from 'src/common/constants/base-enum.const';
 
 interface IClientMsg {
   type: string;

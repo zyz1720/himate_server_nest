@@ -3,21 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { sessionEntity } from 'src/entities/session.entity';
 import { MateService } from '../mate/mate.service';
-import { Msg } from 'src/commom/constants/base-msg.const';
-import { ResultList, ResultMsg } from 'src/commom/utils/result';
+import { Msg } from 'src/common/constants/base-msg.const';
+import { ResultList, ResultMsg } from 'src/common/utils/result';
 import { FindAllSessionDto } from './dto/findall-session.dto';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { FindOneSessionDto } from './dto/findone-session.dto';
 import { GroupService } from '../group/group.service';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 import { mateEntity } from 'src/entities/mate.entity';
 import {
   ChatType,
   MateStatus,
   MessageStatus,
-} from 'src/commom/constants/base-enum.const';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+} from 'src/common/constants/base-enum.const';
+import { IdsDto } from 'src/common/dto/common.dto';
 
 interface IIsUserSession {
   id?: number;

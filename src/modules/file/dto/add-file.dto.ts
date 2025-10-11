@@ -13,7 +13,7 @@ import {
   MessageType as FileType,
   NumericStatus,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 export class AddFileDto {
   @ApiProperty({ description: '用户id', required: true })

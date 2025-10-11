@@ -13,7 +13,7 @@ import {
   MemberStatus,
   GroupMemberRole,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 @Entity('group_member')
 export class groupMemberEntity {

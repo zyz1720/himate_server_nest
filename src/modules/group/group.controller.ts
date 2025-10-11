@@ -15,9 +15,9 @@ import { FindAllGroupDto } from './dto/findall-group.dto';
 import { FindOneGroupDto } from './dto/findone-group.dto';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Role } from 'src/common/constants/base-enum.const';
 import { GroupIdsDto } from './dto/group-id.dto';
-import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
+import { EmptyQueryPipe } from 'src/common/pipe/empty-query.pipe';
 
 @ApiTags('群组')
 @ApiBearerAuth()

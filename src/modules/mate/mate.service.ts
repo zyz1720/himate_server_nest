@@ -5,18 +5,18 @@ import { mateEntity } from 'src/entities/mate.entity';
 import { CreateMateDto } from './dto/create-mate.dto';
 import { UpdateMateDto } from './dto/update-mate.dto';
 import { FindAllMateDto, FindAllMatelistDto } from './dto/findall-mate.dto';
-import { Msg } from 'src/commom/constants/base-msg.const';
+import { Msg } from 'src/common/constants/base-msg.const';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserService } from '../user/user.service';
-import { ResultList, ResultMsg } from 'src/commom/utils/result';
+import { ResultList, ResultMsg } from 'src/common/utils/result';
 import { FindMateStatusDto } from './dto/findstatus-mate.dto';
 import { FindMateBymIdDto } from './dto/findbymId-mate.dto';
 import { UpdateAllMateDto } from './dto/updateall-mate.dto';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { IdsDto } from 'src/common/dto/common.dto';
 import {
   MateStatus,
   NumericStatus,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 @Injectable()
 export class MateService {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SocketResDto } from '../dto/commom.dto';
+import { SocketResDto } from '../dto/common.dto';
 /**
  * 消息响应结构
  * ok 成功

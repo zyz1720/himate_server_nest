@@ -7,7 +7,7 @@ import {
   IsOptional,
   Max,
 } from 'class-validator';
-import { DataLength, MateStatus } from 'src/commom/constants/base-enum.const';
+import { DataLength, MateStatus } from 'src/common/constants/base-enum.const';
 
 export class UpdateMateDto {
   @ApiProperty({ description: '好友数据id', required: true })

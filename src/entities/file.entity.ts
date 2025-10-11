@@ -11,7 +11,7 @@ import {
   MessageType as FileType,
   FileUseType,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 @Entity('file')
 export class fileEntity {

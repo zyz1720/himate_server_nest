@@ -1,7 +1,7 @@
 import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { IsByteLength, IsOptional } from 'class-validator';
 import { UpdateMateDto } from './update-mate.dto';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 export class UpdateAllMateDto extends PickType(UpdateMateDto, [
   'id',

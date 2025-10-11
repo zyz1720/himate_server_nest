@@ -10,7 +10,7 @@ import {
 import {
   DataLength,
   MemberStatus as GroupStatus,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 export class UpdateGroupDto {
   @ApiProperty({ description: '群组自增id', required: true })

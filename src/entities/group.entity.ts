@@ -13,8 +13,8 @@ import { groupMemberEntity } from './group-member.entity';
 import {
   MemberStatus as GroupStatus,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
-import { createUUID } from 'src/commom/utils/base';
+} from 'src/common/constants/base-enum.const';
+import { createUUID } from 'src/common/utils/base';
 
 @Entity('group')
 export class groupEntity {

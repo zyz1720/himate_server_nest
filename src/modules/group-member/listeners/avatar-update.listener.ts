@@ -4,7 +4,7 @@ import { AvatarUpdatedEvent } from 'src/modules/user/events/update-avatar.event'
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { groupMemberEntity } from 'src/entities/group-member.entity';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 
 @Injectable()
 export class AvatarUpdatedListener {

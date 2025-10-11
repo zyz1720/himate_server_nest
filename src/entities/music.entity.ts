@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { favoritesEntity } from './favorites.entity';
 import { musicMoreEntity } from './music-more.entity';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 @Entity('music')
 export class musicEntity {

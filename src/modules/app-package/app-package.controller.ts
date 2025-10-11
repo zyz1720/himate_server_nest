@@ -12,10 +12,10 @@ import { AppPackageService } from './app-package.service';
 import { AddAppPackageDto } from './dto/add-app-package.dto';
 import { FindOneAppPackageDto } from './dto/findone-app-package.dto';
 import { UpdateAppPackageDto } from './dto/update-app-package.dto';
-import { FindAllDto, IdsDto } from 'src/commom/dto/commom.dto';
+import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
-import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
+import { Role } from 'src/common/constants/base-enum.const';
+import { EmptyQueryPipe } from 'src/common/pipe/empty-query.pipe';
 
 @ApiTags('应用包管理')
 @ApiBearerAuth()

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import * as nodeMailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../Redis/redis.service';
-import { createRandomNumber } from '../../commom/utils/base';
-import { ResultMsg } from 'src/commom/utils/result';
-import { AccountDto } from 'src/commom/dto/commom.dto';
+import { createRandomNumber } from '../../common/utils/base';
+import { ResultMsg } from 'src/common/utils/result';
+import { AccountDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class MailService {

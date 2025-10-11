@@ -1,6 +1,6 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
-import { MemberStatus as GroupStatus } from 'src/commom/constants/base-enum.const';
+import { FindAllDto } from 'src/common/dto/common.dto';
+import { MemberStatus as GroupStatus } from 'src/common/constants/base-enum.const';
 import { ArrayNotEmpty, IsArray, IsEnum, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 

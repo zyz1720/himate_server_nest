@@ -13,7 +13,7 @@ import {
   ChatType,
   MessageType,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 export class CreateChatDto {
   @ApiProperty({ description: '会话id', required: true })

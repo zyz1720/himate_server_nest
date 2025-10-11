@@ -4,7 +4,7 @@ import { IsEnum, IsNotEmpty, IsNumber, Max } from 'class-validator';
 import {
   DataLength,
   MessageStatus,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 export class UpdateSessionDto extends PartialType(CreateChatDto) {
   @ApiProperty({ description: '会话id', required: true })

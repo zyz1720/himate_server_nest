@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { GroupDeleteEvent } from 'src/modules/group/events/delete-group.event';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 import { groupMemberEntity } from 'src/entities/group-member.entity';
 
 @Injectable()

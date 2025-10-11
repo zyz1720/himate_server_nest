@@ -2,26 +2,26 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { fileEntity } from 'src/entities/file.entity';
-import { ResultMsg } from 'src/commom/utils/result';
+import { ResultMsg } from 'src/common/utils/result';
 import { FindAllFileDto } from './dto/findall-file.dto';
-import { ResultList } from 'src/commom/utils/result';
+import { ResultList } from 'src/common/utils/result';
 import { AddFileDto } from './dto/add-file.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { BaseConst } from 'src/commom/constants/base.const';
-import { Msg } from 'src/commom/constants/base-msg.const';
+import { BaseConst } from 'src/common/constants/base.const';
+import { Msg } from 'src/common/constants/base-msg.const';
 import { BinaryLike } from 'crypto';
-import { getFileNameFromUrl } from 'src/commom/utils/base';
+import { getFileNameFromUrl } from 'src/common/utils/base';
 import {
   FileUseType,
   MessageType as FileType,
   NumericStatus,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import axios from 'axios';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { IdsDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class FileService {

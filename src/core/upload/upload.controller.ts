@@ -6,12 +6,12 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
-import { FileUploadDto } from 'src/commom/dto/commom.dto';
+import { FileUploadDto } from 'src/common/dto/common.dto';
 import { AddFileDto } from 'src/modules/file/dto/add-file.dto';
 import { UploadService } from './upload.service';
 import { FastifyRequest } from 'fastify';
-import { BaseConst } from 'src/commom/constants/base.const';
-import { ResultMsg } from 'src/commom/utils/result';
+import { BaseConst } from 'src/common/constants/base.const';
+import { ResultMsg } from 'src/common/utils/result';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 

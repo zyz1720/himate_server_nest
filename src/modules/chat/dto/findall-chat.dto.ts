@@ -1,10 +1,10 @@
 import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
+import { FindAllDto } from 'src/common/dto/common.dto';
 import {
   ChatType,
   MessageType,
   MessageStatus,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 
 export class FindAllChatDto extends PartialType(FindAllDto) {

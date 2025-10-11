@@ -7,7 +7,7 @@ import { AvatarUpdatedListener } from './listeners/avatar-update.listener';
 import { GroupDeletedListener } from './listeners/group-deleted.listener';
 import { UserModule } from '../user/user.module';
 import { GroupModule } from '../group/group.module';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 
 @Module({
   imports: [

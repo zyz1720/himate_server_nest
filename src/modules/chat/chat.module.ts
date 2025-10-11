@@ -4,7 +4,7 @@ import { ChatController } from './chat.controller';
 import { chatEntity } from 'src/entities/chat.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SessionModule } from '../session/session.module';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 
 @Module({
   imports: [TypeOrmModule.forFeature([chatEntity]), SessionModule],

@@ -7,7 +7,7 @@ import {
   IsNotEmpty,
   IsByteLength,
 } from 'class-validator';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 export class CreateUserDto {
   @ApiProperty({ description: '邮箱号', required: true })

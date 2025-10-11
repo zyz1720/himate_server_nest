@@ -3,9 +3,9 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
-import { Msg } from 'src/commom/constants/base-msg.const';
+import { Msg } from 'src/common/constants/base-msg.const';
 import { IJwtSign } from '../auth.service';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Role } from 'src/common/constants/base-enum.const';
 
 export const UserId = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {

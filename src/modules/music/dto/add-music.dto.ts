@@ -8,7 +8,7 @@ import {
   Max,
   IsUrl,
 } from 'class-validator';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 import { ParseFileDto } from 'src/modules/file/dto/parser-file.dto';
 
 /* 添加音乐DTO */

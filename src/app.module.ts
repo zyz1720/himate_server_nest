@@ -22,7 +22,7 @@ import { AppPackageModule } from './modules/app-package/app-package.module';
 import { MusicModule } from './modules/music/music.module';
 import { FileModule } from './modules/file/file.module';
 import { BullModule } from '@nestjs/bull';
-import { UserSubscriber } from './commom/subscriber/user.subscriber';
+import { UserSubscriber } from './common/subscriber/user.subscriber';
 import envConfig from '../config/env';
 import { RequestContextModule } from 'nestjs-request-context';
 

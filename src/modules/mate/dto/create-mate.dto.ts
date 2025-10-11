@@ -6,7 +6,7 @@ import {
   IsOptional,
   Max,
 } from 'class-validator';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 export class CreateMateDto {
   @ApiProperty({ description: '申请者uid', required: true })

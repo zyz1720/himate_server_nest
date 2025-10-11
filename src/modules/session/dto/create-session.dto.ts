@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, Max, IsUUID, IsEnum } from 'class-validator';
-import { ChatType, DataLength } from 'src/commom/constants/base-enum.const';
+import { ChatType, DataLength } from 'src/common/constants/base-enum.const';
 
 export class CreateSessionDto {
   @ApiProperty({ description: '用户id', required: true })

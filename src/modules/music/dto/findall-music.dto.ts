@@ -11,8 +11,8 @@ import {
 import {
   DataLength,
   NumericStatus,
-} from 'src/commom/constants/base-enum.const';
-import { FindAllDto } from 'src/commom/dto/commom.dto';
+} from 'src/common/constants/base-enum.const';
+import { FindAllDto } from 'src/common/dto/common.dto';
 
 export class FindAllMusicDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({

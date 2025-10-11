@@ -6,7 +6,7 @@ import { userEntity } from '../../entities/user.entity';
 import { AuthModule } from '../../core/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { RedisModule } from 'src/core/Redis/redis.module';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 
 @Module({
   imports: [

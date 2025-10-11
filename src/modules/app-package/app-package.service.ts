@@ -5,9 +5,9 @@ import { Repository } from 'typeorm';
 import { AddAppPackageDto } from './dto/add-app-package.dto';
 import { FindOneAppPackageDto } from './dto/findone-app-package.dto';
 import { UpdateAppPackageDto } from './dto/update-app-package.dto';
-import { FindAllDto, IdsDto } from 'src/commom/dto/commom.dto';
-import { ResultList, ResultMsg } from 'src/commom/utils/result';
-import { Msg } from 'src/commom/constants/base-msg.const';
+import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
+import { ResultList, ResultMsg } from 'src/common/utils/result';
+import { Msg } from 'src/common/constants/base-msg.const';
 
 @Injectable()
 export class AppPackageService {

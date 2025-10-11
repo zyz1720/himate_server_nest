@@ -17,8 +17,8 @@ import { FindMateBymIdDto } from './dto/findbymId-mate.dto';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 import { UpdateAllMateDto } from './dto/updateall-mate.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { Role } from 'src/common/constants/base-enum.const';
+import { IdsDto } from 'src/common/dto/common.dto';
 
 @ApiTags('好友')
 @ApiBearerAuth()

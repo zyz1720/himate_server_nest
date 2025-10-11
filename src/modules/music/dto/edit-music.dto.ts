@@ -15,7 +15,7 @@ import {
   NumericStatus,
   HandleType,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 import { Type } from 'class-transformer';
 
 export class EditMusicDto extends PickType(FindAllMusicDto, [

@@ -13,9 +13,9 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindAllChatDto } from './dto/findall-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { IdsDto } from 'src/common/dto/common.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Role } from 'src/common/constants/base-enum.const';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 
 @ApiTags('聊天消息')

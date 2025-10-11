@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './src/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AllExceptionFilter } from './src/commom/filters/exception';
-import { HttpReqTransformInterceptor } from './src/commom/interceptor/http-req.interceptor';
+import { AllExceptionFilter } from './src/common/filters/exception';
+import { HttpReqTransformInterceptor } from './src/common/interceptor/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
-import { BaseConst } from 'src/commom/constants/base.const';
+import { BaseConst } from 'src/common/constants/base.const';
 import {
   FastifyAdapter,
   NestFastifyApplication,

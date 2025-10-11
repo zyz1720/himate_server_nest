@@ -7,7 +7,7 @@ import {
   IsUUID,
   Max,
 } from 'class-validator';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 export class CreateGroupMemberDto {
   @ApiProperty({ description: '关联的群组id', required: true })
