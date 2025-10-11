@@ -4,7 +4,7 @@ import { GroupController } from './group.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { groupEntity } from 'src/entities/group.entity';
 import { UserModule } from '../user/user.module';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 
 @Module({
   imports: [TypeOrmModule.forFeature([groupEntity]), UserModule],

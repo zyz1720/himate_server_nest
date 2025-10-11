@@ -6,7 +6,7 @@ import {
   IsByteLength,
   Max,
 } from 'class-validator';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 export class ParseFileDto {
   @ApiProperty({ description: '歌曲文件路径', required: true })

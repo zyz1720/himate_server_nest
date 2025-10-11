@@ -10,13 +10,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { sessionEntity } from './session.entity';
-import { createUUID } from 'src/commom/utils/base';
+import { createUUID } from 'src/common/utils/base';
 import {
   ChatType,
   MessageType,
   MessageStatus,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 @Entity('chat')
 export class chatEntity {

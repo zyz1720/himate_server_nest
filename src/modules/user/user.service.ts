@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { userEntity } from '../../entities/user.entity';
 import { RedisService } from 'src/core/Redis/redis.service';
-import { encryptPassword } from 'src/commom/utils/base';
+import { encryptPassword } from 'src/common/utils/base';
 import { UserLoginBycodeDto } from './dto/user-login-code.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
@@ -11,13 +11,13 @@ import { FindAllUserDto } from './dto/findall-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AvatarUpdatedEvent } from './events/update-avatar.event';
 import { UserNameUpdatedEvent } from './events/update-userName.event';
-import { ResultList, ResultMsg } from 'src/commom/utils/result';
-import { Msg } from 'src/commom/constants/base-msg.const';
-import { BaseConst } from 'src/commom/constants/base.const';
+import { ResultList, ResultMsg } from 'src/common/utils/result';
+import { Msg } from 'src/common/constants/base-msg.const';
+import { BaseConst } from 'src/common/constants/base.const';
 import { FindOneUserDto } from './dto/findone-user.dto';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
-import { IdsDto } from 'src/commom/dto/commom.dto';
-import { NumericStatus } from 'src/commom/constants/base-enum.const';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
+import { IdsDto } from 'src/common/dto/common.dto';
+import { NumericStatus } from 'src/common/constants/base-enum.const';
 
 @Injectable()
 export class UserService {

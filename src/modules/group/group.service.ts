@@ -3,18 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { groupEntity } from 'src/entities/group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
-import { ResultList, ResultMsg } from 'src/commom/utils/result';
-import { Msg } from 'src/commom/constants/base-msg.const';
+import { ResultList, ResultMsg } from 'src/common/utils/result';
+import { Msg } from 'src/common/constants/base-msg.const';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { FindAllGroupDto } from './dto/findall-group.dto';
 import { UserService } from '../user/user.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { GroupDeleteEvent } from './events/delete-group.event';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 import {
   GroupMemberRole,
   NumericStatus,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 import { GroupIdsDto } from './dto/group-id.dto';
 import { FindOneGroupDto } from './dto/findone-group.dto';
 

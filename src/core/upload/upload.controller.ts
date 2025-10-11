@@ -15,7 +15,7 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
-import { FileUploadDto } from 'src/commom/dto/commom.dto';
+import { FileUploadDto } from 'src/common/dto/common.dto';
 import { AddFileDto } from 'src/modules/file/dto/add-file.dto';
 import { UploadService } from './upload.service';
 

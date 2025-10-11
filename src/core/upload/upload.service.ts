@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Msg } from 'src/commom/constants/base-msg.const';
-import { ResultMsg } from 'src/commom/utils/result';
+import { Msg } from 'src/common/constants/base-msg.const';
+import { ResultMsg } from 'src/common/utils/result';
 import { AddFileDto } from 'src/modules/file/dto/add-file.dto';
 import { FileService } from 'src/modules/file/file.service';
 

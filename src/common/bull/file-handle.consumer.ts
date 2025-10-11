@@ -5,7 +5,7 @@ import { ParseFileDto } from 'src/modules/file/dto/parser-file.dto';
 import { MusicService } from 'src/modules/music/music.service';
 import { FileService } from 'src/modules/file/file.service';
 import { MoveFileDto } from 'src/modules/file/dto/move-file.dto';
-import { BaseConst } from 'src/commom/constants/base.const';
+import { BaseConst } from 'src/common/constants/base.const';
 import * as fs from 'fs';
 import * as sharp from 'sharp';
 import { DelFileDto } from 'src/modules/file/dto/del-file.dto';

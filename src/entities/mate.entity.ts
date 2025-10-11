@@ -8,8 +8,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { MateStatus, DataLength } from 'src/commom/constants/base-enum.const';
-import { createUUID } from 'src/commom/utils/base';
+import { MateStatus, DataLength } from 'src/common/constants/base-enum.const';
+import { createUUID } from 'src/common/utils/base';
 
 @Entity('mate')
 export class mateEntity {

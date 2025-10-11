@@ -4,14 +4,14 @@ import { UpdateGroupMemberDto } from './dto/update-group-member.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { groupMemberEntity } from 'src/entities/group-member.entity';
-import { ResultList, ResultMsg } from 'src/commom/utils/result';
-import { Msg } from 'src/commom/constants/base-msg.const';
+import { ResultList, ResultMsg } from 'src/common/utils/result';
+import { Msg } from 'src/common/constants/base-msg.const';
 import { UserService } from '../user/user.service';
 import { GroupService } from '../group/group.service';
 import { FindJoinGroupDto } from './dto/findjoin-group.dto';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 import { FindOneGroupMemberDto } from './dto/findOne-group-member.dto';
-import { GroupMemberRole } from 'src/commom/constants/base-enum.const';
+import { GroupMemberRole } from 'src/common/constants/base-enum.const';
 
 @Injectable()
 export class GroupMemberService {

@@ -5,7 +5,7 @@ import { SessionController } from './session.controller';
 import { sessionEntity } from 'src/entities/session.entity';
 import { MateModule } from '../mate/mate.module';
 import { GroupModule } from '../group/group.module';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 
 @Module({
   imports: [TypeOrmModule.forFeature([sessionEntity]), MateModule, GroupModule],

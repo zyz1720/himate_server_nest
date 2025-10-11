@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ResultMsg, ResultList } from 'src/commom/utils/result';
+import { ResultMsg, ResultList } from 'src/common/utils/result';
 import {
   FindAllMusicDto,
   FindAllFavoritesDto,
   FindMusicMoreDto,
   FindMusicUrlDto,
 } from './dto/findall-music.dto';
-import { formatleftJoinData, delay } from 'src/commom/utils/base';
+import { formatleftJoinData, delay } from 'src/common/utils/base';
 import {
   AddMusicFavoritesDto,
   AddMusicDto,
@@ -23,13 +23,13 @@ import {
 import { musicEntity } from 'src/entities/music.entity';
 import { favoritesEntity } from 'src/entities/favorites.entity';
 import { musicMoreEntity } from 'src/entities/music-more.entity';
-import { Msg } from 'src/commom/constants/base-msg.const';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { Msg } from 'src/common/constants/base-msg.const';
+import { IdsDto } from 'src/common/dto/common.dto';
 import { UserService } from 'src/modules/user/user.service';
 import { FindOneMusicDto } from './dto/findone-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
-import { BaseConst } from 'src/commom/constants/base.const';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { BaseConst } from 'src/common/constants/base.const';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 import { ConfigService } from '@nestjs/config';
 import { FileService } from '../file/file.service';
 import axios from 'axios';
@@ -38,7 +38,7 @@ import {
   MessageType as FileType,
   HandleType,
   NumericStatus,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 @Injectable()
 export class MusicService {

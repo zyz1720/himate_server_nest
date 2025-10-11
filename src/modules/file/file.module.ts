@@ -4,7 +4,7 @@ import { FileController } from './file.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { fileEntity } from 'src/entities/file.entity';
 import { BullModule } from '@nestjs/bull';
-import { fileHandleConsumer } from 'src/commom/bull/file-handle.consumer';
+import { fileHandleConsumer } from 'src/common/bull/file-handle.consumer';
 import { MusicModule } from '../music/music.module';
 
 @Module({

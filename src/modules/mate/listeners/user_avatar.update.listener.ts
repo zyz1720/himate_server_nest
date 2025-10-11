@@ -4,8 +4,8 @@ import { AvatarUpdatedEvent } from 'src/modules/user/events/update-avatar.event'
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { mateEntity } from 'src/entities/mate.entity';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
-import { MateStatus } from 'src/commom/constants/base-enum.const';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
+import { MateStatus } from 'src/common/constants/base-enum.const';
 
 @Injectable()
 export class UserAvatarUpdatedListener {

@@ -12,13 +12,13 @@ import {
   calculateAge,
   createUUID,
   encryptPassword,
-} from 'src/commom/utils/base';
+} from 'src/common/utils/base';
 import {
   Gender,
   Role,
   NumericStatus,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 import { Exclude } from 'class-transformer';
 
 @Entity('user')

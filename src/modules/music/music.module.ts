@@ -11,7 +11,7 @@ import { favoritesEntity } from 'src/entities/favorites.entity';
 import { musicMoreEntity } from 'src/entities/music-more.entity';
 import { UserModule } from 'src/modules/user/user.module';
 import { UserInfoUpdatedListener } from './listeners/userInfo-update.listener';
-import { QueryRunnerFactory } from 'src/commom/factories/query-runner.factory';
+import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 import { FileModule } from '../file/file.module';
 
 @Module({

@@ -25,9 +25,9 @@ import { UploadController } from './core/upload/upload.controller';
 import { MusicModule } from './modules/music/music.module';
 import { FileModule } from './modules/file/file.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { BaseConst } from './commom/constants/base.const';
+import { BaseConst } from './common/constants/base.const';
 import { BullModule } from '@nestjs/bull';
-import { UserSubscriber } from './commom/subscriber/user.subscriber';
+import { UserSubscriber } from './common/subscriber/user.subscriber';
 import envConfig from '../config/env';
 import { RequestContextModule } from 'nestjs-request-context';
 

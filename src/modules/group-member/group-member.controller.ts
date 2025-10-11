@@ -14,9 +14,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FindJoinGroupDto } from './dto/findjoin-group.dto';
 import { FindOneGroupMemberDto } from './dto/findOne-group-member.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Role } from 'src/common/constants/base-enum.const';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
-import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
+import { EmptyQueryPipe } from 'src/common/pipe/empty-query.pipe';
 
 @ApiTags('群成员')
 @ApiBearerAuth()

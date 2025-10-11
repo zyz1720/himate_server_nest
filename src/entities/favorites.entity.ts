@@ -12,7 +12,7 @@ import { musicEntity } from './music.entity';
 import {
   NumericStatus,
   DataLength,
-} from 'src/commom/constants/base-enum.const';
+} from 'src/common/constants/base-enum.const';
 
 @Entity('favorites')
 export class favoritesEntity {

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
-import { MateStatus } from 'src/commom/constants/base-enum.const';
+import { MateStatus } from 'src/common/constants/base-enum.const';
 
 export class FindMateStatusDto {
   @ApiProperty({ description: '用户自己的id', required: true })

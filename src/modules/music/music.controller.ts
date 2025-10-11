@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MusicService } from './music.service';
-import { IdsDto } from 'src/commom/dto/commom.dto';
+import { IdsDto } from 'src/common/dto/common.dto';
 import {
   FindAllFavoritesDto,
   FindAllMusicDto,
@@ -26,9 +26,9 @@ import {
 import { FindOneMusicDto } from './dto/findone-music.dto';
 import { FindOneFavoritesDto } from './dto/findone-favorites.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
-import { Role } from 'src/commom/constants/base-enum.const';
+import { Role } from 'src/common/constants/base-enum.const';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
-import { EmptyQueryPipe } from 'src/commom/pipe/empty-query.pipe';
+import { EmptyQueryPipe } from 'src/common/pipe/empty-query.pipe';
 
 @ApiTags('音乐')
 @ApiBearerAuth()

@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { DataLength } from 'src/commom/constants/base-enum.const';
+import { DataLength } from 'src/common/constants/base-enum.const';
 
 @Entity('app_package')
 export class appPackageEntity {
