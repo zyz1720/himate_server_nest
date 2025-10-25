@@ -5,6 +5,7 @@ import { UserNameUpdatedEvent } from 'src/modules/user/events/update-userName.ev
 import { MusicService } from '../music.service';
 import { favoritesEntity } from '../../../entities/favorites.entity';
 import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
+import { NumericStatus } from 'src/common/constants/base-enum.const';
 
 @Injectable()
 export class UserInfoUpdatedListener {
@@ -19,6 +20,7 @@ export class UserInfoUpdatedListener {
     const { userId, newAvatar } = payload || {};
     const findRes = await this.musicService.findAllFavorites({
       creator_uid: userId,
+      isPaging: NumericStatus.False,
     });
 
     const favorites = findRes.list;
@@ -61,6 +63,7 @@ export class UserInfoUpdatedListener {
     const { userId, newUserName } = payload || {};
     const findRes = await this.musicService.findAllFavorites({
       creator_uid: userId,
+      isPaging: NumericStatus.False,
     });
 
     const favorites = findRes.list;
