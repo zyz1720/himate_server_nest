@@ -405,6 +405,7 @@ export class MusicService {
       favorites_name,
       is_public,
       is_default = '0',
+      isPaging = NumericStatus.True,
     } = query || {};
     const qb = this.favoritesRepository.createQueryBuilder('favorites');
     qb.leftJoin('favorites.music', 'music');
@@ -431,8 +432,10 @@ export class MusicService {
     }
     qb.orderBy('favorites.create_time', 'DESC');
     const count = await qb.getCount();
-    qb.limit(pageSize);
-    qb.offset(pageSize * pageNum);
+    if (isPaging) {
+      qb.limit(pageSize);
+      qb.offset(pageSize * pageNum);
+    }
     const data = await qb.getRawMany();
     const formatData = data.map(
       (item) => formatleftJoinData(item, 'favorites_') as favoritesEntity,
