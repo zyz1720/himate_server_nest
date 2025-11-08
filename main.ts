@@ -17,7 +17,11 @@ import fastifyStatic from '@fastify/static';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true }),
+    new FastifyAdapter({
+      logger: {
+        timestamp: () => `,"time":"${new Date().toLocaleString()}"`,
+      },
+    }),
   );
 
   // 全局异常过滤器
