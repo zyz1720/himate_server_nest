@@ -13,7 +13,7 @@ export class ResultMsg {
     this.code = success ? 200 : 1001;
   }
 
-  @ApiProperty({ type: 'number', description: '状态码', default: 1001 })
+  @ApiProperty({ type: 'number', description: '状态码', default: 200 })
   code: number;
 
   @ApiProperty({ description: '返回数据', default: null })
@@ -26,7 +26,7 @@ export class ResultMsg {
   })
   message: string;
 
-  @ApiProperty({ type: 'boolean', default: true })
+  @ApiProperty({ type: 'boolean', description: '操作是否成功', default: true })
   success: boolean;
 
   static ok(msg?: string, data?: any): ResultMsg {
@@ -55,10 +55,10 @@ export class ResultList<T> {
     this.count = count || 0;
   }
 
-  @ApiProperty({ type: 'Array', default: [] })
+  @ApiProperty({ type: 'Array', description: '列表数据', default: [] })
   list: T[];
 
-  @ApiProperty({ type: 'boolean', default: 0 })
+  @ApiProperty({ type: 'number', description: '数据总数', default: 0 })
   count: number;
 
   static list<T>(list?: T[], count?: number): ResultList<T> {
