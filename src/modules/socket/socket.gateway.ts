@@ -45,7 +45,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly chatService: ChatService,
     private readonly redisService: RedisService,
   ) {}
-  // 使用WebSocketServer装饰器获取Socket.IO服务器实例
   @WebSocketServer()
   server: Server;
 

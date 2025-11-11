@@ -54,6 +54,6 @@ export class SessionController {
   @Roles(Role.Admin)
   @Delete('realDel')
   realRemove(@Body() data: IdsDto) {
-    return this.sessionService.realDeletSession(data);
+    return this.sessionService.realDeleteSession(data);
   }
 }

@@ -355,7 +355,7 @@ export class SessionService {
   }
 
   /* 真刪除会话*/
-  async realDeletSession(data: IdsDto) {
+  async realDeleteSession(data: IdsDto) {
     const { ids = [] } = data || {};
     const delRes = await this.sessionRepository
       .createQueryBuilder('session')
