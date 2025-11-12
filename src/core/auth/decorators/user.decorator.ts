@@ -3,9 +3,9 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
-import { Msg } from 'src/common/constants/base-msg.const';
+import { I18nContext } from 'nestjs-i18n';
 import { IJwtSign } from '../auth.service';
-import { Role } from 'src/common/constants/base-enum.const';
+import { Role } from 'src/common/constants/database-enum.const';
 
 export const UserId = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
@@ -13,7 +13,7 @@ export const UserId = createParamDecorator(
     const user: IJwtSign = request.user;
 
     if (!user) {
-      throw new ForbiddenException(Msg.NO_LOGIN);
+      throw new ForbiddenException(I18nContext.current().t('message.NO_LOGIN'));
     }
     if (user?.UserRole == Role.Admin) {
       return false;

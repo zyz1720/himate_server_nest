@@ -8,23 +8,18 @@ import { AuthModule } from './core/auth/auth.module';
 import { JwtAuthGuard } from './core/auth/guards/jwt.auth.guard';
 import { RolesGuard } from './core/auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
-import { MailModule } from './core/mail/mail.module';
+import { EmailModule } from './core/email/email.module';
 import { RedisModule } from './core/Redis/redis.module';
-import { MateModule } from './modules/mate/mate.module';
-import { SessionModule } from './modules/session/session.module';
-import { SocketModule } from './modules/socket/socket.module';
-import { ChatModule } from './modules/chat/chat.module';
-import { GroupModule } from './modules/group/group.module';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { GroupMemberModule } from './modules/group-member/group-member.module';
 import { UploadModule } from './core/upload/upload.module';
-import { AppPackageModule } from './modules/app-package/app-package.module';
-import { MusicModule } from './modules/music/music.module';
-import { FileModule } from './modules/file/file.module';
+import { CaptchaModule } from './core/captcha/captcha.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './common/subscriber/user.subscriber';
-import envConfig from '../config/env';
 import { RequestContextModule } from 'nestjs-request-context';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { HeaderResolver, I18nModule } from 'nestjs-i18n';
+import { join } from 'path';
+import envConfig from '../config/env';
 
 @Module({
   imports: [
@@ -34,11 +29,37 @@ import { RequestContextModule } from 'nestjs-request-context';
       envFilePath: [envConfig.path],
     }),
 
+    // 国际化配置
+    I18nModule.forRoot({
+      fallbackLanguage: 'zh',
+      loaderOptions: {
+        path: join(__dirname, '../', '/i18n/'),
+        watch: true,
+      },
+      resolvers: [{ use: HeaderResolver, options: ['x-custom-lang'] }],
+    }),
+
+    // 限流配置
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory(configService: ConfigService) {
+        return {
+          throttlers: [
+            {
+              ttl: configService.get<number>('THROTTLE_TTL'), // 毫秒
+              limit: configService.get<number>('THROTTLE_LIMIT'),
+            },
+          ],
+        };
+      },
+    }),
+
     // 数据库配置
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         type: 'mysql', // 数据库类型
         entities: [__dirname + '/**/*.entity{.ts,.js}'], // 数据表实体
         subscribers: [UserSubscriber], // 订阅者
@@ -72,7 +93,7 @@ import { RequestContextModule } from 'nestjs-request-context';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         redis: {
           host: configService.get<string>('REDIS_HOST'),
           port: configService.get<number>('REDIS_PORT'),
@@ -81,20 +102,12 @@ import { RequestContextModule } from 'nestjs-request-context';
       }),
     }),
 
-    UploadModule,
     UserModule,
     AuthModule,
-    MailModule,
+    EmailModule,
     RedisModule,
-    MateModule,
-    SessionModule,
-    SocketModule,
-    ChatModule,
-    GroupModule,
-    GroupMemberModule,
-    AppPackageModule,
-    MusicModule,
-    FileModule,
+    UploadModule,
+    CaptchaModule,
     RequestContextModule,
   ],
 
@@ -108,6 +121,10 @@ import { RequestContextModule } from 'nestjs-request-context';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

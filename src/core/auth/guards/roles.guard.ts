@@ -6,12 +6,15 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { Role } from 'src/common/constants/base-enum.const';
-import { Msg } from 'src/common/constants/base-msg.const';
+import { Role } from 'src/common/constants/database-enum.const';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private i18n: I18nService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
@@ -28,12 +31,12 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest();
 
     if (!user) {
-      throw new ForbiddenException(Msg.NO_LOGIN);
+      throw new ForbiddenException(this.i18n.t('message.NO_LOGIN'));
     }
 
     const hasRole = requiredRoles.some((role) => user?.UserRole == role);
     if (!hasRole) {
-      throw new ForbiddenException(Msg.NO_PERMISSION);
+      throw new ForbiddenException(this.i18n.t('message.NO_PERMISSION'));
     }
 
     return true;

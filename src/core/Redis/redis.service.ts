@@ -13,50 +13,60 @@ export class RedisService implements OnModuleInit {
       host: this.configService.get<string>('REDIS_HOST'),
       port: this.configService.get<number>('REDIS_PORT'),
       password: this.configService.get<string>('REDIS_PASSWORD'),
-      // ... 其他配置项
     });
 
     this.client.on('ready', () => {
-      // console.log('Redis init success');
+      console.log('Redis init success');
     });
 
     this.client.on('error', (error) => {
-      // console.error('Redis init error', error);
+      console.error('Redis init error', error?.message);
     });
   }
 
-  getClient(): Redis {
+  async getValue(key: string): Promise<any> {
     if (!this.client) {
+      console.error('Redis client is not initialized');
       return null;
     }
-    return this.client;
+    try {
+      return await this.client.get(key);
+    } catch (err) {
+      console.error('Redis get error:', err);
+      return null;
+    }
   }
 
-  async getValue(key: string) {
-    let value = null;
-    await this.client.get(key, (err, result) => {
-      if (err) {
-        console.error(err);
-      } else {
-        // console.log('resdis', result);
-        value = result;
+  async setValue(key: string, value: any, time?: number): Promise<boolean> {
+    if (!this.client) {
+      console.error('Redis client is not initialized');
+      return false;
+    }
+    try {
+      await this.client.set(key, value);
+      if (time && time > 0) {
+        await this.client.expire(key, time);
       }
-    });
-    return value;
+      console.log('redis set success', key, value, time);
+      return true;
+    } catch (err) {
+      console.error('redis set error:', err);
+      return false;
+    }
   }
 
-  setValue(key: string, value: any, time?: number) {
-    this.client.expire(key, time ? time : 0);
-    this.client
-      .set(key, value)
-      .then((result) => console.log('redis set success', result))
-      .catch((err) => console.log('redis set error', err));
-  }
-
-  delValue(key: string) {
-    this.client
-      .del(key)
-      .then((result) => console.log('redis delete success', result))
-      .catch((err) => console.log('redis delete error', err));
+  async delValue(key: string): Promise<boolean> {
+    if (!this.client) {
+      console.error('Redis client is not initialized');
+      return false;
+    }
+    try {
+      await this.client.del(key);
+      console.log('redis delete success', key);
+      return true;
+    } catch (err) {
+      console.error('redis delete error:', err);
+      return false;
+    }
   }
 }

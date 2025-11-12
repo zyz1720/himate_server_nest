@@ -6,8 +6,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { FastifyReply } from 'fastify';
-import { ResultMsg } from '../utils/result';
-import { getFilterMsg } from '../utils/base';
+import { CommonUtil } from '../utils/common.util';
+import { Response } from '../response/api-response';
 
 @Catch(HttpException)
 export class AllExceptionFilter implements ExceptionFilter {
@@ -20,6 +20,6 @@ export class AllExceptionFilter implements ExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR;
     const res = exception.getResponse();
 
-    response.status(status).send(ResultMsg.fail(getFilterMsg(res)));
+    response.status(status).send(Response.fail(CommonUtil.getFilterMsg(res)));
   }
 }

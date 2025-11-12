@@ -7,13 +7,14 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { Msg } from 'src/common/constants/base-msg.const';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(
     private readonly jwtService: JwtService,
     private reflector: Reflector,
+    private i18n: I18nService,
   ) {
     super();
   }
@@ -49,10 +50,21 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(error: any, user: any) {
-    // console.log('JwtAuthGuard', error, user, info);
+  handleRequest(error: any, user: any, info: any) {
+    // 处理token过期的特殊情况
+    if (info && info.name === 'TokenExpiredError') {
+      throw new UnauthorizedException(
+        this.i18n.t('message.ACCESS_TOKEN_EXPIRED'),
+      );
+    }
+
+    // 处理其他JWT错误
+    if (info && info.name === 'JsonWebTokenError') {
+      throw new UnauthorizedException(this.i18n.t('message.INVALID_TOKEN'));
+    }
+
     if (error || !user) {
-      throw error || new UnauthorizedException(Msg.NO_LOGIN);
+      throw error || new UnauthorizedException(this.i18n.t('message.NO_LOGIN'));
     }
     return user;
   }

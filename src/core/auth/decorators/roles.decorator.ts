@@ -1,6 +1,6 @@
 // 用于在装饰器中添加元数据的函数
 import { SetMetadata } from '@nestjs/common';
-import { Role } from 'src/common/constants/base-enum.const';
+import { Role } from 'src/common/constants/database-enum.const';
 
 // 路由添加角色控制
 export const ROLES_KEY = 'roles';

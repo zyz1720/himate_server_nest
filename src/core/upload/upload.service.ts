@@ -1,25 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Msg } from 'src/common/constants/base-msg.const';
-import { WriteFileDto } from 'src/common/dto/common.dto';
-import { ResultMsg } from 'src/common/utils/result';
-import { AddFileDto } from 'src/modules/file/dto/add-file.dto';
-import { FileService } from 'src/modules/file/file.service';
+import { FileInfoDto } from './dto/upload.dto';
+import { Response } from 'src/common/response/api-response';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class UploadService {
-  constructor(private readonly fileService: FileService) {}
-
+  constructor(private readonly i18n: I18nService) {}
   /* 记录用户上传的文件 */
-  async upload(file: WriteFileDto, query: AddFileDto) {
-    const addRes = await this.fileService.addFile(
-      file.path,
-      file.filename,
-      query,
-    );
-    if (addRes.success) {
-      return ResultMsg.ok(Msg.UPLOAD_SUCCESS, addRes.data);
-    } else {
-      return ResultMsg.fail(addRes.message);
-    }
+  async upload(fileInfo: FileInfoDto) {
+    // 添加上传后的业务逻辑
+    return Response.ok(this.i18n.t('message.UPLOAD_SUCCESS'), fileInfo);
   }
 }

@@ -5,27 +5,34 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
-import { isResultMsg } from '../utils/base';
-import { ResultMsg } from '../utils/result';
-import { Msg } from '../constants/base-msg.const';
+import { TypeUtil } from '../utils/type.util';
+import { Response } from '../response/api-response';
+import { I18nContext } from 'nestjs-i18n';
 
-export interface Response<T> {
+export interface IResponse<T> {
   data: T;
 }
 @Injectable()
 export class HttpReqTransformInterceptor<T>
-  implements NestInterceptor<T, Response<T>>
+  implements NestInterceptor<T, IResponse<T>>
 {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Observable<Response<T>> {
+  ): Observable<IResponse<T>> {
     return next.handle().pipe(
       map((result) => {
         if (result) {
-          return isResultMsg(result) ? result : ResultMsg.ok('成功', result);
+          return TypeUtil.isResponse(result)
+            ? result
+            : Response.ok(
+                I18nContext.current().t('message.OPERATE_SUCCESS'),
+                result,
+              );
         } else {
-          return ResultMsg.fail(Msg.DATA_NOEXIST);
+          return Response.fail(
+            I18nContext.current().t('message.OPERATE_ERROR'),
+          );
         }
       }),
     );

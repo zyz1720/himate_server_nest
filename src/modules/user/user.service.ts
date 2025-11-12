@@ -1,23 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { userEntity } from '../../entities/user.entity';
+import { userEntity } from './entity/user.entity';
 import { RedisService } from 'src/core/Redis/redis.service';
-import { encryptPassword } from 'src/common/utils/base';
-import { UserLoginBycodeDto } from './dto/user-login-code.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { StringUtil } from 'src/common/utils/string.util';
+import { UserLoginByCodeDto } from '../../core/auth/dto/user-login-code.dto';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
-import { FindAllUserDto } from './dto/findall-user.dto';
+import { FindAllUserDto } from './dto/find-all-user.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AvatarUpdatedEvent } from './events/update-avatar.event';
 import { UserNameUpdatedEvent } from './events/update-userName.event';
-import { ResultList, ResultMsg } from 'src/common/utils/result';
-import { Msg } from 'src/common/constants/base-msg.const';
-import { BaseConst } from 'src/common/constants/base.const';
-import { FindOneUserDto } from './dto/findone-user.dto';
+import { PageResponse, Response } from 'src/common/response/api-response';
+import { FindOneUserDto } from './dto/find-one-user.dto';
 import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
 import { IdsDto } from 'src/common/dto/common.dto';
-import { NumericStatus } from 'src/common/constants/base-enum.const';
+import { I18nService } from 'nestjs-i18n';
+import {
+  UpdateUserDto,
+  UpdateUserPasswordDto,
+  UpdateUserAccountDto,
+} from './dto/update-user.dto';
+import { Status } from 'src/common/constants/database-enum.const';
 
 @Injectable()
 export class UserService {
@@ -26,46 +29,46 @@ export class UserService {
     private readonly userRepository: Repository<userEntity>,
     private readonly redisService: RedisService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly i18n: I18nService,
     private readonly queryRunnerFactory: QueryRunnerFactory,
   ) {}
 
   /* 邮箱验证码验证用户 */
-  async validateUser(data: UserLoginBycodeDto) {
+  async validateUser(data: UserLoginByCodeDto) {
     const { account, code } = data || {};
     const localCode = await this.redisService.getValue(account + 'code');
 
     if (code == localCode) {
-      return ResultMsg.ok(Msg.VALIDATE_SUCCESS);
+      return Response.ok(this.i18n.t('message.VALIDATE_SUCCESS'));
     } else {
-      return ResultMsg.fail(Msg.VALIDATE_FAIL);
+      return Response.fail(this.i18n.t('message.CODE_ERROR'));
     }
   }
 
   /* 创建用户 */
   async createUser(user: CreateUserDto) {
-    const { account, password } = user || {};
-    // 设置默认密码
-    if (!password) {
-      user.password = BaseConst.DefaultUserPassword;
-    }
-    const doc = await this.findOneUser({ account });
-    if (doc) {
-      return ResultMsg.fail('用户已存在');
+    const { account } = user || {};
+    const existUser = await this.findOneUser({ account }, false);
+    if (existUser) {
+      return Response.fail(this.i18n.t('message.ACCOUNT_EXIST'));
     }
     const newUser = this.userRepository.create(user);
     const insertRes = await this.userRepository.insert(newUser);
     if (insertRes.identifiers.length) {
-      this.redisService.delValue(account + 'code');
-      return ResultMsg.ok(Msg.CREATE_SUCCESS, insertRes.generatedMaps[0]);
+      await this.redisService.delValue(account + 'code');
+      return Response.ok(
+        this.i18n.t('message.CREATE_SUCCESS'),
+        insertRes.generatedMaps[0],
+      );
     } else {
-      return ResultMsg.fail(Msg.CREATE_FAIL);
+      return Response.fail(this.i18n.t('message.CREATE_FAILED'));
     }
   }
 
   /* 用户注册 */
   async registerUser(data: RegisterUserDto) {
     const validateRes = await this.validateUser(data);
-    if (!validateRes.success) {
+    if (validateRes.code !== 0) {
       return validateRes;
     }
     const createRes = await this.createUser(data);
@@ -73,8 +76,9 @@ export class UserService {
   }
 
   /* 获取用户信息 */
-  async findOneUser(query: FindOneUserDto) {
+  async findOneUser(query: FindOneUserDto, isEnable = true) {
     const { id, account, self_account, password } = query || {};
+
     const qb = this.userRepository.createQueryBuilder('user');
     if (id) {
       qb.andWhere('user.id = :id', { id });
@@ -88,20 +92,32 @@ export class UserService {
       });
     }
     if (password) {
-      const enPassword = encryptPassword(password);
+      const enPassword = StringUtil.encryptStr(password);
       qb.andWhere('user.password = :enPassword', { enPassword });
+    }
+    if (isEnable) {
+      qb.andWhere('user.user_status = :status', { status: Status.Enabled });
     }
     const data = await qb.getOne();
     return data;
   }
 
+  /* 获取用户通过账号/自定义账号 密码 */
+  async findUserByAP(account: string, password: string) {
+    const enPassword = StringUtil.encryptStr(password);
+    const qb = this.userRepository.createQueryBuilder('user');
+    qb.where('user.account = :account', { account });
+    qb.orWhere('user.self_account = :account', { account });
+    qb.andWhere('user.password = :enPassword', { enPassword });
+    const user = await qb.getOne();
+    return user;
+  }
+
   /* 获取用户列表 */
   async findAllUser(query: FindAllUserDto) {
     const {
-      pageNum = 0,
+      current = 1,
       pageSize = 10,
-      isPaging = NumericStatus.True,
-      ids,
       account,
       self_account,
       user_role,
@@ -109,9 +125,6 @@ export class UserService {
       user_status,
     } = query || {};
     const qb = this.userRepository.createQueryBuilder('user');
-    if (ids) {
-      qb.andWhere('user.id IN (:...ids)', { ids });
-    }
     if (account) {
       qb.andWhere('user.account LIKE :account', { account: `%${account}%` });
     }
@@ -131,67 +144,21 @@ export class UserService {
     }
     qb.orderBy('user.create_time');
     const count = await qb.getCount();
-    if (isPaging) {
-      qb.limit(pageSize);
-      qb.offset(pageSize * pageNum);
-    }
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
     const data = await qb.getMany();
-    return ResultList.list(data, count);
+    return PageResponse.list(data, count);
   }
 
   /* 更新用户信息 */
-  async updateUser(data: UpdateUserDto, uid?: number) {
-    const {
-      id,
-      account,
-      self_account,
-      user_name,
-      user_avatar,
-      password,
-      oldpassword,
-      user_role,
-      user_status,
-    } = data;
-    const updateData = { ...data };
-
-    if (uid) {
-      if (id != uid) {
-        return ResultMsg.fail(Msg.NO_PERMISSION);
-      }
-      if (user_role) {
-        delete updateData.user_role;
-      }
-      if (user_status) {
-        delete updateData.user_status;
-      }
-    }
-
-    const existPost = await this.findOneUser({ id });
+  async updateUser(id: number, data: UpdateUserDto, isEnable?: boolean) {
+    const { user_name, user_avatar, password } = data;
+    const existPost = await this.findOneUser({ id }, isEnable);
     if (!existPost) {
-      return ResultMsg.fail(Msg.DATA_NOEXIST);
-    }
-    if (account) {
-      const accountRes = await this.findOneUser({ account });
-      if (accountRes) {
-        return ResultMsg.fail(Msg.DATA_EXIST);
-      }
-    }
-    if (self_account) {
-      const selfRes = await this.findOneUser({ self_account });
-      if (selfRes) {
-        return ResultMsg.fail(Msg.DATA_EXIST);
-      }
-    }
-    if (oldpassword) {
-      const passwordRes = await this.userRepository.findOne({
-        where: { id, password: encryptPassword(oldpassword) },
-      });
-      if (!passwordRes) {
-        return ResultMsg.fail(Msg.PASSWORD_ERROR);
-      }
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
     if (password) {
-      updateData.password = encryptPassword(password);
+      data.password = StringUtil.encryptStr(password);
     }
     try {
       // 开启事务
@@ -199,7 +166,7 @@ export class UserService {
       const tx_userRepository =
         this.queryRunnerFactory.getRepository(userEntity);
       // 更新用户信息
-      const updatePost = tx_userRepository.merge(existPost, updateData);
+      const updatePost = tx_userRepository.merge(existPost, data);
       const saveRes = await tx_userRepository.save(updatePost);
       const eventFlags: boolean[] = [];
       if (saveRes) {
@@ -220,39 +187,111 @@ export class UserService {
         // 事件有失败事务回滚
         if (eventFlags.includes(false)) {
           await this.queryRunnerFactory.rollbackTransaction();
-          return ResultMsg.fail(Msg.UPDATE_FAIL);
+          return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
         } else {
           await this.queryRunnerFactory.commitTransaction();
-          return ResultMsg.ok(Msg.UPDATE_SUCCESS, saveRes);
+          return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'), saveRes);
         }
       } else {
         await this.queryRunnerFactory.rollbackTransaction();
-        return ResultMsg.fail(Msg.UPDATE_FAIL);
+        return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
       }
     } catch (error) {
       await this.queryRunnerFactory.rollbackTransaction();
-      return ResultMsg.fail(Msg.UPDATE_FAIL);
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
     }
   }
 
-  /* 软刪除用户 */
-  async softDeleteUser(data: IdsDto, uid?: number) {
+  /* 更新用户密码 */
+  async updateUserPassword(id: number, data: UpdateUserPasswordDto) {
+    const { password, oldPassword, code } = data;
+
+    const existUser = await this.findOneUser({ id, password: oldPassword });
+    if (!existUser) {
+      return Response.fail(this.i18n.t('message.PASSWORD_ERROR'));
+    }
+    const localCode = await this.redisService.getValue(
+      existUser.account + 'code',
+    );
+    if (localCode !== code) {
+      return Response.fail(this.i18n.t('message.CODE_ERROR'));
+    }
+    existUser.password = StringUtil.encryptStr(password);
+    const saveRes = await this.userRepository.save(existUser);
+    if (!saveRes) {
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    }
+    return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'));
+  }
+
+  /* 更新用户账号 */
+  async updateUserAccount(id: number, data: UpdateUserAccountDto) {
+    const { newAccount, code } = data;
+
+    const existUser = await this.findOneUser({ account: newAccount });
+    if (existUser) {
+      return Response.fail(this.i18n.t('message.ACCOUNT_EXIST'));
+    }
+    const user = await this.findOneUser({ id });
+    const localCode = await this.redisService.getValue(user.account + 'code');
+    if (localCode !== code) {
+      return Response.fail(this.i18n.t('message.CODE_ERROR'));
+    }
+    user.account = newAccount;
+    const saveRes = await this.userRepository.save(user);
+    if (!saveRes) {
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    }
+    return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'));
+  }
+
+  /* 软删除用户 */
+  async softDeleteUser(id: number) {
+    const result = await this.userRepository.softDelete(id);
+    if (result.affected) {
+      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
+    } else {
+      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+    }
+  }
+
+  /* 恢复用户 */
+  async restoreUser(id: number) {
+    const result = await this.userRepository.restore(id);
+    if (result.affected) {
+      return Response.ok(this.i18n.t('message.RESTORE_SUCCESS'));
+    } else {
+      return Response.fail(this.i18n.t('message.RESTORE_FAILED'));
+    }
+  }
+
+  /* 真删除用户 */
+  async deleteUser(id: number) {
+    const result = await this.userRepository.delete(id);
+    if (result.affected) {
+      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
+    } else {
+      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+    }
+  }
+
+  /* 批量软刪除用户 */
+  async BatchSoftDeleteUser(data: IdsDto) {
     const { ids = [] } = data || {};
     const qb = this.userRepository.createQueryBuilder('user').softDelete();
     qb.where('id IN (:...ids)', { ids });
-    if (uid) {
-      qb.andWhere('id = :uid', { uid });
-    }
     const delRes = await qb.execute();
     if (delRes.affected) {
-      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
+      return Response.ok(
+        delRes.affected + this.i18n.t('message.BATCH_DELETE_SUCCESS'),
+      );
     } else {
-      return ResultMsg.fail(Msg.DELETE_FAIL);
+      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
   }
 
-  /* 恢复用户数据 */
-  async restoreUser(data: IdsDto) {
+  /* 批量恢复用户数据 */
+  async BatchRestoreUser(data: IdsDto) {
     const { ids = [] } = data || {};
     const delRes = await this.userRepository
       .createQueryBuilder('user')
@@ -260,14 +299,16 @@ export class UserService {
       .where('id IN (:...ids)', { ids })
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(delRes.affected + Msg.BATCH_RESTORE_SUCCESS);
+      return Response.ok(
+        delRes.affected + this.i18n.t('message.BATCH_RESTORE_SUCCESS'),
+      );
     } else {
-      return ResultMsg.fail(Msg.RESTORE_FAIL);
+      return Response.fail(this.i18n.t('message.RESTORE_FAILED'));
     }
   }
 
-  /* 真刪除用户*/
-  async deleteUser(data: IdsDto) {
+  /* 批量真刪除用户*/
+  async BatchDeleteUser(data: IdsDto) {
     const { ids = [] } = data || {};
     const delRes = await this.userRepository
       .createQueryBuilder('user')
@@ -276,9 +317,11 @@ export class UserService {
       .andWhere('delete_time IS NOT NULL')
       .execute();
     if (delRes.affected) {
-      return ResultMsg.ok(delRes.affected + Msg.BATCH_DELETE_SUCCESS);
+      return Response.ok(
+        delRes.affected + this.i18n.t('message.BATCH_DELETE_SUCCESS'),
+      );
     } else {
-      return ResultMsg.fail(Msg.DELETE_FAIL);
+      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
   }
 }

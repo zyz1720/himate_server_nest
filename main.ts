@@ -5,7 +5,8 @@ import { AllExceptionFilter } from './src/common/filters/exception';
 import { HttpReqTransformInterceptor } from './src/common/interceptor/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
-import { BaseConst } from 'src/common/constants/base.const';
+import { FILE_DIR } from './config/file_dir';
+import { FormatUtil } from './src/common/utils/format.util';
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -19,7 +20,9 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter({
       logger: {
-        timestamp: () => `,"time":"${new Date().toLocaleString()}"`,
+        timestamp() {
+          return `,"time":"${FormatUtil.formatTime()}"`;
+        },
       },
     }),
   );
@@ -31,15 +34,21 @@ async function bootstrap() {
   app.useGlobalInterceptors(new HttpReqTransformInterceptor());
 
   // 全局应用管道 对输入数据进行转换或者验证
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // 自动排除DTO中未定义的属性
+      forbidNonWhitelisted: false, // 如果存在非白名单属性，返回错误
+      transform: true, // 自动将请求参数转换为相应的类型
+    }),
+  );
 
   // 设置全局路由前缀
   app.setGlobalPrefix('api');
 
   // sawgger配置
   const options = new DocumentBuilder()
-    .setTitle('Himate接口文档')
-    .setDescription('Himate api')
+    .setTitle('nest-server接口文档')
+    .setDescription('nest-server api')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -48,9 +57,9 @@ async function bootstrap() {
 
   //  fastify-cors配置
   await app.register(fastifyCors, {
-    origin: ['http://localhost:8080', 'http://192.168.110.35'],
+    origin: ['http://localhost:8080'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-lang'],
   });
 
   // 注册 fastify-multipart 插件
@@ -62,9 +71,9 @@ async function bootstrap() {
 
   // 注册压缩的静态资源服务
   await app.register(fastifyStatic, {
-    root: BaseConst.ThumbnailDir,
+    root: FILE_DIR.THUMBNAIL,
     serve: true,
-    prefix: '/Thumbnail',
+    prefix: '/thumbnails',
     index: false,
   });
 
@@ -73,7 +82,7 @@ async function bootstrap() {
 
   // 静态资源服务
   const staticApp = express();
-  staticApp.use('/static', express.static(BaseConst.uploadDir));
+  staticApp.use('/static', express.static(FILE_DIR.UPLOAD));
   staticApp.listen(3002);
 }
 bootstrap();

@@ -25,6 +25,7 @@ export class UserSubscriber implements EntitySubscriberInterface {
 
   beforeInsert(event: InsertEvent<any>) {
     this.editEntity(event.entity, 'create_by');
+    this.editEntity(event.entity, 'update_by');
   }
 
   beforeUpdate(event: UpdateEvent<any>) {
