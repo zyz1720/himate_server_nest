@@ -116,15 +116,22 @@ export class UserService {
   /* 获取用户列表 */
   async findAllUser(query: FindAllUserDto) {
     const {
+      user_name,
       current = 1,
       pageSize = 10,
       account,
       self_account,
       user_role,
       sex,
+      birthday,
       user_status,
     } = query || {};
     const qb = this.userRepository.createQueryBuilder('user');
+    if (user_name) {
+      qb.andWhere('user.user_name LIKE :user_name', {
+        user_name: `%${user_name}%`,
+      });
+    }
     if (account) {
       qb.andWhere('user.account LIKE :account', { account: `%${account}%` });
     }
@@ -138,6 +145,11 @@ export class UserService {
     }
     if (sex) {
       qb.andWhere('user.sex = :sex', { sex });
+    }
+    if (birthday) {
+      qb.andWhere('user.birthday LIKE :birthday', {
+        birthday: `%${birthday}%`,
+      });
     }
     if (user_status) {
       qb.andWhere('user.user_status = :user_status', { user_status });

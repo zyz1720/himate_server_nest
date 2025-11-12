@@ -12,6 +12,7 @@ import { EmailModule } from './core/email/email.module';
 import { RedisModule } from './core/Redis/redis.module';
 import { UploadModule } from './core/upload/upload.module';
 import { CaptchaModule } from './core/captcha/captcha.module';
+import { AppPackageModule } from './modules/app-package/app-package.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './common/subscriber/user.subscriber';
@@ -108,6 +109,7 @@ import envConfig from '../config/env';
     RedisModule,
     UploadModule,
     CaptchaModule,
+    AppPackageModule,
     RequestContextModule,
   ],
 
