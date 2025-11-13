@@ -26,6 +26,10 @@ export class MusicExtraEntity {
   @Column({ comment: '第三方音乐id', length: 16 })
   match_id: string;
 
+  @ApiProperty({ description: '音乐封面' })
+  @Column({ type: 'int', comment: '音乐封面' })
+  cover_file_id: number;
+
   @ApiProperty({ description: '标准歌词' })
   @Column({ type: 'mediumtext', comment: '标准歌词', nullable: true })
   music_lyric: string;
@@ -62,8 +66,4 @@ export class MusicExtraEntity {
   @Index('idx_music_extra_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
-
-  @ApiProperty({ description: '音乐封面' })
-  @Column({ comment: '音乐封面', length: 120 })
-  music_cover: string;
 }
