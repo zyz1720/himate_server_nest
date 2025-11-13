@@ -65,5 +65,4 @@ export enum DataLength {
   Longer = 240,
   UUID = 36,
   HASH = 64,
-  INT = 2147483647,
 }

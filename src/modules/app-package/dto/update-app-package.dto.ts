@@ -1,10 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsByteLength } from 'class-validator';
+import { IsOptional, IsByteLength, IsInt } from 'class-validator';
 
 export class UpdateAppPackageDto {
-  @ApiPropertyOptional({ description: '应用大小' })
+  @ApiPropertyOptional({ description: '文件id' })
   @IsOptional()
-  readonly app_size?: number;
+  @IsInt()
+  readonly file_id?: number;
 
   @ApiPropertyOptional({ description: '应用包名称' })
   @IsOptional()
@@ -20,9 +21,4 @@ export class UpdateAppPackageDto {
   @IsOptional()
   @IsByteLength(0, 240)
   readonly app_description?: string;
-
-  @ApiPropertyOptional({ description: '文件路径' })
-  @IsOptional()
-  @IsByteLength(0, 120)
-  readonly app_file_key?: string;
 }

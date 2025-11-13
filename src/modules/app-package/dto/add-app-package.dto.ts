@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsByteLength } from 'class-validator';
+import { IsNotEmpty, IsByteLength, IsInt } from 'class-validator';
 
 export class AddAppPackageDto {
-  @ApiProperty({ description: '应用大小', required: true })
+  @ApiProperty({ description: '文件id', required: true })
   @IsNotEmpty()
-  readonly app_size: number;
+  @IsInt()
+  readonly file_id: number;
 
   @ApiProperty({ description: '应用包名称', required: true })
   @IsNotEmpty()
@@ -20,9 +21,4 @@ export class AddAppPackageDto {
   @IsNotEmpty()
   @IsByteLength(0, 240)
   readonly app_description: string;
-
-  @ApiProperty({ description: '文件路径', required: true })
-  @IsNotEmpty()
-  @IsByteLength(0, 120)
-  readonly app_file_key: string;
 }

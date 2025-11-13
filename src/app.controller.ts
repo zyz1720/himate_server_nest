@@ -9,7 +9,7 @@ import { ApiOkMsgRes } from 'src/common/response/api-response.decorator';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @ApiOperation({ summary: 'Welcome to Nest Server!' })
+  @ApiOperation({ summary: 'Welcome to Himate!' })
   @ApiOkMsgRes()
   @Public()
   @Get()

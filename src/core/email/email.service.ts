@@ -35,13 +35,21 @@ export class EmailService {
     try {
       const mailInfo = {
         to: account,
-        subject: '验证服务',
-        html: `<div style="background-color: white; border-radius: 4px; border: 1px solid #e4e6eb; padding: 0px 10px; box-shadow: 0px 0px 10px 1px #e4e6eb;">
-      <div style="border-bottom: 1px solid #e4e6eb; padding: 12px 0px 8px 0px;">
-          <h1>欢迎使用!</h1>
-      </div>
-      <p>您的验证码为<span style="font-size: 22px; color: #4848FF; font-weight: bold;">${code}</span>，请在<span style="color: #F56C6C; ">10分钟</span>内完成操作，如非本人操作，请忽略！</p>
-      </div>`,
+        subject: 'Himate验证服务',
+        html: `<div style="background-color: white; border-radius: 8px; border: 1px solid #f5f5f5;">
+        <div style="border-bottom: 1px solid #f5f5f5; padding: 12px;">
+            <div style="font-size: 24px; font-weight: bold;">欢迎使用Himate!</div>
+        </div>
+        <div style="padding: 12px 0px;">
+            <div style="text-align: center; margin-bottom: 12px;">您的验证码为</div>
+            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                <div
+                    style="font-size: 24px; color: #4848FF; font-weight: bold; text-align: center; padding: 8px; border-radius: 8px; background-color: #4848ff15;">
+                    ${code}</div>
+            </div>
+            <div style="text-align: center; font-size: 12px;">请在<span style="color: #4096ff; ">10分钟</span>内完成操作，如非本人操作，请忽略！</div>
+        </div>
+    </div>`,
       };
 
       const info = await this.transporter.sendMail({

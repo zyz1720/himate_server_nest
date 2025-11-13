@@ -8,7 +8,7 @@ import { RequestContext } from 'nestjs-request-context';
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface {
-  readonly whiteEntitys = [];
+  readonly whiteEntities = [];
 
   editEntity(entity: any, field: string) {
     const req = RequestContext.currentContext?.req;
@@ -18,7 +18,7 @@ export class UserSubscriber implements EntitySubscriberInterface {
       return;
     }
     const entityName = entity.constructor.name;
-    if (!this.whiteEntitys.includes(entityName)) {
+    if (!this.whiteEntities.includes(entityName)) {
       entity[field] = user?.userId ?? 0;
     }
   }

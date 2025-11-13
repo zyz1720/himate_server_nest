@@ -15,10 +15,6 @@ export class AppPackageEntity {
   @PrimaryGeneratedColumn({ comment: 'app包自增id' })
   id: number;
 
-  @ApiProperty({ description: '应用大小' })
-  @Column({ type: 'int', comment: '应用大小' })
-  app_size: number;
-
   @ApiProperty({ description: '应用包名称' })
   @Index('idx_app_package_app_name')
   @Column({ comment: '应用包名称', length: 48 })
@@ -32,9 +28,9 @@ export class AppPackageEntity {
   @Column({ comment: '应用描述', length: 240 })
   app_description: string;
 
-  @ApiProperty({ description: '文件路径' })
-  @Column({ comment: '文件路径', length: 120 })
-  app_file_key: string;
+  @ApiProperty({ description: '文件id' })
+  @Column({ type: 'int', comment: '文件id' })
+  file_id: number;
 
   @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
