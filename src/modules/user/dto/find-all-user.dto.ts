@@ -52,7 +52,7 @@ export class FindAllUserDto extends PartialType(FindAllDto) {
   readonly birthday?: string;
 
   @ApiPropertyOptional({
-    description: '状态(enabled:正常 disabled:禁用)',
+    description: '状态',
     enum: Status,
   })
   @IsEnum(Status)

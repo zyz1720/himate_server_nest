@@ -5,36 +5,30 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Unique,
   Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
-@Entity('app_package')
-export class AppPackageEntity {
-  @ApiProperty({ description: 'app包自增id' })
-  @PrimaryGeneratedColumn({ comment: 'app包自增id' })
+// 枚举定义
+@Entity('message_read_records')
+@Unique('idx_message_read_records_user_id', ['user_id', 'message_id'])
+export class MessageReadRecordsEntity {
+  @ApiProperty({ description: '消息读取记录自增id' })
+  @PrimaryGeneratedColumn({ comment: '消息读取记录自增id' })
   id: number;
 
-  @ApiProperty({ description: '应用大小' })
-  @Column({ type: 'int', comment: '应用大小' })
-  app_size: number;
+  @ApiProperty({ description: '用户id' })
+  @Column({ type: 'int', comment: '用户id' })
+  user_id: number;
 
-  @ApiProperty({ description: '应用包名称' })
-  @Index('idx_app_package_app_name')
-  @Column({ comment: '应用包名称', length: 48 })
-  app_name: string;
+  @ApiProperty({ description: '消息id' })
+  @Column({ type: 'int', comment: '消息id' })
+  message_id: number;
 
-  @ApiProperty({ description: '应用版本' })
-  @Column({ comment: '应用版本', length: 16 })
-  app_version: string;
-
-  @ApiProperty({ description: '应用描述' })
-  @Column({ comment: '应用描述', length: 240 })
-  app_description: string;
-
-  @ApiProperty({ description: '文件路径' })
-  @Column({ comment: '文件路径', length: 120 })
-  app_file_key: string;
+  @ApiProperty({ description: '会话uuid' })
+  @Column({ comment: '会话uuid', length: 36 })
+  session_id: string;
 
   @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
@@ -53,7 +47,7 @@ export class AppPackageEntity {
   update_by: number;
 
   @ApiProperty({ description: '删除时间' })
-  @Index('idx_app_package_delete_time')
+  @Index('idx_message_read_records_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
 }

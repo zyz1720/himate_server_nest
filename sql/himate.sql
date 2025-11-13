@@ -56,6 +56,20 @@ CREATE TABLE IF NOT EXISTS `chat` (
 
 -- 数据导出被取消选择。
 
+-- 导出  表 himate.chat 结构
+CREATE TABLE IF NOT EXISTS `message_read_records` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '消息读取记录自增id',
+  `user_id` int(11) NOT NULL COMMENT '用户id',
+  `message_id` int(11) NOT NULL COMMENT '消息id',
+  `session_id` varchar(36) NOT NULL COMMENT '会话id',
+  `create_time` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
+  `update_time` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
+  `create_by` int(11) NOT NULL COMMENT '创建者id',
+  `update_by` int(11) NOT NULL COMMENT '修改者id',
+  `delete_time` timestamp(6) NULL DEFAULT NULL COMMENT '删除时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=305 DEFAULT CHARSET=utf8mb4;
+
 -- 导出  表 himate.favorites 结构
 CREATE TABLE IF NOT EXISTS `favorites` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '文件自增id',
@@ -148,26 +162,6 @@ CREATE TABLE IF NOT EXISTS `group_member` (
   KEY `IDX_e200cd6ff3e3903c5be5ae1400` (`group_id`),
   KEY `IDX_8264f490704d49a234f9b10d45` (`member_uid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
-
--- 数据导出被取消选择。
-
--- 导出  表 himate.group_test 结构
-CREATE TABLE IF NOT EXISTS `group_test` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '群组自增id',
-  `creator_uid` int(11) NOT NULL COMMENT '群组所属用户id',
-  `group_introduce` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '群组简介',
-  `group_status` enum('forbidden','normal') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal' COMMENT '群状态',
-  `create_by` int(11) NOT NULL COMMENT '创建者id',
-  `update_by` int(11) DEFAULT NULL COMMENT '修改者id',
-  `create_time` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
-  `update_time` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
-  `delete_time` timestamp(6) NULL DEFAULT NULL COMMENT '删除时间',
-  `group_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '群组uuid',
-  `group_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '群组名称',
-  `group_avatar` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'default_assets/default_group_avatar.jpg' COMMENT '群组头像',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `IDX_982944f1e6772a7b738b4e036d` (`group_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 数据导出被取消选择。
 

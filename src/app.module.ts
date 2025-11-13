@@ -13,6 +13,13 @@ import { RedisModule } from './core/Redis/redis.module';
 import { UploadModule } from './core/upload/upload.module';
 import { CaptchaModule } from './core/captcha/captcha.module';
 import { AppPackageModule } from './modules/app-package/app-package.module';
+import { SessionModule } from './modules/session/session.module';
+import { MateModule } from './modules/mate/mate.module';
+import { GroupModule } from './modules/group/group.module';
+import { GroupMemberModule } from './modules/group-member/group-member.module';
+import { MessageModule } from './modules/message/message.module';
+import { MessageReadRecordsModule } from './modules/message-read-records/message-read-records.module';
+
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './common/subscriber/user.subscriber';
@@ -110,6 +117,12 @@ import envConfig from '../config/env';
     UploadModule,
     CaptchaModule,
     AppPackageModule,
+    SessionModule,
+    MateModule,
+    GroupModule,
+    GroupMemberModule,
+    MessageModule,
+    MessageReadRecordsModule,
     RequestContextModule,
   ],
 

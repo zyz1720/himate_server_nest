@@ -12,6 +12,17 @@ export enum Gender {
 }
 
 /**
+ * @description 数值状态枚举
+ * @enum {string}
+ * @property {string} Y - yes
+ * @property {string} N - no
+ */
+export enum Whether {
+  Y = 'yes',
+  N = 'no',
+}
+
+/**
  * 状态枚举
  * @description 状态枚举
  * @enum {string}

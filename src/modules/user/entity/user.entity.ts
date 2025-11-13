@@ -48,18 +48,20 @@ export class userEntity {
   sex: string;
 
   @ApiProperty({ description: '生日' })
-  @Column({ type: 'timestamp', default: null, comment: '生日' })
+  @Column({ type: 'timestamp', nullable: true, comment: '生日' })
   birthday: Date;
 
   @ApiProperty({ description: '年龄' })
-  @Column({ type: 'tinyint', default: null, comment: '年龄' })
+  @Column({ type: 'tinyint', nullable: true, comment: '年龄' })
   age: number;
 
   @ApiProperty({ description: '账号' })
+  @Index('idx_user_account')
   @Column({ length: DataLength.Medium, comment: '账号' })
   account: string;
 
   @ApiProperty({ description: '自定义账号' })
+  @Index('idx_user_self_account')
   @Column({ length: DataLength.Medium, comment: '自定义账号' })
   self_account: string;
 
@@ -70,7 +72,7 @@ export class userEntity {
     default: Role.User,
     comment: '用户权限',
   })
-  user_role: string;
+  user_role: Role;
 
   // 查询时隐藏密码
   @Exclude()
@@ -84,14 +86,14 @@ export class userEntity {
     comment: '用户状态(enabled:正常 disabled:禁用)',
     default: Status.Enabled,
   })
-  user_status: string;
+  user_status: Status;
 
   @ApiProperty({ description: '创建者id' })
-  @Column({ type: 'int', default: null, comment: '创建者id' })
+  @Column({ type: 'int', comment: '创建者id' })
   create_by: number;
 
   @ApiProperty({ description: '修改者id' })
-  @Column({ type: 'int', default: null, comment: '修改者id' })
+  @Column({ type: 'int', comment: '修改者id' })
   update_by: number;
 
   @ApiProperty({ description: '创建时间' })
@@ -103,7 +105,7 @@ export class userEntity {
   update_time: Date;
 
   @ApiProperty({ description: '删除时间' })
-  @Index()
+  @Index('idx_user_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
 

@@ -23,7 +23,7 @@ export class UpdateUserDto extends PickType(FindAllUserDto, [
   @IsByteLength(0, DataLength.Long)
   readonly user_avatar?: string;
 
-  @ApiProperty({ description: '新密码', required: false })
+  @ApiPropertyOptional({ description: '密码' })
   @IsOptional()
   @Length(6, 18, { message: '密码长度为6-18位' })
   password?: string;
