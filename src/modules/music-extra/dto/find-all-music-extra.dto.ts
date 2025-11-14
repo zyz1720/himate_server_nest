@@ -10,8 +10,4 @@ export class FindAllMusicExtraDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '第三方音乐id' })
   @IsOptional()
   readonly match_id?: string;
-
-  @ApiPropertyOptional({ description: '音乐封面' })
-  @IsOptional()
-  readonly music_cover?: string;
 }

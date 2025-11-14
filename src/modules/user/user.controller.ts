@@ -20,7 +20,7 @@ import {
   ApiOkPageRes,
   ApiOkMsgRes,
 } from 'src/common/response/api-response.decorator';
-import { userEntity } from './entity/user.entity';
+import { UserEntity } from './entity/user.entity';
 
 @ApiTags('用户管理')
 @ApiBearerAuth()
@@ -30,31 +30,31 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ summary: '创建用户' })
-  @ApiOkRes(userEntity)
+  @ApiOkRes(UserEntity)
   @Post()
   create(@Body() user: CreateUserDto) {
     return this.userService.createUser(user);
   }
 
   @ApiOperation({ summary: '获取所有用户信息' })
-  @ApiOkPageRes(userEntity)
+  @ApiOkPageRes(UserEntity)
   @Get()
   findAll(@Query() query: FindAllUserDto) {
     return this.userService.findAllUser(query);
   }
 
   @ApiOperation({ summary: '获取指定用户信息' })
-  @ApiOkRes(userEntity)
+  @ApiOkRes(UserEntity)
   @Get(':id')
   findById(@Param('id') id: number) {
-    return this.userService.findOneUser({ id }, false);
+    return this.userService.findOneUser({ id });
   }
 
   @ApiOperation({ summary: '修改用户信息' })
-  @ApiOkRes(userEntity)
+  @ApiOkRes(UserEntity)
   @Put(':id')
   update(@Param('id') id: number, @Body() body: UpdateUserDto) {
-    return this.userService.updateUser(id, body, false);
+    return this.userService.updateUser(id, body);
   }
 
   @ApiOperation({ summary: '软删除用户' })

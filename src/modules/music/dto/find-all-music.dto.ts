@@ -19,9 +19,9 @@ export class FindAllMusicDto extends PartialType(FindAllDto) {
   @IsOptional()
   readonly artists?: string;
 
-  @ApiPropertyOptional({ description: '文件id' })
+  @ApiPropertyOptional({ description: '文件key' })
   @IsOptional()
-  readonly file_id?: string;
+  readonly file_key?: string;
 
   @ApiPropertyOptional({ description: '音乐名称' })
   @IsOptional()

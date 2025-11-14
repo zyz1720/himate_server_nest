@@ -5,8 +5,10 @@ import {
   IsUUID,
   IsByteLength,
   IsEnum,
+  IsInt,
 } from 'class-validator';
 import { MsgTypeEnum } from '../entity/message.entity';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class AddMessageDto {
   @ApiProperty({ description: '客户端消息id', required: true })
@@ -14,10 +16,10 @@ export class AddMessageDto {
   @IsUUID()
   readonly client_msg_id: string;
 
-  @ApiProperty({ description: '关联会话uuid', required: true })
+  @ApiProperty({ description: '关联会话id', required: true })
   @IsNotEmpty()
-  @IsByteLength(0, 36)
-  readonly session_id: string;
+  @IsInt()
+  readonly session_primary_id: number;
 
   @ApiProperty({ description: '发送方id', required: true })
   @IsNotEmpty()
@@ -25,7 +27,7 @@ export class AddMessageDto {
 
   @ApiProperty({ description: '发送方ip', required: false })
   @IsOptional()
-  @IsByteLength(0, 48)
+  @IsByteLength(0, DataLength.Medium)
   readonly sender_ip?: string;
 
   @ApiProperty({ description: '消息内容', required: true })

@@ -7,9 +7,9 @@ export class FindAllMessageDto extends PartialType(FindAllDto) {
   @IsOptional()
   readonly client_msg_id?: string;
 
-  @ApiPropertyOptional({ description: '关联会话uuid' })
+  @ApiPropertyOptional({ description: '关联会话id' })
   @IsOptional()
-  readonly session_id?: string;
+  readonly session_primary_id?: number;
 
   @ApiPropertyOptional({ description: '发送方id' })
   @IsOptional()

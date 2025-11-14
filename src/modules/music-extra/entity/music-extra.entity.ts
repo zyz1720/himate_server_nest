@@ -6,8 +6,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { DataLength } from 'src/common/constants/database-enum.const';
+import { MusicEntity } from 'src/modules/music/entity/music.entity';
 
 // 枚举定义
 
@@ -23,12 +27,12 @@ export class MusicExtraEntity {
   music_id: number;
 
   @ApiProperty({ description: '第三方音乐id' })
-  @Column({ comment: '第三方音乐id', length: 16 })
+  @Column({ comment: '第三方音乐id', length: DataLength.Short })
   match_id: string;
 
   @ApiProperty({ description: '音乐封面' })
-  @Column({ type: 'int', comment: '音乐封面' })
-  cover_file_id: number;
+  @Column({ comment: '音乐封面', length: DataLength.Long })
+  music_cover: string;
 
   @ApiProperty({ description: '标准歌词' })
   @Column({ type: 'mediumtext', comment: '标准歌词', nullable: true })
@@ -66,4 +70,11 @@ export class MusicExtraEntity {
   @Index('idx_music_extra_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @OneToOne(() => MusicEntity, (music) => music.musicExtra, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'music_id' })
+  music: MusicEntity;
 }

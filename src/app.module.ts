@@ -1,7 +1,6 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './modules/user/user.module';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './core/auth/auth.module';
@@ -19,13 +18,17 @@ import { GroupModule } from './modules/group/group.module';
 import { GroupMemberModule } from './modules/group-member/group-member.module';
 import { MessageModule } from './modules/message/message.module';
 import { MessageReadRecordsModule } from './modules/message-read-records/message-read-records.module';
-
+import { FavoritesModule } from './modules/favorites/favorites.module';
+import { MusicModule } from './modules/music/music.module';
+import { MusicExtraModule } from './modules/music-extra/music-extra.module';
+import { FileModule } from './modules/file/file.module';
+import { UserModule } from './modules/user/user.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './common/subscriber/user.subscriber';
-import { RequestContextModule } from 'nestjs-request-context';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { HeaderResolver, I18nModule } from 'nestjs-i18n';
+import { ContextMiddleware } from './common/middleware/context.middleware';
 import { join } from 'path';
 import envConfig from '../config/env';
 
@@ -123,7 +126,10 @@ import envConfig from '../config/env';
     GroupMemberModule,
     MessageModule,
     MessageReadRecordsModule,
-    RequestContextModule,
+    FavoritesModule,
+    MusicModule,
+    MusicExtraModule,
+    FileModule,
   ],
 
   controllers: [AppController],
@@ -143,4 +149,8 @@ import envConfig from '../config/env';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(ContextMiddleware).forRoutes('*');
+  }
+}

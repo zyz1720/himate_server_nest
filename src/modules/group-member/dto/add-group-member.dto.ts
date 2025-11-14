@@ -1,15 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsUUID, IsByteLength, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsByteLength, IsEnum, IsInt } from 'class-validator';
 import {
   MemberRoleEnum,
   MemberStatusEnum,
 } from '../entity/group-member.entity';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class AddGroupMemberDto {
-  @ApiProperty({ description: '关联群组uuid', required: true })
+  @ApiProperty({ description: '关联群组id', required: true })
   @IsNotEmpty()
-  @IsUUID()
-  readonly group_id: string;
+  @IsInt()
+  readonly group_id: number;
 
   @ApiProperty({ description: '用户id', required: true })
   @IsNotEmpty()
@@ -17,7 +18,7 @@ export class AddGroupMemberDto {
 
   @ApiProperty({ description: '群成员备注', required: true })
   @IsNotEmpty()
-  @IsByteLength(0, 48)
+  @IsByteLength(0, DataLength.Medium)
   readonly member_remarks: string;
 
   @ApiProperty({ description: '群成员权限', required: true, default: 'member' })

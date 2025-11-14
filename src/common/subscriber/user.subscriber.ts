@@ -4,22 +4,20 @@ import {
   InsertEvent,
   UpdateEvent,
 } from 'typeorm';
-import { RequestContext } from 'nestjs-request-context';
+import { AsyncContext } from 'src/core/context/async-context.model';
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface {
   readonly whiteEntities = [];
 
   editEntity(entity: any, field: string) {
-    const req = RequestContext.currentContext?.req;
-    const user = req?.user;
-
+    const AuthInfo = AsyncContext.getContext();
     if (!entity) {
       return;
     }
     const entityName = entity.constructor.name;
     if (!this.whiteEntities.includes(entityName)) {
-      entity[field] = user?.userId ?? 0;
+      entity[field] = AuthInfo?.userId ?? -1;
     }
   }
 

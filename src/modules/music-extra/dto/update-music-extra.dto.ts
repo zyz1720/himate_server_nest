@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsByteLength, IsInt } from 'class-validator';
+import { IsOptional, IsByteLength } from 'class-validator';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class UpdateMusicExtraDto {
   @ApiPropertyOptional({ description: '音乐id' })
@@ -8,7 +9,7 @@ export class UpdateMusicExtraDto {
 
   @ApiPropertyOptional({ description: '第三方音乐id' })
   @IsOptional()
-  @IsByteLength(0, 16)
+  @IsByteLength(0, DataLength.Short)
   readonly match_id?: string;
 
   @ApiPropertyOptional({ description: '标准歌词' })
@@ -29,6 +30,6 @@ export class UpdateMusicExtraDto {
 
   @ApiPropertyOptional({ description: '音乐封面' })
   @IsOptional()
-  @IsInt()
-  readonly cover_file_id?: number;
+  @IsByteLength(0, DataLength.Long)
+  readonly music_cover?: string;
 }

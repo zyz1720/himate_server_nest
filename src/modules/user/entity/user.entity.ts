@@ -21,7 +21,8 @@ import { Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('user')
-export class userEntity {
+@Index('idx_user_id_user_name_avatar', ['id', 'user_name', 'user_avatar'])
+export class UserEntity {
   @ApiProperty({ description: '用户id' })
   @PrimaryGeneratedColumn({ comment: '用户id' })
   id: number;
@@ -56,12 +57,10 @@ export class userEntity {
   age: number;
 
   @ApiProperty({ description: '账号' })
-  @Index('idx_user_account')
   @Column({ length: DataLength.Medium, comment: '账号' })
   account: string;
 
   @ApiProperty({ description: '自定义账号' })
-  @Index('idx_user_self_account')
   @Column({ length: DataLength.Medium, comment: '自定义账号' })
   self_account: string;
 

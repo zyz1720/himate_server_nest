@@ -3,9 +3,9 @@ import { IsOptional } from 'class-validator';
 import { FindAllDto } from 'src/common/dto/common.dto';
 
 export class FindAllGroupMemberDto extends PartialType(FindAllDto) {
-  @ApiPropertyOptional({ description: '关联群组uuid' })
+  @ApiPropertyOptional({ description: '关联群组id' })
   @IsOptional()
-  readonly group_id?: string;
+  readonly group_id?: number;
 
   @ApiPropertyOptional({ description: '用户id' })
   @IsOptional()

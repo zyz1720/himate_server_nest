@@ -2,7 +2,7 @@ import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { FindAllUserDto } from './find-all-user.dto';
 import { IsOptional } from 'class-validator';
 
-export class FindOneUserDto extends PickType(FindAllUserDto, [
+export class findOneUserEnabledDto extends PickType(FindAllUserDto, [
   'account',
   'self_account',
 ] as const) {

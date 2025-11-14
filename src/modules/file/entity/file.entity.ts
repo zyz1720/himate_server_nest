@@ -8,6 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 // 枚举定义
 export enum FileTypeEnum {
@@ -52,12 +53,25 @@ export class FileEntity {
   use_type: UseTypeEnum;
 
   @ApiProperty({ description: '文件hash' })
-  @Column({ comment: '文件hash', length: 64 })
+  @Column({ comment: '文件hash', length: DataLength.HASH })
   file_hash: string;
+
+  @ApiProperty({ description: '文件key' })
+  @Index('idx_file_file_key_unique', { unique: true })
+  @Column({ comment: '文件key', length: DataLength.Long })
+  file_key: string;
+
+  @ApiProperty({ description: '文件大小' })
+  @Column({ type: 'bigint', comment: '文件大小' })
+  file_size: number;
 
   @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
+
+  @ApiProperty({ description: '更新时间' })
+  @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
+  update_time: Date;
 
   @ApiProperty({ description: '创建者id' })
   @Column({ type: 'int', comment: '创建者id' })
@@ -67,21 +81,8 @@ export class FileEntity {
   @Column({ type: 'int', comment: '修改者id', nullable: true })
   update_by: number;
 
-  @ApiProperty({ description: '更新时间' })
-  @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
-  update_time: Date;
-
   @ApiProperty({ description: '删除时间' })
   @Index('idx_file_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
-
-  @ApiProperty({ description: '文件路径' })
-  @Index('idx_file_file_key_unique', { unique: true })
-  @Column({ comment: '文件路径', length: 120 })
-  file_key: string;
-
-  @ApiProperty({ description: '文件大小' })
-  @Column({ type: 'bigint', comment: '文件大小' })
-  file_size: number;
 }

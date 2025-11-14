@@ -1,11 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsByteLength, IsEnum } from 'class-validator';
+import { IsOptional, IsUUID, IsEnum } from 'class-validator';
 import { ChatTypeEnum } from '../entity/session.entity';
 
 export class UpdateSessionDto {
   @ApiPropertyOptional({ description: '会话id' })
   @IsOptional()
-  @IsByteLength(0, 36)
+  @IsUUID()
   readonly session_id?: string;
 
   @ApiPropertyOptional({ description: '最后一条消息的id' })

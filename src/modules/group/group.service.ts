@@ -29,13 +29,7 @@ export class GroupService {
 
   /* 查询所有群组 */
   async findAllGroup(query: FindAllGroupDto) {
-    const {
-      current = 1,
-      pageSize = 10,
-      group_id,
-      group_name,
-      group_avatar,
-    } = query || {};
+    const { current = 1, pageSize = 10, group_id, group_name } = query || {};
     const qb = this.groupRepository.createQueryBuilder('group');
     if (group_id) {
       qb.andWhere('group_id LIKE :group_id', {
@@ -47,12 +41,6 @@ export class GroupService {
         group_name: '%' + group_name + '%',
       });
     }
-    if (group_avatar) {
-      qb.andWhere('group_avatar LIKE :group_avatar', {
-        group_avatar: '%' + group_avatar + '%',
-      });
-    }
-
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
     const count = await qb.getCount();

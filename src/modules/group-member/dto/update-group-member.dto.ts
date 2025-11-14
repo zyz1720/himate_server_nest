@@ -1,15 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsUUID, IsByteLength, IsEnum } from 'class-validator';
+import { IsOptional, IsInt, IsByteLength, IsEnum } from 'class-validator';
 import {
   MemberRoleEnum,
   MemberStatusEnum,
 } from '../entity/group-member.entity';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class UpdateGroupMemberDto {
-  @ApiPropertyOptional({ description: '关联群组uuid' })
+  @ApiPropertyOptional({ description: '关联群组id' })
   @IsOptional()
-  @IsUUID()
-  readonly group_id?: string;
+  @IsInt()
+  readonly group_id?: number;
 
   @ApiPropertyOptional({ description: '用户id' })
   @IsOptional()
@@ -17,7 +18,7 @@ export class UpdateGroupMemberDto {
 
   @ApiPropertyOptional({ description: '群成员备注' })
   @IsOptional()
-  @IsByteLength(0, 48)
+  @IsByteLength(0, DataLength.Medium)
   readonly member_remarks?: string;
 
   @ApiPropertyOptional({ description: '群成员权限', default: 'member' })

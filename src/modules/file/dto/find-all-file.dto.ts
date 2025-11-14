@@ -11,7 +11,7 @@ export class FindAllFileDto extends PartialType(FindAllDto) {
   @IsOptional()
   readonly use_type?: string;
 
-  @ApiPropertyOptional({ description: '文件路径' })
+  @ApiPropertyOptional({ description: '文件key' })
   @IsOptional()
   readonly file_key?: string;
 }

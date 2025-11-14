@@ -8,7 +8,7 @@ import {
   ApiOkRes,
   ApiOkMsgRes,
 } from 'src/common/response/api-response.decorator';
-import { userEntity } from './entity/user.entity';
+import { UserEntity } from './entity/user.entity';
 import {
   AppUpdateUserDto,
   UpdateUserPasswordDto,
@@ -29,17 +29,17 @@ export class AppUserController {
   }
 
   @ApiOperation({ summary: '获取用户信息' })
-  @ApiOkRes(userEntity)
+  @ApiOkRes(UserEntity)
   @Get('info')
   userInfo(@UserId() uid: number) {
-    return this.userService.findOneUser({ id: uid });
+    return this.userService.findOneUserEnabled({ id: uid });
   }
 
   @ApiOperation({ summary: '修改用户信息' })
-  @ApiOkRes(userEntity)
+  @ApiOkRes(UserEntity)
   @Put('info')
   update(@UserId() uid: number, @Body() body: AppUpdateUserDto) {
-    return this.userService.updateUser(uid, body);
+    return this.userService.updateUserEnabled(uid, body);
   }
 
   @ApiOperation({ summary: '修改用户密码' })

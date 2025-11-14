@@ -4725,11 +4725,6 @@ nestjs-i18n@^10.5.1:
     js-yaml "^4.1.0"
     string-format "^2.0.0"
 
-nestjs-request-context@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/nestjs-request-context/-/nestjs-request-context-4.0.0.tgz#29c79a736a796dec284101c5156de45b32435aae"
-  integrity sha512-gGGa7xQuZtk9y88jcLDoL8w/zIeweS5ODUV2yMjbJao1vYzxsp5Htm+tYPwJ38+YXH9LoYv4YneJ8q8YYN+5Ww==
-
 node-abort-controller@^3.0.1:
   version "3.1.1"
   resolved "https://registry.npmmirror.com/node-abort-controller/-/node-abort-controller-3.1.1.tgz#a94377e964a9a37ac3976d848cb5c765833b8548"

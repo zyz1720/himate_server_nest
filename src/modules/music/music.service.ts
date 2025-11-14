@@ -36,7 +36,7 @@ export class MusicService {
       bitrate,
       duration,
       artists,
-      file_id,
+      file_key,
       title,
       artist,
       album,
@@ -62,9 +62,9 @@ export class MusicService {
         artists: '%' + artists + '%',
       });
     }
-    if (file_id) {
-      qb.andWhere('file_id LIKE :file_id', {
-        file_id: '%' + file_id + '%',
+    if (file_key) {
+      qb.andWhere('file_key LIKE :file_key', {
+        file_key: '%' + file_key + '%',
       });
     }
     if (title) {

@@ -47,9 +47,9 @@ async function bootstrap() {
 
   // sawgger配置
   const options = new DocumentBuilder()
-    .setTitle('nest-server接口文档')
-    .setDescription('nest-server api')
-    .setVersion('1.0')
+    .setTitle('Himate接口文档')
+    .setDescription('Himate api v2.0')
+    .setVersion('2.0')
     .addBearerAuth()
     .build();
   const documents = SwaggerModule.createDocument(app, options);

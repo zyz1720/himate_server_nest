@@ -6,12 +6,17 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
+  ManyToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-
-// 枚举定义
+import { DataLength } from 'src/common/constants/database-enum.const';
+import { FavoritesEntity } from 'src/modules/favorites/entity/favorites.entity';
+import { MusicExtraEntity } from 'src/modules/music-extra/entity/music-extra.entity';
 
 @Entity('music')
+@Index('idx_music_id_extra_id', ['id', 'music_extra_id'])
 export class MusicEntity {
   @ApiProperty({ description: '音乐自增id' })
   @PrimaryGeneratedColumn({ comment: '音乐自增id' })
@@ -33,6 +38,26 @@ export class MusicEntity {
   @Column({ type: 'json', comment: '音乐艺术家集合', nullable: true })
   artists: string;
 
+  @ApiProperty({ description: '文件key' })
+  @Column({ type: 'varchar', comment: '文件key', length: DataLength.Long })
+  file_key: string;
+
+  @ApiProperty({ description: '音乐名称' })
+  @Column({ comment: '音乐名称', length: DataLength.Long })
+  title: string;
+
+  @ApiProperty({ description: '音乐艺术家' })
+  @Column({ comment: '音乐艺术家', length: DataLength.Long, nullable: true })
+  artist: string;
+
+  @ApiProperty({ description: '专辑名' })
+  @Column({ comment: '专辑名', length: DataLength.Long, nullable: true })
+  album: string;
+
+  @ApiProperty({ description: '音乐额外信息id' })
+  @Column({ type: 'int', comment: '音乐额外信息id', nullable: true })
+  music_extra_id: number;
+
   @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
   create_time: Date;
@@ -40,10 +65,6 @@ export class MusicEntity {
   @ApiProperty({ description: '更新时间' })
   @UpdateDateColumn({ type: 'timestamp', comment: '更新时间' })
   update_time: Date;
-
-  @ApiProperty({ description: '音乐额外信息id' })
-  @Column({ type: 'int', comment: '音乐额外信息id', nullable: true })
-  music_extra_id: number;
 
   @ApiProperty({ description: '创建者id' })
   @Column({ type: 'int', comment: '创建者id' })
@@ -58,19 +79,14 @@ export class MusicEntity {
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
 
-  @ApiProperty({ description: '文件id' })
-  @Column({ type: 'int', comment: '文件id' })
-  file_id: number;
+  @ManyToMany(() => FavoritesEntity, {
+    onDelete: 'CASCADE',
+  })
+  favorites: FavoritesEntity[];
 
-  @ApiProperty({ description: '音乐名称' })
-  @Column({ comment: '音乐名称', length: 120 })
-  title: string;
-
-  @ApiProperty({ description: '音乐艺术家' })
-  @Column({ comment: '音乐艺术家', length: 120, nullable: true })
-  artist: string;
-
-  @ApiProperty({ description: '专辑名' })
-  @Column({ comment: '专辑名', length: 120, nullable: true })
-  album: string;
+  @OneToOne(() => MusicExtraEntity, (musicExtra) => musicExtra.music, {
+    cascade: true,
+  })
+  @JoinColumn({ name: 'music_extra_id' })
+  musicExtra: MusicExtraEntity;
 }

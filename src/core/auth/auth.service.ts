@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../../modules/user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { userEntity } from 'src/modules/user/entity/user.entity';
+import { UserEntity } from 'src/modules/user/entity/user.entity';
 import { UserLoginByCodeDto } from 'src/core/auth/dto/user-login-code.dto';
 import { UserLoginByPasswordDto } from 'src/core/auth/dto/user-login-password.dto';
 import { I18nService } from 'nestjs-i18n';
@@ -26,7 +26,7 @@ export class AuthService {
   ) {}
 
   /* jwt签名用 - 生成双token */
-  async login(user: Partial<userEntity>) {
+  async login(user: Partial<UserEntity>) {
     try {
       const { id, self_account, account, user_role } = user || {};
       const payload = {
@@ -57,11 +57,24 @@ export class AuthService {
     }
   }
 
+  /* 验证jwt token */
+  verifyToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+      return decoded as IJwtSign;
+    } catch (error) {
+      console.error(error);
+      throw new UnauthorizedException(this.i18n.t('message.OPERATE_ERROR'));
+    }
+  }
+
   /* 用户登录（账号密码） */
   async userLogin(data: UserLoginByPasswordDto) {
     const { account, password } = data || {};
-    let user = null as Partial<userEntity>;
-    user = await this.userService.findUserByAP(account, password);
+    let user = null as Partial<UserEntity>;
+    user = await this.userService.findUserByAPEnabled(account, password);
     if (user) {
       const Token = await this.login(user);
       return Response.ok(this.i18n.t('message.LOGIN_SUCCESS'), Token);
@@ -75,7 +88,7 @@ export class AuthService {
     const { account, code } = data || {};
     const res = await this.userService.validateUser({ account, code });
     if (res.code === 0) {
-      const user = await this.userService.findOneUser({ account });
+      const user = await this.userService.findOneUserEnabled({ account });
       if (user) {
         const Token = await this.login(user);
         return Response.ok(this.i18n.t('message.LOGIN_SUCCESS'), Token);
@@ -98,7 +111,10 @@ export class AuthService {
       const { userId, account } = decoded;
 
       // 根据用户ID获取用户信息
-      const user = await this.userService.findOneUser({ id: userId, account });
+      const user = await this.userService.findOneUserEnabled({
+        id: userId,
+        account,
+      });
       if (!user) {
         throw new UnauthorizedException(this.i18n.t('message.NO_PERMISSION'));
       }

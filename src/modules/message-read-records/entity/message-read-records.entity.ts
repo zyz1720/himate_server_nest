@@ -9,6 +9,7 @@ import {
   Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 // 枚举定义
 @Entity('message_read_records')
@@ -27,7 +28,7 @@ export class MessageReadRecordsEntity {
   message_id: number;
 
   @ApiProperty({ description: '会话uuid' })
-  @Column({ comment: '会话uuid', length: 36 })
+  @Column({ comment: '会话uuid', length: DataLength.UUID })
   session_id: string;
 
   @ApiProperty({ description: '创建时间' })

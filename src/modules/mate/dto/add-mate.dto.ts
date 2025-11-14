@@ -1,26 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsByteLength,
-  IsEnum,
-  IsUUID,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsByteLength, IsEnum } from 'class-validator';
 import { MateStatusEnum } from '../entity/mate.entity';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class AddMateDto {
-  @ApiProperty({ description: '好友uuid', required: true })
-  @IsNotEmpty()
-  @IsUUID()
-  readonly mate_id: string;
-
   @ApiProperty({ description: '用户id', required: true })
   @IsNotEmpty()
   readonly user_id: number;
 
   @ApiProperty({ description: '好友对用户的备注', required: false })
   @IsOptional()
-  @IsByteLength(0, 48)
+  @IsByteLength(0, DataLength.Medium)
   readonly user_remarks?: string;
 
   @ApiProperty({ description: '好友id', required: true })
@@ -29,7 +19,7 @@ export class AddMateDto {
 
   @ApiProperty({ description: '用户对好友的备注', required: false })
   @IsOptional()
-  @IsByteLength(0, 48)
+  @IsByteLength(0, DataLength.Medium)
   readonly friend_remarks?: string;
 
   @ApiProperty({ description: '好友状态', required: true, default: 'waiting' })
@@ -39,6 +29,6 @@ export class AddMateDto {
 
   @ApiProperty({ description: '验证消息', required: false })
   @IsOptional()
-  @IsByteLength(0, 240)
+  @IsByteLength(0, DataLength.Longer)
   readonly validate_msg?: string;
 }

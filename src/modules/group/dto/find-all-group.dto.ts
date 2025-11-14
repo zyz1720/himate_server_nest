@@ -10,8 +10,4 @@ export class FindAllGroupDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '群组名称' })
   @IsOptional()
   readonly group_name?: string;
-
-  @ApiPropertyOptional({ description: '群组头像' })
-  @IsOptional()
-  readonly group_avatar?: string;
 }

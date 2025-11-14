@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { userEntity } from './entity/user.entity';
+import { UserEntity } from './entity/user.entity';
 import { RedisService } from 'src/core/Redis/redis.service';
 import { StringUtil } from 'src/common/utils/string.util';
 import { UserLoginByCodeDto } from '../../core/auth/dto/user-login-code.dto';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { FindAllUserDto } from './dto/find-all-user.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AvatarUpdatedEvent } from './events/update-avatar.event';
-import { UserNameUpdatedEvent } from './events/update-userName.event';
 import { PageResponse, Response } from 'src/common/response/api-response';
-import { FindOneUserDto } from './dto/find-one-user.dto';
-import { QueryRunnerFactory } from 'src/common/factories/query-runner.factory';
+import { findOneUserEnabledDto } from './dto/find-one-user.dto';
 import { IdsDto } from 'src/common/dto/common.dto';
 import { I18nService } from 'nestjs-i18n';
 import {
@@ -25,12 +21,10 @@ import { Status } from 'src/common/constants/database-enum.const';
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(userEntity)
-    private readonly userRepository: Repository<userEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     private readonly redisService: RedisService,
-    private readonly eventEmitter: EventEmitter2,
     private readonly i18n: I18nService,
-    private readonly queryRunnerFactory: QueryRunnerFactory,
   ) {}
 
   /* 邮箱验证码验证用户 */
@@ -48,7 +42,7 @@ export class UserService {
   /* 创建用户 */
   async createUser(user: CreateUserDto) {
     const { account } = user || {};
-    const existUser = await this.findOneUser({ account }, false);
+    const existUser = await this.findOneUser({ account });
     if (existUser) {
       return Response.fail(this.i18n.t('message.ACCOUNT_EXIST'));
     }
@@ -75,10 +69,9 @@ export class UserService {
     return createRes;
   }
 
-  /* 获取用户信息 */
-  async findOneUser(query: FindOneUserDto, isEnable = true) {
+  /* 获取正常用户信息 */
+  async findOneUser(query: findOneUserEnabledDto) {
     const { id, account, self_account, password } = query || {};
-
     const qb = this.userRepository.createQueryBuilder('user');
     if (id) {
       qb.andWhere('user.id = :id', { id });
@@ -95,20 +88,42 @@ export class UserService {
       const enPassword = StringUtil.encryptStr(password);
       qb.andWhere('user.password = :enPassword', { enPassword });
     }
-    if (isEnable) {
-      qb.andWhere('user.user_status = :status', { status: Status.Enabled });
+    const data = await qb.getOne();
+    return data;
+  }
+
+  /* 获取正常用户信息 */
+  async findOneUserEnabled(query: findOneUserEnabledDto) {
+    const { id, account, self_account, password } = query || {};
+    const qb = this.userRepository.createQueryBuilder('user');
+    qb.where('user.user_status = :status', { status: Status.Enabled });
+    if (id) {
+      qb.andWhere('user.id = :id', { id });
+    }
+    if (account) {
+      qb.andWhere('user.account = :account', { account });
+    }
+    if (self_account) {
+      qb.andWhere('user.self_account = :self_account', {
+        self_account,
+      });
+    }
+    if (password) {
+      const enPassword = StringUtil.encryptStr(password);
+      qb.andWhere('user.password = :enPassword', { enPassword });
     }
     const data = await qb.getOne();
     return data;
   }
 
   /* 获取用户通过账号/自定义账号 密码 */
-  async findUserByAP(account: string, password: string) {
+  async findUserByAPEnabled(account: string, password: string) {
     const enPassword = StringUtil.encryptStr(password);
     const qb = this.userRepository.createQueryBuilder('user');
     qb.where('user.account = :account', { account });
     qb.orWhere('user.self_account = :account', { account });
     qb.andWhere('user.password = :enPassword', { enPassword });
+    qb.andWhere('user.user_status = :status', { status: Status.Enabled });
     const user = await qb.getOne();
     return user;
   }
@@ -163,53 +178,35 @@ export class UserService {
   }
 
   /* 更新用户信息 */
-  async updateUser(id: number, data: UpdateUserDto, isEnable?: boolean) {
-    const { user_name, user_avatar, password } = data;
-    const existPost = await this.findOneUser({ id }, isEnable);
-    if (!existPost) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
-    }
+  async updateUser(id: number, data: UpdateUserDto) {
+    const { password } = data;
     if (password) {
       data.password = StringUtil.encryptStr(password);
     }
-    try {
-      // 开启事务
-      await this.queryRunnerFactory.startTransaction();
-      const tx_userRepository =
-        this.queryRunnerFactory.getRepository(userEntity);
-      // 更新用户信息
-      const updatePost = tx_userRepository.merge(existPost, data);
-      const saveRes = await tx_userRepository.save(updatePost);
-      const eventFlags: boolean[] = [];
-      if (saveRes) {
-        if (user_avatar) {
-          const result = await this.eventEmitter.emitAsync(
-            'avatar.updated',
-            new AvatarUpdatedEvent(id, user_avatar),
-          );
-          eventFlags.push(...result);
-        }
-        if (user_name) {
-          const result = await this.eventEmitter.emitAsync(
-            'userName.updated',
-            new UserNameUpdatedEvent(id, user_name),
-          );
-          eventFlags.push(...result);
-        }
-        // 事件有失败事务回滚
-        if (eventFlags.includes(false)) {
-          await this.queryRunnerFactory.rollbackTransaction();
-          return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
-        } else {
-          await this.queryRunnerFactory.commitTransaction();
-          return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'), saveRes);
-        }
-      } else {
-        await this.queryRunnerFactory.rollbackTransaction();
-        return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
-      }
-    } catch (error) {
-      await this.queryRunnerFactory.rollbackTransaction();
+    const result = await this.userRepository.update(id, data);
+    if (result.affected) {
+      return Response.ok(
+        this.i18n.t('message.UPDATE_SUCCESS'),
+        result.generatedMaps[0],
+      );
+    } else {
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    }
+  }
+
+  /* 更新用户信息 */
+  async updateUserEnabled(id: number, data: UpdateUserDto) {
+    const existUser = await this.findOneUserEnabled({ id });
+    if (!existUser) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    const result = await this.userRepository.update(id, data);
+    if (result.affected) {
+      return Response.ok(
+        this.i18n.t('message.UPDATE_SUCCESS'),
+        result.generatedMaps[0],
+      );
+    } else {
       return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
     }
   }
@@ -218,7 +215,10 @@ export class UserService {
   async updateUserPassword(id: number, data: UpdateUserPasswordDto) {
     const { password, oldPassword, code } = data;
 
-    const existUser = await this.findOneUser({ id, password: oldPassword });
+    const existUser = await this.findOneUserEnabled({
+      id,
+      password: oldPassword,
+    });
     if (!existUser) {
       return Response.fail(this.i18n.t('message.PASSWORD_ERROR'));
     }
@@ -240,11 +240,11 @@ export class UserService {
   async updateUserAccount(id: number, data: UpdateUserAccountDto) {
     const { newAccount, code } = data;
 
-    const existUser = await this.findOneUser({ account: newAccount });
+    const existUser = await this.findOneUserEnabled({ account: newAccount });
     if (existUser) {
       return Response.fail(this.i18n.t('message.ACCOUNT_EXIST'));
     }
-    const user = await this.findOneUser({ id });
+    const user = await this.findOneUserEnabled({ id });
     const localCode = await this.redisService.getValue(user.account + 'code');
     if (localCode !== code) {
       return Response.fail(this.i18n.t('message.CODE_ERROR'));

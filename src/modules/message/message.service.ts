@@ -33,7 +33,7 @@ export class MessageService {
       current = 1,
       pageSize = 10,
       client_msg_id,
-      session_id,
+      session_primary_id,
       sender_id,
       sender_ip,
       msg_type,
@@ -44,9 +44,9 @@ export class MessageService {
         client_msg_id: '%' + client_msg_id + '%',
       });
     }
-    if (session_id) {
-      qb.andWhere('session_id LIKE :session_id', {
-        session_id: '%' + session_id + '%',
+    if (session_primary_id) {
+      qb.andWhere('session_primary_id LIKE :id', {
+        id: '%' + session_primary_id + '%',
       });
     }
     if (sender_id) {

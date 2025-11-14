@@ -39,6 +39,7 @@ export class AppPackageService {
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
+    qb.orderBy('create_time', 'DESC');
     const count = await qb.getCount();
     const data = await qb.getMany();
     return PageResponse.list(data, count);
@@ -96,6 +97,19 @@ export class AppPackageService {
       return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+    }
+  }
+
+  /* 查询指定App的最新版本 */
+  async findLatestAppPackage(app_name: string) {
+    const result = await this.appPackageRepository.findOne({
+      where: { app_name },
+      order: { id: 'DESC' },
+    });
+    if (result) {
+      return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
+    } else {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
   }
 }

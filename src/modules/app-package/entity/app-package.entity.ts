@@ -8,6 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 @Entity('app_package')
 export class AppPackageEntity {
@@ -17,15 +18,15 @@ export class AppPackageEntity {
 
   @ApiProperty({ description: '应用包名称' })
   @Index('idx_app_package_app_name')
-  @Column({ comment: '应用包名称', length: 48 })
+  @Column({ comment: '应用包名称', length: DataLength.Medium })
   app_name: string;
 
   @ApiProperty({ description: '应用版本' })
-  @Column({ comment: '应用版本', length: 16 })
+  @Column({ comment: '应用版本', length: DataLength.Short })
   app_version: string;
 
   @ApiProperty({ description: '应用描述' })
-  @Column({ comment: '应用描述', length: 240 })
+  @Column({ comment: '应用描述', length: DataLength.Longer })
   app_description: string;
 
   @ApiProperty({ description: '文件id' })

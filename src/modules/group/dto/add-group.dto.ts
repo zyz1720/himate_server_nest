@@ -1,16 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsUUID, IsByteLength } from 'class-validator';
+import { IsOptional, IsByteLength, IsNotEmpty } from 'class-validator';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class AddGroupDto {
-  @ApiProperty({ description: '群组uuid', required: true })
+  @ApiProperty({ description: '群组名称', required: true })
   @IsNotEmpty()
-  @IsUUID()
-  readonly group_id: string;
-
-  @ApiProperty({ description: '群组名称', required: false })
-  @IsOptional()
-  @IsByteLength(0, 48)
-  readonly group_name?: string;
+  @IsByteLength(0, DataLength.Medium)
+  readonly group_name: string;
 
   @ApiProperty({
     description: '群组头像',
@@ -18,7 +14,7 @@ export class AddGroupDto {
     default: 'default_assets/default_group_avatar.jpg',
   })
   @IsOptional()
-  @IsByteLength(0, 120)
+  @IsByteLength(0, DataLength.Long)
   readonly group_avatar?: string;
 
   @ApiProperty({ description: '群组简介', required: false })

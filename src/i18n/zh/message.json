@@ -46,7 +46,7 @@
   "BATCH_RESTORE_SUCCESS": "条数据恢复成功",
   "PARAMS_EMPTY": "未提供参数",
   "PARAMS_ERROR": "无效的参数",
-  "NO_PERMISSION": "无权限",
+  "NO_PERMISSION": "您没有权限进行此操作",
   "NO_LOGIN": "请先登录",
   "NO_ALLOW": "不允许的操作",
   "NO_USER": "用户不存在",

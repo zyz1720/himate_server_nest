@@ -50,13 +50,13 @@ export enum Role {
 /**
  * @description 数据长度枚举
  * @enum {number}
- * @property {number} Short - 短数据长度
- * @property {number} Medium - 中等数据长度
- * @property {number} Long - 长数据长度
- * @property {number} Longer - 更长数据长度
- * @property {number} UUID - UUID数据长度
- * @property {number} HASH - HASH数据长度
- * @property {number} INT - INT数据长度
+ * @property {number} Short - 短数据长度(16)
+ * @property {number} Medium - 中等数据长度(48)
+ * @property {number} Long - 长数据长度(120)
+ * @property {number} Longer - 更长数据长度(240)
+ * @property {number} UUID - UUID数据长度(36)
+ * @property {number} HASH - HASH数据长度(64)
+ * @property {number} INT - INT数据长度(11)
  */
 export enum DataLength {
   Short = 16,

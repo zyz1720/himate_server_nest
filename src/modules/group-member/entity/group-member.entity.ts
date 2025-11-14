@@ -6,8 +6,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { DataLength } from 'src/common/constants/database-enum.const';
+import { GroupEntity } from 'src/modules/group/entity/group.entity';
+import { UserEntity } from 'src/modules/user/entity/user.entity';
 
 // 枚举定义
 export enum MemberRoleEnum {
@@ -21,15 +26,14 @@ export enum MemberStatusEnum {
 }
 
 @Entity('group_member')
-@Index('idx_group_member_group_id', ['group_id', 'user_id'])
 export class GroupMemberEntity {
   @ApiProperty({ description: '群成员表自增id' })
   @PrimaryGeneratedColumn({ comment: '群成员表自增id' })
   id: number;
 
-  @ApiProperty({ description: '关联群组uuid' })
-  @Column({ comment: '关联群组uuid', length: 36 })
-  group_id: string;
+  @ApiProperty({ description: '关联群组id' })
+  @Column({ type: 'int', comment: '关联群组id' })
+  group_primary_id: number;
 
   @ApiProperty({ description: '用户id' })
   @Index('idx_group_member_user_id')
@@ -37,7 +41,7 @@ export class GroupMemberEntity {
   user_id: number;
 
   @ApiProperty({ description: '群成员备注' })
-  @Column({ comment: '群成员备注', length: 48 })
+  @Column({ comment: '群成员备注', length: DataLength.Medium })
   member_remarks: string;
 
   @ApiProperty({ description: '群成员权限' })
@@ -78,4 +82,15 @@ export class GroupMemberEntity {
   @Index('idx_group_member_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @ManyToOne(() => GroupEntity, (group) => group.members, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'group_primary_id' })
+  @Index('idx_group_member_group_primary_id')
+  group: GroupEntity;
+
+  @ManyToOne(() => UserEntity, { nullable: false })
+  @JoinColumn({ name: 'user_id' })
+  user: UserEntity;
 }

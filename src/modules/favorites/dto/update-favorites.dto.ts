@@ -1,15 +1,21 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsByteLength, IsEnum } from 'class-validator';
+import { IsOptional, IsByteLength, IsEnum, IsInt } from 'class-validator';
 import { Whether } from 'src/common/constants/database-enum.const';
+import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class UpdateFavoritesDto {
+  @ApiPropertyOptional({ description: '收藏夹用户id', required: true })
+  @IsOptional()
+  @IsInt()
+  readonly favorites_uid?: number;
+
   @ApiPropertyOptional({ description: '收藏夹描述' })
   @IsOptional()
   readonly favorites_remarks?: string;
 
   @ApiPropertyOptional({ description: '收藏夹名' })
   @IsOptional()
-  @IsByteLength(0, 120)
+  @IsByteLength(0, DataLength.Long)
   readonly favorites_name?: string;
 
   @ApiPropertyOptional({
@@ -17,7 +23,7 @@ export class UpdateFavoritesDto {
     default: 'default_assets/default_favorites_cover.jpg',
   })
   @IsOptional()
-  @IsByteLength(0, 120)
+  @IsByteLength(0, DataLength.Long)
   readonly favorites_cover?: string;
 
   @ApiPropertyOptional({ description: '是否公开', default: Whether.N })

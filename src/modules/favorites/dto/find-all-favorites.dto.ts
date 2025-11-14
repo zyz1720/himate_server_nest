@@ -5,7 +5,7 @@ import { FindAllDto } from 'src/common/dto/common.dto';
 export class FindAllFavoritesDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '创建者id' })
   @IsOptional()
-  readonly create_by?: number;
+  readonly favorites_uid?: number;
 
   @ApiPropertyOptional({ description: '收藏夹名' })
   @IsOptional()
@@ -18,4 +18,10 @@ export class FindAllFavoritesDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '是否是默认收藏夹' })
   @IsOptional()
   readonly is_default?: number;
+}
+
+export class SearchFavoritesDto extends PartialType(FindAllDto) {
+  @ApiPropertyOptional({ description: '搜索关键词' })
+  @IsOptional()
+  readonly keyword?: string;
 }

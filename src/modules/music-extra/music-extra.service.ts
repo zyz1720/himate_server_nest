@@ -29,13 +29,7 @@ export class MusicExtraService {
 
   /* 查询所有音乐扩展 */
   async findAllMusicExtra(query: FindAllMusicExtraDto) {
-    const {
-      current = 1,
-      pageSize = 10,
-      music_id,
-      match_id,
-      music_cover,
-    } = query || {};
+    const { current = 1, pageSize = 10, music_id, match_id } = query || {};
     const qb = this.musicExtraRepository.createQueryBuilder('music_extra');
     if (music_id) {
       qb.andWhere('music_id = :music_id', {
@@ -45,11 +39,6 @@ export class MusicExtraService {
     if (match_id) {
       qb.andWhere('match_id LIKE :match_id', {
         match_id: '%' + match_id + '%',
-      });
-    }
-    if (music_cover) {
-      qb.andWhere('music_cover LIKE :music_cover', {
-        music_cover: '%' + music_cover + '%',
       });
     }
 
