@@ -4,7 +4,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from './core/auth/decorators/public.decorator';
 import { ApiOkMsgRes } from 'src/common/response/api-response.decorator';
 
-@ApiTags('App')
+@ApiTags('api - 欢迎')
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}

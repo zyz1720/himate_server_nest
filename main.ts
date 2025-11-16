@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './src/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AllExceptionFilter } from './src/common/filters/exception';
+import { HttpExceptionFilter } from './src/common/filters/http-exception.filter';
+import { DatabaseExceptionFilter } from 'src/common/filters/database-exception.filter';
 import { HttpReqTransformInterceptor } from './src/common/interceptor/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
@@ -28,7 +29,10 @@ async function bootstrap() {
   );
 
   // 全局异常过滤器
-  app.useGlobalFilters(new AllExceptionFilter());
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new DatabaseExceptionFilter(),
+  );
 
   // 全局拦截器
   app.useGlobalInterceptors(new HttpReqTransformInterceptor());

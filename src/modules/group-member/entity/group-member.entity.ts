@@ -20,6 +20,12 @@ export enum MemberRoleEnum {
   owner = 'owner',
   member = 'member',
 }
+
+export enum MemberNormalRoleEnum {
+  admin = 'admin',
+  member = 'member',
+}
+
 export enum MemberStatusEnum {
   forbidden = 'forbidden',
   normal = 'normal',

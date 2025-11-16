@@ -9,7 +9,7 @@ import { ApiOkRes } from 'src/common/response/api-response.decorator';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { Throttle } from '@nestjs/throttler';
 
-@ApiTags('用户登录')
+@ApiTags('login - 用户登录')
 @ApiBearerAuth()
 @Public()
 @Throttle({ default: { ttl: 1000, limit: 5 } })

@@ -4,14 +4,16 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { FastifyReply } from 'fastify';
 import { CommonUtil } from '../utils/common.util';
 import { Response } from '../response/api-response';
 
 @Catch(HttpException)
-export class AllExceptionFilter implements ExceptionFilter {
+export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
+    Logger.error(exception?.message);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
     const status =

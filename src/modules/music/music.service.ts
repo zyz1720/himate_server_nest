@@ -144,4 +144,26 @@ export class MusicService {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
   }
+
+  /* 查询收藏的音乐 */
+  async findUserFavoritesMusic(
+    current: number,
+    pageSize: number,
+    favoritesId: number,
+  ) {
+    const qb = this.musicRepository
+      .createQueryBuilder('music')
+      .leftJoin('music.favorites', 'favorites')
+      .where('favorites.id = :favoritesId', {
+        favoritesId,
+      })
+      .limit(pageSize)
+      .offset(pageSize * (current - 1));
+    const total = await qb.getCount();
+    const list = await qb.getMany();
+    return {
+      total,
+      list,
+    };
+  }
 }

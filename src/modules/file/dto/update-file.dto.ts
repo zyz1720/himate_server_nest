@@ -1,9 +1,20 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsByteLength, IsEnum, IsInt } from 'class-validator';
+import {
+  IsOptional,
+  IsByteLength,
+  IsEnum,
+  IsInt,
+  IsHash,
+} from 'class-validator';
 import { FileTypeEnum, UseTypeEnum } from '../entity/file.entity';
 import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class UpdateFileDto {
+  @ApiPropertyOptional({ description: '原始文件名' })
+  @IsOptional()
+  @IsByteLength(0, DataLength.Longer)
+  readonly original_file_name?: string;
+
   @ApiPropertyOptional({ description: '文件类型', default: 'other' })
   @IsOptional()
   @IsEnum(FileTypeEnum)
@@ -23,4 +34,9 @@ export class UpdateFileDto {
   @IsOptional()
   @IsInt()
   readonly file_size?: number;
+
+  @ApiPropertyOptional({ description: '文件hash' })
+  @IsOptional()
+  @IsHash('sha256')
+  readonly file_hash?: string;
 }

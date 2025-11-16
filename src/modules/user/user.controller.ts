@@ -22,7 +22,7 @@ import {
 } from 'src/common/response/api-response.decorator';
 import { UserEntity } from './entity/user.entity';
 
-@ApiTags('用户管理')
+@ApiTags('admin - 用户管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('user')

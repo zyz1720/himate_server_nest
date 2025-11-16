@@ -15,7 +15,7 @@ import {
   UpdateUserAccountDto,
 } from './dto/update-user.dto';
 
-@ApiTags('用户')
+@ApiTags('app - 用户')
 @ApiBearerAuth()
 @Controller('app/user')
 export class AppUserController {

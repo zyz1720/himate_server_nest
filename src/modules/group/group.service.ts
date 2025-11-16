@@ -1,12 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { GroupEntity } from './entity/group.entity';
 import { AddGroupDto } from './dto/add-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
-import { FindAllGroupDto } from './dto/find-all-group.dto';
+import {
+  AppAppFindAllGroupDto,
+  FindAllGroupDto,
+} from './dto/find-all-group.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
+import { IdsDto } from 'src/common/dto/common.dto';
+import { GroupMemberService } from '../group-member/group-member.service';
+import { UserEntity } from '../user/entity/user.entity';
+import {
+  GroupMemberEntity,
+  MemberRoleEnum,
+} from '../group-member/entity/group-member.entity';
+import { FindOneGroupDto } from './dto/find-one-group.dto';
 
 @Injectable()
 export class GroupService {
@@ -14,6 +25,7 @@ export class GroupService {
     @InjectRepository(GroupEntity)
     private readonly groupRepository: Repository<GroupEntity>,
     private readonly i18n: I18nService,
+    private readonly groupMemberService: GroupMemberService,
   ) {}
 
   /* 添加一个群组 */
@@ -101,5 +113,162 @@ export class GroupService {
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
+  }
+
+  /* 用户创建群组 */
+  async addUserGroup(uid: number, data: IdsDto) {
+    const { ids } = data || {};
+
+    // 使用事务保证操作一致性
+    const queryRunner =
+      this.groupRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 获取所有用户信息（包括创建者和成员）
+      const allUserIds = [uid, ...ids];
+      const users = await queryRunner.manager.find(UserEntity, {
+        where: { id: In(allUserIds) },
+        select: ['id', 'user_name'],
+      });
+
+      // 创建用户ID到用户名的映射
+      const userIdToName = new Map<number, string>();
+      users.forEach((user) => {
+        userIdToName.set(user.id, user.user_name);
+      });
+
+      // 创建群组
+      const groupName = `${userIdToName.get(uid) || '用户'}的群组`;
+      const group = queryRunner.manager.create(GroupEntity, {
+        group_name: groupName,
+      });
+      const groupRes = await queryRunner.manager.save(group);
+
+      // 创建群成员记录
+      const groupMembers = [];
+      groupMembers.push(
+        queryRunner.manager.create(GroupMemberEntity, {
+          group_primary_id: groupRes.id,
+          user_id: uid,
+          member_remarks: userIdToName.get(uid) || '未知用户',
+          member_role: MemberRoleEnum.owner,
+        }),
+      );
+
+      // 添加其他成员
+      ids.forEach((userId) => {
+        if (userId !== uid) {
+          groupMembers.push(
+            queryRunner.manager.create(GroupMemberEntity, {
+              group_primary_id: groupRes.id,
+              user_id: userId,
+              member_remarks: userIdToName.get(userId) || '未知用户',
+              member_role: MemberRoleEnum.member,
+            }),
+          );
+        }
+      });
+      await queryRunner.manager.save(GroupMemberEntity, groupMembers);
+
+      // 提交事务
+      await queryRunner.commitTransaction();
+      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), groupRes);
+    } catch (error) {
+      // 回滚事务
+      await queryRunner.rollbackTransaction();
+      console.error('创建群组失败:', error);
+      return Response.fail(this.i18n.t('message.CREATE_FAILED'));
+    } finally {
+      // 释放queryRunner
+      await queryRunner.release();
+    }
+  }
+
+  /* 查询用户群组 */
+  async findAllUserGroup(uid: number, query: AppAppFindAllGroupDto) {
+    const { member_role, current = 1, pageSize = 10 } = query || {};
+    const qb = this.groupRepository
+      .createQueryBuilder('group')
+      .leftJoin('group.members', 'member')
+      .where('member.user_id = :uid AND member.member_role = :role', {
+        uid,
+        role: member_role,
+      })
+      .orderBy('group.create_time', 'DESC');
+    const count = await qb.getCount();
+    const data = await qb
+      .offset((current - 1) * pageSize)
+      .limit(pageSize)
+      .getMany();
+    return PageResponse.list(data, count);
+  }
+
+  /* 查询用户群组详情 */
+  async findOneUserGroup(uid: number, query: FindOneGroupDto) {
+    const { id, current = 1, pageSize = 10 } = query || {};
+    // 检查用户是否属于该群组
+    const member = await this.groupMemberService.findUserIsMember(uid, id);
+    if (!member) {
+      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    }
+
+    const group = await this.groupRepository.findOne({
+      where: { id },
+    });
+    if (!group) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+
+    // 分页查询群成员
+    const { total, list } =
+      await this.groupMemberService.findAllGroupMemberByGroupId(
+        current,
+        pageSize,
+        id,
+      );
+    group.members = list;
+    const oneself = {
+      id: member.id,
+      member_remarks: member.member_remarks,
+      member_role: member.member_role,
+      member_status: member.member_status,
+    };
+
+    return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
+      ...group,
+      oneself,
+      memberCount: total,
+    });
+  }
+
+  /* 修改用户群组信息 */
+  async updateUserGroup(uid: number, id: number, data: UpdateGroupDto) {
+    // 检查用户是否属于该群组
+    const member = await this.groupMemberService.findUserIsMember(uid, id);
+    if (!member) {
+      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    }
+    if (
+      member.member_role !== MemberRoleEnum.owner &&
+      member.member_role !== MemberRoleEnum.admin
+    ) {
+      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    }
+    return this.updateGroup(id, data);
+  }
+
+  /* 解散群组 */
+  async deleteUserGroup(uid: number, id: number) {
+    // 检查用户是否属于该群组
+    const member = await this.groupMemberService.findUserIsMember(uid, id);
+    if (!member) {
+      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    }
+    if (member.member_role !== MemberRoleEnum.owner) {
+      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    }
+    return this.softDeleteGroup(id);
   }
 }

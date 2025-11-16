@@ -5,7 +5,7 @@ import { ApiOkMsgRes } from 'src/common/response/api-response.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { Throttle } from '@nestjs/throttler';
 
-@ApiTags('验证码')
+@ApiTags('public - 验证码')
 @Controller('captcha')
 export class CaptchaController {
   constructor(private readonly captchaService: CaptchaService) {}

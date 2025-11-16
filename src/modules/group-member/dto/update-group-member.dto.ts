@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { IsOptional, IsInt, IsByteLength, IsEnum } from 'class-validator';
 import {
   MemberRoleEnum,
@@ -30,4 +30,28 @@ export class UpdateGroupMemberDto {
   @IsOptional()
   @IsEnum(MemberStatusEnum)
   readonly member_status?: MemberStatusEnum;
+}
+
+export class AppUpdateGroupMemberDto extends PickType(UpdateGroupMemberDto, [
+  'member_remarks',
+]) {
+  @ApiPropertyOptional({ description: '群成员id' })
+  @IsOptional()
+  @IsInt()
+  readonly groupId?: number;
+}
+
+export class UpdateGroupMemberAuthDto extends PickType(UpdateGroupMemberDto, [
+  'member_role',
+  'member_status',
+]) {
+  @ApiPropertyOptional({ description: '群组id' })
+  @IsOptional()
+  @IsInt()
+  readonly groupId?: number;
+
+  @ApiPropertyOptional({ description: '群成员id' })
+  @IsOptional()
+  @IsInt()
+  readonly id?: number;
 }

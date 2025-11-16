@@ -17,12 +17,12 @@ import {
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/common/constants/database-enum.const';
 import { FileService } from './file.service';
-import { AddFileDto } from './dto/add-file.dto';
+import { AddFileDto, DownloadFileDto } from './dto/add-file.dto';
 import { UpdateFileDto } from './dto/update-file.dto';
 import { FindAllFileDto } from './dto/find-all-file.dto';
 import { FileEntity } from './entity/file.entity';
 
-@ApiTags('文件管理')
+@ApiTags('admin - 文件管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('file')
@@ -76,5 +76,12 @@ export class FileController {
   @Delete(':id/force')
   forceRemove(@Param('id') id: string) {
     return this.fileService.deleteFile(parseInt(id));
+  }
+
+  @ApiOperation({ summary: '下载文件到服务器' })
+  @ApiOkMsgRes()
+  @Get('download')
+  downloadFile(@Query() query: DownloadFileDto) {
+    return this.fileService.downloadSaveFile(query);
   }
 }

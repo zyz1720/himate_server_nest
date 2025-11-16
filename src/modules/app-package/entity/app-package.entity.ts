@@ -6,9 +6,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { DataLength } from 'src/common/constants/database-enum.const';
+import { FileEntity } from 'src/modules/file/entity/file.entity';
 
 @Entity('app_package')
 export class AppPackageEntity {
@@ -53,4 +56,8 @@ export class AppPackageEntity {
   @Index('idx_app_package_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @OneToOne(() => FileEntity, (file) => file.id)
+  @JoinColumn({ name: 'file_id' })
+  file: FileEntity;
 }

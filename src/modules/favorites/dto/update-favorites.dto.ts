@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { IsOptional, IsByteLength, IsEnum, IsInt } from 'class-validator';
 import { Whether } from 'src/common/constants/database-enum.const';
 import { DataLength } from 'src/common/constants/database-enum.const';
@@ -39,3 +39,10 @@ export class UpdateFavoritesDto {
   @IsEnum(Whether)
   readonly is_default?: Whether;
 }
+
+export class UpdateUserFavoritesDto extends PickType(UpdateFavoritesDto, [
+  'favorites_remarks',
+  'favorites_name',
+  'favorites_cover',
+  'is_public',
+]) {}

@@ -22,7 +22,7 @@ import { UpdateAppPackageDto } from './dto/update-app-package.dto';
 import { FindAllAppPackageDto } from './dto/find-all-app-package.dto';
 import { AppPackageEntity } from './entity/app-package.entity';
 
-@ApiTags('App版本管理')
+@ApiTags('admin - App版本管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('app-package')

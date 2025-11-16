@@ -34,6 +34,10 @@ export class FileEntity {
   @PrimaryGeneratedColumn({ comment: '文件自增id' })
   id: number;
 
+  @ApiProperty({ description: '原始文件名' })
+  @Column({ comment: '原始文件名', length: DataLength.Longer })
+  original_file_name: string;
+
   @ApiProperty({ description: '文件类型' })
   @Column({
     type: 'enum',

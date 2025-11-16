@@ -17,7 +17,10 @@ export class UserSubscriber implements EntitySubscriberInterface {
     }
     const entityName = entity.constructor.name;
     if (!this.whiteEntities.includes(entityName)) {
-      entity[field] = AuthInfo?.userId ?? -1;
+      if (entity[field]) {
+        return;
+      }
+      entity[field] = AuthInfo?.userId ?? 0;
     }
   }
 

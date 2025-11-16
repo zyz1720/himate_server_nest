@@ -5,7 +5,7 @@ import { EmailDto } from './dto/email.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { ApiOkMsgRes } from 'src/common/response/api-response.decorator';
 
-@ApiTags('验证码')
+@ApiTags('public - 验证码')
 @ApiBearerAuth()
 @Controller('email')
 export class EmailController {

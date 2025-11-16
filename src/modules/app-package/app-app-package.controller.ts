@@ -9,7 +9,7 @@ import { AppPackageService } from './app-package.service';
 import { AppFindAllAppPackageDto } from './dto/find-all-app-package.dto';
 import { AppPackageEntity } from './entity/app-package.entity';
 
-@ApiTags('App版本')
+@ApiTags('public - App版本')
 @ApiBearerAuth()
 @Public()
 @Controller('app/app-package')

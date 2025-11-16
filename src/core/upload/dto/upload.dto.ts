@@ -1,8 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
+import { AddFileDto } from 'src/modules/file/dto/add-file.dto';
 
 // 文件上传参数
-export class FileUploadDto {
+export class FileUploadDto extends PickType(AddFileDto, [
+  'file_type',
+  'use_type',
+]) {
   @ApiProperty({
     type: 'string',
     format: 'binary',
@@ -12,21 +16,11 @@ export class FileUploadDto {
   readonly file: Express.Multer.File;
 }
 
-// 写入文件参数
-export class FileInfoDto {
-  @ApiProperty({
-    type: 'string',
-    required: true,
-    description: '文件key',
-  })
-  @IsNotEmpty()
-  readonly key: string;
-
-  @ApiProperty({
-    type: 'string',
-    required: true,
-    description: '原始文件名',
-  })
+export class FileInfoDto extends PickType(AddFileDto, [
+  'file_type',
+  'use_type',
+]) {
+  @ApiProperty({ description: '原始文件名' })
   @IsNotEmpty()
   readonly original_file_name: string;
 }

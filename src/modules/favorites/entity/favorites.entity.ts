@@ -10,6 +10,7 @@ import {
   JoinTable,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Whether, DataLength } from 'src/common/constants/database-enum.const';
@@ -17,13 +18,13 @@ import { MusicEntity } from 'src/modules/music/entity/music.entity';
 import { UserEntity } from 'src/modules/user/entity/user.entity';
 
 @Entity('favorites')
+@Unique('idx_favorites_id_uid', ['id', 'favorites_uid'])
 export class FavoritesEntity {
   @ApiProperty({ description: '文件自增id' })
   @PrimaryGeneratedColumn({ comment: '文件自增id' })
   id: number;
 
   @ApiProperty({ description: '收藏夹用户id' })
-  @Index('idx_favorites_uid')
   @Column({ type: 'int', comment: '收藏夹用户id' })
   favorites_uid: number;
 
@@ -82,7 +83,7 @@ export class FavoritesEntity {
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
 
-  @ManyToMany(() => MusicEntity, {
+  @ManyToMany(() => MusicEntity, (music) => music.favorites, {
     cascade: true,
     onDelete: 'CASCADE',
   })
@@ -91,5 +92,6 @@ export class FavoritesEntity {
 
   @ManyToOne(() => UserEntity, { nullable: false })
   @JoinColumn({ name: 'favorites_uid' })
+  @Index('idx_favorites_uid')
   user: UserEntity;
 }

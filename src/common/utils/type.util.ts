@@ -20,4 +20,24 @@ export class TypeUtil {
         typeof obj.data !== 'function')
     );
   };
+
+  /**
+   * 检查音乐元数据是否完整
+   *  duration, sampleRate, bitrate 这三个属性
+   *  title, artist, artists, album 这四个属性
+   */
+  static hasMusicMetadata = (format: any, common: any): boolean => {
+    if (!format || !common) {
+      return false;
+    }
+    return (
+      format?.duration !== undefined &&
+      format?.sampleRate !== undefined &&
+      format?.bitrate !== undefined &&
+      common?.title !== undefined &&
+      common?.artist !== undefined &&
+      common?.artists !== undefined &&
+      common?.album !== undefined
+    );
+  };
 }

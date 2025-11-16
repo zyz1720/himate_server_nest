@@ -30,9 +30,7 @@ export class HttpReqTransformInterceptor<T>
                 result,
               );
         } else {
-          return Response.fail(
-            I18nContext.current().t('message.OPERATE_ERROR'),
-          );
+          return Response.fail(I18nContext.current().t('message.GET_FAILED'));
         }
       }),
     );

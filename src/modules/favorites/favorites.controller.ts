@@ -22,7 +22,7 @@ import { UpdateFavoritesDto } from './dto/update-favorites.dto';
 import { FindAllFavoritesDto } from './dto/find-all-favorites.dto';
 import { FavoritesEntity } from './entity/favorites.entity';
 
-@ApiTags('音乐收藏夹管理')
+@ApiTags('admin - 音乐收藏夹管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('favorites')

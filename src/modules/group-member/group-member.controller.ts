@@ -22,7 +22,7 @@ import { UpdateGroupMemberDto } from './dto/update-group-member.dto';
 import { FindAllGroupMemberDto } from './dto/find-all-group-member.dto';
 import { GroupMemberEntity } from './entity/group-member.entity';
 
-@ApiTags('群成员管理')
+@ApiTags('admin - 群成员管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('group-member')

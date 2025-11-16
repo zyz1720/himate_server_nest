@@ -44,6 +44,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "ioredis": "^5.4.1",
+    "load-esm": "^1.0.3",
+    "music-metadata": "^11.10.0",
     "mysql": "^2.18.1",
     "nestjs-i18n": "^10.5.1",
     "nodemailer": "^6.9.13",

@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FavoritesEntity } from './entity/favorites.entity';
 import { AddFavoritesDto } from './dto/add-favorites.dto';
-import { UpdateFavoritesDto } from './dto/update-favorites.dto';
+import {
+  UpdateFavoritesDto,
+  UpdateUserFavoritesDto,
+} from './dto/update-favorites.dto';
 import {
   FindAllFavoritesDto,
   SearchFavoritesDto,
@@ -11,6 +14,9 @@ import {
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { Whether } from 'src/common/constants/database-enum.const';
+import { FindOneFavoritesDto } from './dto/find-one-favorites';
+import { IdsDto } from 'src/common/dto/common.dto';
+import { MusicService } from '../music/music.service';
 
 @Injectable()
 export class FavoritesService {
@@ -18,6 +24,7 @@ export class FavoritesService {
     @InjectRepository(FavoritesEntity)
     private readonly favoritesRepository: Repository<FavoritesEntity>,
     private readonly i18n: I18nService,
+    private readonly musicService: MusicService,
   ) {}
 
   /* 添加一个音乐收藏夹 */
@@ -125,7 +132,7 @@ export class FavoritesService {
     }
   }
 
-  /* 查询用户音乐收藏夹 */
+  /* 用户查询音乐收藏夹 */
   async findUserFavorites(uid: number, query: FindAllFavoritesDto) {
     const { current = 1, pageSize = 10 } = query || {};
     const qb = this.favoritesRepository.createQueryBuilder('favorites');
@@ -139,14 +146,28 @@ export class FavoritesService {
     return PageResponse.list(data, count);
   }
 
-  /* 搜索音乐收藏夹 */
+  /* 用户搜索音乐收藏夹 */
   async searchFavorites(query: SearchFavoritesDto) {
     const { current = 1, pageSize = 10, keyword } = query || {};
     const qb = this.favoritesRepository.createQueryBuilder('favorites');
     qb.leftJoinAndSelect('favorites.user', 'user')
       .leftJoinAndSelect('favorites.music', 'music')
       .loadRelationCountAndMap('favorites.musicCount', 'favorites.music')
-      .select(['favorites', 'user.id', 'user.user_name', 'user.user_avatar']);
+      .select([
+        'favorites.id',
+        'favorites.favorites_name',
+        'favorites.favorites_cover',
+        'user.id',
+        'user.user_name',
+        'user.user_avatar',
+      ])
+      .andWhere(
+        '(favorites.is_public = :is_public AND favorites.is_default = :is_default)',
+        {
+          is_public: Whether.Y,
+          is_default: Whether.N,
+        },
+      );
     if (keyword) {
       qb.andWhere(
         '(favorites.favorites_name LIKE :keyword OR user.user_name LIKE :keyword)',
@@ -154,11 +175,93 @@ export class FavoritesService {
       );
     }
 
-    qb.orderBy('create_time', 'DESC');
+    qb.orderBy('favorites.create_time', 'DESC');
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
     const count = await qb.getCount();
     const data = await qb.getMany();
     return PageResponse.list(data, count);
+  }
+
+  /* 用户查询收藏夹详情 */
+  async findUserFavoritesDetail(uid: number, query: FindOneFavoritesDto) {
+    const { id, current = 1, pageSize = 10 } = query || {};
+    const qb = this.favoritesRepository
+      .createQueryBuilder('favorites')
+      .leftJoinAndSelect('favorites.user', 'user')
+      .select(['favorites', 'user.id', 'user.user_name', 'user.user_avatar'])
+      .where('favorites.id = :id AND favorites.favorites_uid = :uid', {
+        id,
+        uid,
+      });
+    const { total, list } = await this.musicService.findUserFavoritesMusic(
+      current,
+      pageSize,
+      id,
+    );
+    const favorites = await qb.getOne();
+    if (!favorites) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    favorites.music = list;
+    return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
+      ...favorites,
+      musicCount: total,
+    });
+  }
+
+  /* 用户更新收藏夹音乐信息 */
+  async updateUserFavorites(
+    uid: number,
+    id: number,
+    data: UpdateUserFavoritesDto,
+  ) {
+    const qb = this.favoritesRepository
+      .createQueryBuilder('favorites')
+      .update(data)
+      .where('id = :id AND favorites_uid = :uid', {
+        id,
+        uid,
+      });
+    const result = await qb.execute();
+    if (result.affected) {
+      return Response.ok(
+        this.i18n.t('message.UPDATE_SUCCESS'),
+        result.generatedMaps[0],
+      );
+    } else {
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    }
+  }
+
+  /* 用户删除收藏夹 */
+  async softDeleteUserFavorites(uid: number, id: number) {
+    const result = await this.favoritesRepository.softDelete({
+      id,
+      favorites_uid: uid,
+    });
+    if (result.affected) {
+      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
+    } else {
+      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+    }
+  }
+
+  /* 用户批量删除收藏夹 */
+  async softDeleteUserFavoritesBatch(uid: number, data: IdsDto) {
+    const { ids } = data || {};
+    const qb = this.favoritesRepository
+      .createQueryBuilder('favorites')
+      .softDelete()
+      .where('id IN (:...ids) AND favorites_uid = :uid', {
+        ids,
+        uid,
+      });
+    const result = await qb.execute();
+    if (result.affected) {
+      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
+    } else {
+      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+    }
   }
 }
