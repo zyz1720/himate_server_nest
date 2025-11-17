@@ -4,7 +4,10 @@ import { Repository } from 'typeorm';
 import { AppPackageEntity } from './entity/app-package.entity';
 import { AddAppPackageDto } from './dto/add-app-package.dto';
 import { UpdateAppPackageDto } from './dto/update-app-package.dto';
-import { FindAllAppPackageDto } from './dto/find-all-app-package.dto';
+import {
+  AppFindAllAppPackageDto,
+  FindAllAppPackageDto,
+} from './dto/find-all-app-package.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 
@@ -100,16 +103,44 @@ export class AppPackageService {
     }
   }
 
+  /* 查询指定App的所有版本 */
+  async findLatestAllAppPackage(data: AppFindAllAppPackageDto) {
+    const { app_name, current = 1, pageSize = 10 } = data || {};
+    const qb = this.appPackageRepository
+      .createQueryBuilder('app_package')
+      .leftJoin('app_package.file', 'file')
+      .where('app_name = :app_name', { app_name })
+      .select([
+        'app_package',
+        'file.id',
+        'file.file_hash',
+        'file.file_size',
+        'file.file_key',
+      ])
+      .orderBy('app_package.create_time', 'DESC')
+      .limit(pageSize)
+      .offset(pageSize * (current - 1));
+    const count = await qb.getCount();
+    const list = await qb.getMany();
+
+    return PageResponse.list(list, count);
+  }
+
   /* 查询指定App的最新版本 */
   async findLatestAppPackage(app_name: string) {
-    const result = await this.appPackageRepository.findOne({
-      where: { app_name },
-      order: { id: 'DESC' },
-    });
-    if (result) {
-      return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
-    } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
-    }
+    const result = await this.appPackageRepository
+      .createQueryBuilder('app_package')
+      .leftJoin('app_package.file', 'file')
+      .where('app_name = :app_name', { app_name })
+      .select([
+        'app_package',
+        'file.id',
+        'file.file_hash',
+        'file.file_size',
+        'file.file_key',
+      ])
+      .orderBy('app_package.create_time', 'DESC')
+      .getOne();
+    return result;
   }
 }

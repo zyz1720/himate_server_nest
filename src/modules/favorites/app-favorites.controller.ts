@@ -41,7 +41,7 @@ export class AppFavoritesController {
 
   @ApiOperation({ summary: '用户音乐收藏夹列表' })
   @ApiOkPageRes(FavoritesEntity)
-  @Get('self')
+  @Get('oneself')
   findAll(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.favoritesService.findUserFavorites(uid, query);
   }
@@ -58,6 +58,13 @@ export class AppFavoritesController {
   @Get('detail')
   findDetail(@UserId() uid: number, @Query() query: FindOneFavoritesDto) {
     return this.favoritesService.findUserFavoritesDetail(uid, query);
+  }
+
+  @ApiOperation({ summary: '用户默认音乐收藏夹详情' })
+  @ApiOkPageRes(FavoritesEntity)
+  @Get('default')
+  findDefault(@UserId() uid: number, @Query() query: FindAllDto) {
+    return this.favoritesService.findUserDefaultFavorites(uid, query);
   }
 
   @ApiOperation({ summary: '用户修改音乐收藏夹信息' })

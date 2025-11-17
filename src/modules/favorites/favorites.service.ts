@@ -183,7 +183,7 @@ export class FavoritesService {
     return PageResponse.list(data, count);
   }
 
-  /* 用户查询收藏夹详情 */
+  /* 查询用户收藏夹详情 */
   async findUserFavoritesDetail(uid: number, query: FindOneFavoritesDto) {
     const { id, current = 1, pageSize = 10 } = query || {};
     const qb = this.favoritesRepository
@@ -194,16 +194,43 @@ export class FavoritesService {
         id,
         uid,
       });
+    const favorites = await qb.getOne();
+    if (!favorites) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
     const { total, list } = await this.musicService.findUserFavoritesMusic(
       current,
       pageSize,
       id,
     );
-    const favorites = await qb.getOne();
+    favorites.music = list;
+    return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
+      ...favorites,
+      musicCount: total,
+    });
+  }
+
+  /* 查询默用户认收藏夹 */
+  async findUserDefaultFavorites(uid: number, query: FindAllFavoritesDto) {
+    const { current = 1, pageSize = 10 } = query || {};
+    const favorites = await this.favoritesRepository
+      .createQueryBuilder('favorites')
+      .where('favorites_uid = :uid AND is_default = :is_default', {
+        uid,
+        is_default: Whether.Y,
+      })
+      .getOne();
+
     if (!favorites) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
+    const { total, list } = await this.musicService.findUserFavoritesMusic(
+      current,
+      pageSize,
+      favorites.id,
+    );
     favorites.music = list;
+
     return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
       ...favorites,
       musicCount: total,

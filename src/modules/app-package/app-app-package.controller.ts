@@ -20,7 +20,7 @@ export class AppAppPackageController {
   @ApiOkPageRes(AppPackageEntity)
   @Get()
   findAll(@Query() query: AppFindAllAppPackageDto) {
-    return this.appPackageService.findAllAppPackage(query);
+    return this.appPackageService.findLatestAllAppPackage(query);
   }
 
   @ApiOperation({ summary: '获取App最新版本详情' })

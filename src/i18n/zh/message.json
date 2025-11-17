@@ -61,5 +61,7 @@
   "USE_TYPE_INVALID": "使用类型无效",
   "TOKEN_REFRESH_SUCCESS": "token 刷新成功",
   "ACCESS_TOKEN_EXPIRED": "token 已过期",
-  "INVALID_TOKEN": "无效的 token"
+  "INVALID_TOKEN": "无效的 token",
+  "NO_PARSE_DATA": "未解析到有效数据",
+  "DOWNLOAD_FAVORITES_FAILED": "下载收藏夹音乐失败"
 }

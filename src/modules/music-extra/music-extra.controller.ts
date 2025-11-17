@@ -22,7 +22,7 @@ import { UpdateMusicExtraDto } from './dto/update-music-extra.dto';
 import { FindAllMusicExtraDto } from './dto/find-all-music-extra.dto';
 import { MusicExtraEntity } from './entity/music-extra.entity';
 
-@ApiTags('音乐扩展管理')
+@ApiTags('admin - 音乐扩展管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('music-extra')

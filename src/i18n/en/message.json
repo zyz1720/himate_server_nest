@@ -61,5 +61,7 @@
     "USE_TYPE_INVALID": "Use type invalid",
     "TOKEN_REFRESH_SUCCESS": "Token refresh success",
     "ACCESS_TOKEN_EXPIRED": "Access token expired",
-    "INVALID_TOKEN": "Invalid token"
+    "INVALID_TOKEN": "Invalid token",
+    "NO_PARSE_DATA": "No parse data",
+    "DOWNLOAD_FAVORITES_FAILED": "Download favorites failed"
 }

@@ -244,7 +244,7 @@ export class FileService {
   }
 
   /* 下载文件并记录 */
-  async downloadSaveFile(query: DownloadFileDto) {
+  async downloadSaveFile(query: DownloadFileDto, isParse = true) {
     const { download_url, use_type, file_type } = query || {};
     const downloadRes = await FileUtil.downloadFile(download_url);
     if (downloadRes) {
@@ -259,7 +259,11 @@ export class FileService {
         file_type: file_type,
         original_file_name: originalName,
       } as AddFileDto;
-      return this.addFileAndParse(fileInfo, filePath);
+      if (isParse) {
+        return this.addFileAndParse(fileInfo, filePath);
+      } else {
+        return this.addFile(fileInfo);
+      }
     } else {
       return Response.fail(this.i18n.t('message.DOWNLOAD_FAILED'));
     }

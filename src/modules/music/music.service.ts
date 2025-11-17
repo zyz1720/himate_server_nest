@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MusicEntity } from './entity/music.entity';
 import { AddMusicDto } from './dto/add-music.dto';
 import { UpdateMusicDto } from './dto/update-music.dto';
-import { FindAllMusicDto } from './dto/find-all-music.dto';
+import { FindAllMusicDto, SearchMusicDto } from './dto/find-all-music.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
+import { AppendMusicDto, OperateMusicDto } from './dto/operate-music.dto';
+import { IdsDto } from 'src/common/dto/common.dto';
+import { FavoritesEntity } from '../favorites/entity/favorites.entity';
+import { Whether } from 'src/common/constants/database-enum.const';
 
 @Injectable()
 export class MusicService {
@@ -165,5 +169,169 @@ export class MusicService {
       total,
       list,
     };
+  }
+
+  /* 用户搜索音乐 */
+  async searchMusic(query: SearchMusicDto) {
+    const { keyword, current = 1, pageSize = 10 } = query || {};
+    const qb = this.musicRepository.createQueryBuilder('music');
+    if (keyword) {
+      qb.where('music.title LIKE :keyword', {
+        keyword: '%' + keyword + '%',
+      });
+      qb.orWhere('music.artist LIKE :keyword', {
+        keyword: '%' + keyword + '%',
+      });
+      qb.orWhere('music.album LIKE :keyword', {
+        keyword: '%' + keyword + '%',
+      });
+    }
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+    const count = await qb.getCount();
+    const data = await qb.getMany();
+    return PageResponse.list(data, count);
+  }
+
+  /* 用户收藏音乐 */
+  async favoritesMusic(uid: number, query: IdsDto) {
+    const { ids } = query || {};
+    // 使用事务保证操作一致性
+    const queryRunner =
+      this.musicRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      let defaultFavorites = await queryRunner.manager.findOne(
+        FavoritesEntity,
+        {
+          where: { is_default: Whether.Y, favorites_uid: uid },
+          relations: ['music'],
+          select: {
+            music: {
+              id: true,
+            },
+          },
+        },
+      );
+      if (!defaultFavorites) {
+        defaultFavorites = queryRunner.manager.create(FavoritesEntity, {
+          is_default: Whether.Y,
+          favorites_uid: uid,
+          favorites_name: '我的收藏',
+        });
+        await queryRunner.manager.save(defaultFavorites);
+      }
+
+      const music = await queryRunner.manager.find(MusicEntity, {
+        where: { id: In(ids) },
+        select: ['id'],
+      });
+      if (music.length === 0) {
+        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      }
+
+      defaultFavorites.music = [...defaultFavorites.music, ...music];
+
+      await queryRunner.manager.save(FavoritesEntity, defaultFavorites);
+      await queryRunner.commitTransaction();
+      return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'));
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error('收藏音乐失败:', error);
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /* 用户移除收藏夹音乐 */
+  async removeFavoritesMusic(uid: number, query: OperateMusicDto) {
+    const { favoritesId, ids } = query || {};
+    // 使用事务保证操作一致性
+    const queryRunner =
+      this.musicRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const favorites = await queryRunner.manager.findOne(FavoritesEntity, {
+        where: { is_default: Whether.Y, favorites_uid: uid, id: favoritesId },
+        relations: ['music'],
+        select: {
+          music: {
+            id: true,
+          },
+        },
+      });
+      if (!favorites) {
+        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      }
+
+      favorites.music = favorites.music.filter(
+        (item) => !ids.includes(item.id),
+      );
+
+      await queryRunner.manager.save(FavoritesEntity, favorites);
+      await queryRunner.commitTransaction();
+      return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'));
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error('移除收藏夹音乐失败:', error);
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /* 用户添加音乐到收藏夹 */
+  async appendFavoritesMusic(uid: number, query: AppendMusicDto) {
+    const { favoritesIds, ids } = query || {};
+    // 使用事务保证操作一致性
+    const queryRunner =
+      this.musicRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const favorites = await queryRunner.manager.find(FavoritesEntity, {
+        where: {
+          favorites_uid: uid,
+          id: In(favoritesIds),
+        },
+        relations: ['music'],
+        select: {
+          music: {
+            id: true,
+          },
+        },
+      });
+      if (favorites.length === 0) {
+        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      }
+
+      const music = await queryRunner.manager.find(MusicEntity, {
+        where: { id: In(ids) },
+        select: ['id'],
+      });
+      if (music.length === 0) {
+        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      }
+
+      favorites.forEach((item) => {
+        item.music = [...item.music, ...music];
+      });
+
+      await queryRunner.manager.save(FavoritesEntity, favorites);
+      await queryRunner.commitTransaction();
+      return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'));
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error('添加收藏夹音乐失败:', error);
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

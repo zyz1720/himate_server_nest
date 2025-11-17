@@ -35,3 +35,9 @@ export class FindAllMusicDto extends PartialType(FindAllDto) {
   @IsOptional()
   readonly album?: string;
 }
+
+export class SearchMusicDto extends FindAllDto {
+  @ApiPropertyOptional({ description: '搜索关键词' })
+  @IsOptional()
+  readonly keyword?: string;
+}

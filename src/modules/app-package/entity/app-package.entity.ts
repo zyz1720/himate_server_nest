@@ -57,7 +57,7 @@ export class AppPackageEntity {
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
 
-  @OneToOne(() => FileEntity, (file) => file.id)
+  @OneToOne(() => FileEntity, (file) => file)
   @JoinColumn({ name: 'file_id' })
   file: FileEntity;
 }

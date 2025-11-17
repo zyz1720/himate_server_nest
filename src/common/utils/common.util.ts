@@ -22,6 +22,6 @@ export class CommonUtil {
    * @param ms 延迟时间，单位毫秒
    * @returns 一个Promise，在延迟时间后resolve
    */
-  static delay = (ms: number) =>
+  static delay = (ms: number = 1000) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 }
