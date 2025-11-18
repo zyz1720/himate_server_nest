@@ -9,11 +9,13 @@ import {
   BeforeInsert,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { DataLength } from 'src/common/constants/database-enum.const';
 import { StringUtil } from 'src/common/utils/string.util';
 import { SessionEntity } from 'src/modules/session/entity/session.entity';
+import { MessageReadRecordsEntity } from 'src/modules/message-read-records/entity/message-read-records.entity';
 
 // 枚举定义
 export enum MsgTypeEnum {
@@ -85,6 +87,9 @@ export class MessageEntity {
   @JoinColumn({ name: 'session_primary_id' })
   @Index('idx_message_session_primary_id')
   session: SessionEntity;
+
+  @OneToMany(() => MessageReadRecordsEntity, (records) => records.message)
+  read_records: MessageReadRecordsEntity[];
 
   @BeforeInsert()
   addClientMsgId() {

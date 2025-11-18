@@ -22,7 +22,7 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { FindAllSessionDto } from './dto/find-all-session.dto';
 import { SessionEntity } from './entity/session.entity';
 
-@ApiTags('会话管理')
+@ApiTags('admin - 会话管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('session')

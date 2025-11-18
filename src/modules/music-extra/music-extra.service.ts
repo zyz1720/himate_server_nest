@@ -103,4 +103,24 @@ export class MusicExtraService {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
   }
+
+  /* 通过新数据修改音乐扩展信息 */
+  async updateMusicExtraByData(
+    oldData: MusicExtraEntity,
+    newData: UpdateMusicExtraDto,
+  ) {
+    const updateObj = this.musicExtraRepository.merge(oldData, newData);
+    const result = await this.musicExtraRepository.update(
+      oldData.id,
+      updateObj,
+    );
+    if (result.affected) {
+      return Response.ok(
+        this.i18n.t('message.UPDATE_SUCCESS'),
+        result.generatedMaps[0],
+      );
+    } else {
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    }
+  }
 }

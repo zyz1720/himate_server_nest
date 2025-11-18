@@ -63,5 +63,7 @@
     "ACCESS_TOKEN_EXPIRED": "Access token expired",
     "INVALID_TOKEN": "Invalid token",
     "NO_PARSE_DATA": "No parse data",
-    "DOWNLOAD_FAVORITES_FAILED": "Download favorites failed"
+    "DOWNLOAD_FAVORITES_FAILED": "Download favorites failed",
+    "GET_FAVORITES_FAILED": "Get favorites failed",
+    "UNSUPPORTED_DATA_FORMAT": "Unsupported data format"
 }

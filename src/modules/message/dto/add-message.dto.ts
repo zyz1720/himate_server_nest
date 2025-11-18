@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsOptional,
-  IsUUID,
   IsByteLength,
   IsEnum,
   IsInt,
@@ -11,11 +10,6 @@ import { MsgTypeEnum } from '../entity/message.entity';
 import { DataLength } from 'src/common/constants/database-enum.const';
 
 export class AddMessageDto {
-  @ApiProperty({ description: '客户端消息id', required: true })
-  @IsNotEmpty()
-  @IsUUID()
-  readonly client_msg_id: string;
-
   @ApiProperty({ description: '关联会话id', required: true })
   @IsNotEmpty()
   @IsInt()
@@ -28,7 +22,7 @@ export class AddMessageDto {
   @ApiProperty({ description: '发送方ip', required: false })
   @IsOptional()
   @IsByteLength(0, DataLength.Medium)
-  readonly sender_ip?: string;
+  sender_ip?: string;
 
   @ApiProperty({ description: '消息内容', required: true })
   @IsNotEmpty()

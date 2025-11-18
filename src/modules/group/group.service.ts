@@ -16,6 +16,7 @@ import { UserEntity } from '../user/entity/user.entity';
 import {
   GroupMemberEntity,
   MemberRoleEnum,
+  MemberStatusEnum,
 } from '../group-member/entity/group-member.entity';
 import { FindOneGroupDto } from './dto/find-one-group.dto';
 
@@ -270,5 +271,20 @@ export class GroupService {
       return Response.fail(this.i18n.t('message.NO_PERMISSION'));
     }
     return this.softDeleteGroup(id);
+  }
+
+  /* group_id 验证用户是否属于群组且状态正常 */
+  async verifyUserIsMember(uid: number, group_id: string) {
+    const group = await this.groupRepository.findOne({
+      relations: ['members'],
+      where: {
+        group_id: group_id,
+        members: {
+          user_id: uid,
+          member_status: MemberStatusEnum.normal,
+        },
+      },
+    });
+    return group;
   }
 }

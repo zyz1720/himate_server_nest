@@ -149,6 +149,29 @@ export class MusicService {
     }
   }
 
+  /* 查询指定音乐及其扩展信息 */
+  async findOneMusicAndExtra(id: number) {
+    const result = await this.musicRepository.findOne({
+      where: { id },
+      relations: ['musicExtra'],
+    });
+    if (result) {
+      return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
+    } else {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+  }
+
+  /* 保存音乐信息 */
+  async saveMusic(music: MusicEntity) {
+    const insertRes = await this.musicRepository.save(music);
+    if (insertRes.id) {
+      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), insertRes);
+    } else {
+      return Response.fail(this.i18n.t('message.CREATE_FAILED'));
+    }
+  }
+
   /* 查询收藏的音乐 */
   async findUserFavoritesMusic(
     current: number,

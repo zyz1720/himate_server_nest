@@ -5,14 +5,13 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { JwtService } from '@nestjs/jwt';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { I18nService } from 'nestjs-i18n';
+import { Response } from 'src/common/response/api-response';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(
-    private readonly jwtService: JwtService,
     private reflector: Reflector,
     private i18n: I18nService,
   ) {
@@ -35,22 +34,15 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (type == 'ws') {
       const client = context.switchToWs().getClient();
       const token = client.handshake?.auth?.Authorization;
-      try {
-        const decoded = this.jwtService.verify(token);
-        if (decoded) {
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.log('JwtAuthGuard ws', error);
-        return false;
+      if (token) {
+        client.handshake.headers.authorization = `Bearer ${token}`;
       }
     }
 
     return super.canActivate(context);
   }
 
-  handleRequest(error: any, user: any, info: any) {
+  handleRequest(error: any, user: any, info: any, context: ExecutionContext) {
     // 处理token过期的特殊情况
     if (info && info.name === 'TokenExpiredError') {
       throw new UnauthorizedException(
@@ -66,6 +58,17 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (error || !user) {
       throw error || new UnauthorizedException(this.i18n.t('message.NO_LOGIN'));
     }
+    if ((error || !user) && context.getType() == 'ws') {
+      const client = context.switchToWs().getClient();
+      client.emit('error', Response.fail(this.i18n.t('message.NO_LOGIN')));
+      client.disconnect();
+      throw error || new UnauthorizedException(this.i18n.t('message.NO_LOGIN'));
+    }
+
+    // 将用户信息附加到客户端对象
+    const client = context.switchToWs().getClient();
+    client.user = user;
+
     return user;
   }
 }

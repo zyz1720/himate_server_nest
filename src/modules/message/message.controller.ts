@@ -22,7 +22,7 @@ import { UpdateMessageDto } from './dto/update-message.dto';
 import { FindAllMessageDto } from './dto/find-all-message.dto';
 import { MessageEntity } from './entity/message.entity';
 
-@ApiTags('消息管理')
+@ApiTags('admin - 消息管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('message')

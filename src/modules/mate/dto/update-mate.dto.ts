@@ -32,3 +32,10 @@ export class UpdateMateDto {
   @IsByteLength(0, DataLength.Longer)
   readonly validate_msg?: string;
 }
+
+export class UpdateMateRemarksDto {
+  @ApiPropertyOptional({ description: '备注' })
+  @IsOptional()
+  @IsByteLength(0, DataLength.Medium)
+  readonly remarks?: string;
+}

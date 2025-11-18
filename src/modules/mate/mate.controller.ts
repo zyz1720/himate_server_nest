@@ -22,7 +22,7 @@ import { UpdateMateDto } from './dto/update-mate.dto';
 import { FindAllMateDto } from './dto/find-all-mate.dto';
 import { MateEntity } from './entity/mate.entity';
 
-@ApiTags('好友管理')
+@ApiTags('admin - 好友管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('mate')

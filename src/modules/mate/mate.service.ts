@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MateEntity } from './entity/mate.entity';
-import { AddMateDto } from './dto/add-mate.dto';
-import { UpdateMateDto } from './dto/update-mate.dto';
+import { MateEntity, MateStatusEnum } from './entity/mate.entity';
+import { AddMateDto, AddUserMateDto } from './dto/add-mate.dto';
+import { UpdateMateDto, UpdateMateRemarksDto } from './dto/update-mate.dto';
 import { FindAllMateDto } from './dto/find-all-mate.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
+import { UserService } from '../user/user.service';
+import { FindAllDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class MateService {
   constructor(
     @InjectRepository(MateEntity)
     private readonly mateRepository: Repository<MateEntity>,
+    private readonly userService: UserService,
     private readonly i18n: I18nService,
   ) {}
 
@@ -119,5 +122,140 @@ export class MateService {
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
+  }
+
+  /* 添加用户好友 */
+  async addUserMate(uid: number, data: AddUserMateDto) {
+    const { friend_id, friend_remarks } = data || {};
+    const user = await this.userService.findOneUserEnabled({
+      id: uid,
+    });
+    const friend = await this.userService.findOneUserEnabled({
+      id: friend_id,
+    });
+    if (!friend || !user) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    const entityData = this.mateRepository.create({
+      ...data,
+      user_id: uid,
+      user_remarks: user.user_name,
+      friend_remarks: friend_remarks || friend.user_name,
+      mate_status: MateStatusEnum.waiting,
+    });
+    const insertRes = await this.mateRepository.insert(entityData);
+    if (insertRes.identifiers.length) {
+      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), entityData);
+    } else {
+      return Response.fail(this.i18n.t('message.CREATE_FAILED'));
+    }
+  }
+
+  /* 查询用户好友 */
+  async findAllUserMate(
+    uid: number,
+    query: FindAllDto,
+    mate_status?: MateStatusEnum,
+  ) {
+    const { current = 1, pageSize = 10 } = query || {};
+    const qb = this.mateRepository
+      .createQueryBuilder('mate')
+      .leftJoinAndSelect('mate.user', 'user')
+      .leftJoinAndSelect('mate.friend', 'friend')
+      .where('user_id = :user_id OR friend_id = :friend_id', {
+        user_id: uid,
+        friend_id: uid,
+      })
+      .select([
+        'mate',
+        'user.id',
+        'user.user_avatar',
+        'user.user_name',
+        'friend.id',
+        'friend.user_avatar',
+        'friend.user_name',
+      ]);
+    if (mate_status) {
+      qb.andWhere('mate_status = :mate_status', {
+        mate_status: mate_status,
+      });
+    }
+
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+    const count = await qb.getCount();
+    const data = await qb.getMany();
+    const list = data.map((item) => ({
+      ...item,
+      theOther: item.user_id === uid ? item.friend : item.user,
+    }));
+    return PageResponse.list(list, count);
+  }
+
+  /* 修改好友备注 */
+  async updateMateRemarks(uid: number, id: number, data: UpdateMateRemarksDto) {
+    const { remarks } = data || {};
+    const mate = await this.mateRepository.findOne({ where: { id } });
+    if (mate.user_id !== uid && mate.friend_id !== uid) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    if (mate.user_id == uid) {
+      mate.friend_remarks = remarks;
+    } else {
+      mate.user_remarks = remarks;
+    }
+    const result = await this.mateRepository.update(id, mate);
+    if (result.affected) {
+      return Response.ok(
+        this.i18n.t('message.UPDATE_SUCCESS'),
+        result.generatedMaps[0],
+      );
+    } else {
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    }
+  }
+
+  /* 软删除用户好友 */
+  async softDeleteUserMate(uid: number, id: number) {
+    const mate = await this.mateRepository.findOne({ where: { id } });
+    if (mate.user_id !== uid && mate.friend_id !== uid) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    return this.softDeleteMate(id);
+  }
+
+  /* 修改好友状态 */
+  async updateMateStatus(uid: number, id: number, mate_status: MateStatusEnum) {
+    const mate = await this.mateRepository.findOne({ where: { id } });
+    if (mate.user_id !== uid && mate.friend_id !== uid) {
+      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    mate.mate_status = mate_status;
+    const result = await this.mateRepository.update(id, mate);
+    if (result.affected) {
+      return Response.ok(
+        this.i18n.t('message.UPDATE_SUCCESS'),
+        result.generatedMaps[0],
+      );
+    } else {
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    }
+  }
+
+  /* 验证用户是否是好友 */
+  async verifyUserIsMate(uid: number, mate_id: string) {
+    const mate = await this.mateRepository.findOne({
+      where: [
+        {
+          user_id: uid,
+          mate_id: mate_id,
+        },
+        {
+          friend_id: uid,
+          mate_id: mate_id,
+        },
+      ],
+    });
+    return mate;
   }
 }

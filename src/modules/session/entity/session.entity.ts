@@ -7,6 +7,8 @@ import {
   UpdateDateColumn,
   Index,
   OneToMany,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { DataLength } from 'src/common/constants/database-enum.const';
@@ -14,7 +16,7 @@ import { MessageEntity } from 'src/modules/message/entity/message.entity';
 
 // 枚举定义
 export enum ChatTypeEnum {
-  personal = 'personal',
+  private = 'private',
   group = 'group',
 }
 
@@ -30,7 +32,8 @@ export class SessionEntity {
   session_id: string;
 
   @ApiProperty({ description: '最后一条消息的id' })
-  @Column({ type: 'int', comment: '最后一条消息的id' })
+  @Index('idx_session_last_msg_id')
+  @Column({ type: 'int', comment: '最后一条消息的id', nullable: true })
   last_msg_id: number;
 
   @ApiProperty({ description: '会话类型' })
@@ -59,6 +62,10 @@ export class SessionEntity {
   @Index('idx_session_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @OneToOne(() => MessageEntity)
+  @JoinColumn({ name: 'last_msg_id' })
+  lastMsg: MessageEntity;
 
   @OneToMany(() => MessageEntity, (messages) => messages.session)
   messages: MessageEntity[];

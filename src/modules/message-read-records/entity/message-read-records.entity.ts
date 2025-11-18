@@ -7,9 +7,11 @@ import {
   UpdateDateColumn,
   Unique,
   Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { DataLength } from 'src/common/constants/database-enum.const';
+import { MessageEntity } from 'src/modules/message/entity/message.entity';
 
 // 枚举定义
 @Entity('message_read_records')
@@ -26,10 +28,6 @@ export class MessageReadRecordsEntity {
   @ApiProperty({ description: '消息id' })
   @Column({ type: 'int', comment: '消息id' })
   message_id: number;
-
-  @ApiProperty({ description: '会话uuid' })
-  @Column({ comment: '会话uuid', length: DataLength.UUID })
-  session_id: string;
 
   @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
@@ -51,4 +49,10 @@ export class MessageReadRecordsEntity {
   @Index('idx_message_read_records_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @ManyToOne(() => MessageEntity, (message) => message.read_records, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'message_id' })
+  message: MessageEntity;
 }

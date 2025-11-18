@@ -10,9 +10,9 @@ export class Response<T> {
    * @param msg 响应消息
    * @param data 响应数据
    */
-  constructor(msg?: string, data?: T, success?: boolean) {
+  constructor(msg: string, data: T, success: boolean) {
     this.data = data || null;
-    this.message = msg || '操作成功';
+    this.message = msg || '系统提示';
     this.code = success ? 0 : -1;
   }
 
@@ -51,7 +51,7 @@ export class Response<T> {
    * @param data 响应数据
    * @returns Response<T> 成功响应对象
    */
-  static ok<T>(msg?: string, data?: T): Response<T> {
+  static ok<T>(msg: string = '操作成功', data?: T): Response<T> {
     return new Response(msg, data, true);
   }
 
@@ -105,7 +105,7 @@ export class PageResponse<T> {
    * @param total 总条数
    * @returns PageResponse<T> 列表响应对象
    */
-  static list<T>(list?: T[], total?: number): PageResponse<T> {
+  static list<T>(list: T[], total: number): PageResponse<T> {
     return new PageResponse(list, total);
   }
 }

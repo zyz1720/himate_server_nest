@@ -22,7 +22,7 @@ import { UpdateMessageReadRecordsDto } from './dto/update-message-read-records.d
 import { FindAllMessageReadRecordsDto } from './dto/find-all-message-read-records.dto';
 import { MessageReadRecordsEntity } from './entity/message-read-records.entity';
 
-@ApiTags('消息读取记录管理')
+@ApiTags('admin - 消息读取记录管理')
 @ApiBearerAuth()
 @Roles(Role.Admin)
 @Controller('message-read-records')

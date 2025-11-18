@@ -103,4 +103,33 @@ export class SessionService {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
   }
+
+  /* 查询指定会话 通过会话id和用户id */
+  async findOneSessionByDoubleId(id: number, session_id: string) {
+    const result = await this.sessionRepository.findOne({
+      where: { id, session_id },
+    });
+    return result;
+  }
+
+  /* 查询指定会话 通过会话id */
+  async findOneSessionBySessionId(session_id: string) {
+    const result = await this.sessionRepository.findOne({
+      where: { session_id },
+    });
+    return result;
+  }
+
+  /* 查询指定会话 通过会话id */
+  async findOneSessionById(id: number) {
+    const result = await this.sessionRepository.findOne({
+      where: { id },
+    });
+    return result;
+  }
+
+  /* 保存会话 */
+  async saveSession(session: SessionEntity) {
+    return await this.sessionRepository.save(session);
+  }
 }

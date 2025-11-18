@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { PageResponse, Response } from 'src/common/response/api-response';
+import { Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { MusicExtraService } from 'src/modules/music-extra/music-extra.service';
 import { ConfigService } from '@nestjs/config';
@@ -18,6 +18,7 @@ import {
 import { MusicExtraEntity } from 'src/modules/music-extra/entity/music-extra.entity';
 import { FavoritesEntity } from 'src/modules/favorites/entity/favorites.entity';
 import { MusicService } from 'src/modules/music/music.service';
+import { MatchMusicApiDto } from './dto/operate-music-api.dto';
 
 @Injectable()
 export class MusicApiService {
@@ -87,11 +88,11 @@ export class MusicApiService {
   }
 
   /* 第三方api获取歌词 */
-  async findMusicLyric(id: string) {
+  async findMusicLyric(mid: string) {
     try {
       const lyricRes = await axios.get(
         this.configService.get('MUSIC_API') + '/lyric',
-        { params: { id } },
+        { params: { id: mid } },
       );
       if (lyricRes.status != 200) {
         return Response.fail(this.i18n.t('message.GET_FAIL'));
@@ -205,70 +206,64 @@ export class MusicApiService {
           }
           const favorites = await queryRunner.manager.findOne(FavoritesEntity, {
             where: { favorites_uid: uid },
+            relations: ['music'],
+            select: {
+              music: {
+                id: true,
+              },
+            },
           });
           if (favorites) {
-            const { m_ids, m_count } = await this.batchDownloadMusic(id);
-            if (m_ids.length == 0) {
+            const { musicIds, musicCount } = await this.batchDownloadMusic(id);
+            if (musicIds.length == 0) {
               return Response.fail(
                 this.i18n.t('message.DOWNLOAD_FAVORITES_FAILED'),
               );
             }
-            const updateFavoritesRes = await this.updateFavorites({
-              id: favorites.id,
-              musicIds: m_ids,
-              handleType: HandleType.Add,
-            });
-            if (updateFavoritesRes.success) {
-              return ResultMsg.ok(
-                `共${m_count}首音乐，成功导入${m_ids.length}首音乐`,
-              );
-            }
+            favorites.music.unshift(...musicIds);
+            await queryRunner.manager.save(FavoritesEntity, favorites);
+            return Response.ok(
+              `共${musicCount}首音乐，成功导入${musicIds.length}首音乐`,
+            );
           } else {
             const addForm = {
-              creator_uid: uid,
+              favorites_uid: uid,
               favorites_name: title,
-              favorites_remark: desc || '',
-            } as favoritesEntity;
-            const downloadRes = await this.fileService.downloadSaveFile(
-              picurl as string,
-              {
-                uid: uid,
-                use_type: FileUseType.Music,
-                file_type: FileType.Image,
-                isAddTimeStamp: NumericStatus.True,
-              },
+              favorites_remarks: desc || '',
+            } as FavoritesEntity;
+            const downloadRes = (await this.fileService.downloadSaveFile({
+              download_url: picurl,
+              use_type: UseTypeEnum.music,
+              file_type: FileTypeEnum.image,
+            })) as Response<FileEntity>;
+            if (downloadRes.code === 0) {
+              addForm.favorites_cover = downloadRes.data?.file_key;
+            }
+            const addFavoritesRes = queryRunner.manager.create(
+              FavoritesEntity,
+              addForm,
             );
-            if (downloadRes.success) {
-              addForm.favorites_cover = downloadRes.data?.file_name;
-            }
-            const addFavoritesRes = await this.addFavorites(addForm);
-            if (!addFavoritesRes.success) {
-              return ResultMsg.fail(Msg.CREATE_FAIL);
-            }
-            await delay();
-            const { m_ids, m_count } = await this.batchDownloadMusic(id, uid);
-            if (m_ids.length == 0) {
-              return ResultMsg.fail('未能导入任何音乐');
-            }
-            const updateFavoritesRes = await this.updateFavorites({
-              id: addFavoritesRes.data.id,
-              musicIds: m_ids,
-              handleType: HandleType.Add,
-            });
-            if (updateFavoritesRes.success) {
-              return ResultMsg.ok(
-                `共${m_count}首音乐，成功导入${m_ids.length}首音乐`,
+            await CommonUtil.delay();
+            const { musicIds, musicCount } = await this.batchDownloadMusic(id);
+            if (musicIds.length == 0) {
+              return Response.fail(
+                this.i18n.t('message.DOWNLOAD_FAVORITES_FAILED'),
               );
             }
+            addFavoritesRes.music = musicIds;
+            await queryRunner.manager.save(FavoritesEntity, addFavoritesRes);
+            return Response.ok(
+              `共${musicCount}首音乐，成功导入${musicIds.length}首音乐`,
+            );
           }
         } catch (error) {
           console.error(error);
-          return ResultMsg.fail('不支持的数据格式');
+          return Response.fail(this.i18n.t('message.UNSUPPORTED_DATA_FORMAT'));
         }
       }
     } catch (error) {
       console.log(error);
-      return ResultMsg.fail(Msg.GET_FAIL);
+      return Response.fail(this.i18n.t('message.GET_FAVORITES_FAILED'));
     }
   }
 
@@ -279,18 +274,18 @@ export class MusicApiService {
 
     const factorieRes = await this.findMoreFavorite(thirdPartyId);
     if (factorieRes.code === 0) {
-      try {
-        const queryRunner =
-          this.musicRepository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
+      const queryRunner =
+        this.musicRepository.manager.connection.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
+      try {
         const { songlist, songnum } = factorieRes.data;
         musicCount = songnum;
         const downloadPromises = songlist.map(async (item: any) => {
           const { id: mid, interval, title, singer, album } = item;
           const music = await queryRunner.manager.findOne(MusicEntity, {
-            relations: ['music_extra'],
+            relations: ['musicExtra'],
             where: { musicExtra: { match_id: String(mid) } },
           });
           if (music) {
@@ -322,6 +317,12 @@ export class MusicApiService {
                     album: album.title,
                   });
                   await queryRunner.manager.save(createMusic);
+                  musicIds.push(createMusic.id);
+                  await CommonUtil.delay();
+                  await this.matchMusicExtra({
+                    musicId: createMusic.id,
+                    matchId: String(mid),
+                  });
                 }
               }
             }
@@ -329,13 +330,17 @@ export class MusicApiService {
         });
 
         await Promise.all(downloadPromises);
+        await queryRunner.commitTransaction();
       } catch (error) {
-        console.error('An error occurred in batchDownloadMusic', error);
+        Logger.error('批量下载音乐时发生错误', error);
+        await queryRunner.rollbackTransaction();
+      } finally {
+        await queryRunner.release();
       }
     }
     return {
-      m_ids: musicIds,
-      m_count: musicCount,
+      musicIds,
+      musicCount,
     };
   }
 
@@ -358,14 +363,15 @@ export class MusicApiService {
         return Response.fail(this.i18n.t('message.GET_FAIL'));
       }
     } catch (error) {
-      console.log(error);
+      Logger.error('获取第三方歌单时发生错误', error);
       return Response.fail(this.i18n.t('message.GET_FAIL'));
     }
   }
 
   /* 匹配音乐扩展信息 */
-  async matchMusicExtra(id: number, mid: string) {
-    const musicRes = await this.musicService.findOneMusic(id);
+  async matchMusicExtra(data: MatchMusicApiDto) {
+    const { musicId: id, matchId: mid } = data;
+    const musicRes = await this.musicService.findOneMusicAndExtra(id);
     if (musicRes.code !== 0) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
@@ -374,27 +380,24 @@ export class MusicApiService {
       if (musicUrlRes.code !== 0) {
         return musicUrlRes;
       }
-      const { cover, song, singer, album } = musicUrlRes.data;
+      const { cover } = musicUrlRes.data;
       const musicLrcRes = await this.findMusicLyric(mid);
       if (musicLrcRes.code !== 0) {
         return musicLrcRes;
       }
-      const downloadRes = await this.fileService.downloadSaveFile({
+      const downloadRes = (await this.fileService.downloadSaveFile({
         download_url: cover,
         use_type: UseTypeEnum.music,
         file_type: FileTypeEnum.image,
-      });
+      })) as Response<FileEntity>;
       if (downloadRes.code !== 0) {
         return downloadRes;
       }
       const { lrc, trans, yrc, roma } = musicLrcRes.data;
       const insertData = {
         music_id: id,
-        match_id: String(m_id),
-        music_name: song,
-        music_singer: singer,
-        music_album: album,
-        music_cover: downloadRes.data?.file_name,
+        match_id: String(mid),
+        music_cover: downloadRes.data?.file_key,
         music_lyric: lrc,
         music_trans: trans,
         music_yrc: yrc,
@@ -402,18 +405,22 @@ export class MusicApiService {
       };
       const music = musicRes.data as MusicEntity;
       if (music.musicExtra) {
-        const musicMore = music.musicMore;
-        const updateObj = this.musicMoreRepository.merge(musicMore, insertData);
-        const updateRes = await this.musicMoreRepository.update(
-          musicMore.id,
-          updateObj,
+        const musicExtra = music.musicExtra;
+        const updateRes = await this.musicExtraService.updateMusicExtraByData(
+          musicExtra,
+          insertData,
         );
-        if (!updateRes.affected) {
-          return ResultMsg.fail(Msg.UPDATE_FAIL);
-        }
+        return updateRes;
       } else {
-        const createRes = this.musicMoreRepository.create(insertData);
-        updateData.musicMore = createRes;
+        const createRes = (await this.musicExtraService.addMusicExtra(
+          insertData,
+        )) as Response<MusicExtraEntity>;
+        if (createRes.code !== 0) {
+          return createRes;
+        }
+        music.musicExtra = createRes.data;
+        const saveRes = await this.musicService.saveMusic(music);
+        return saveRes;
       }
     }
   }

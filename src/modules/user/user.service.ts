@@ -69,7 +69,7 @@ export class UserService {
     return createRes;
   }
 
-  /* 获取正常用户信息 */
+  /* 获取用户信息 */
   async findOneUser(query: findOneUserEnabledDto) {
     const { id, account, self_account, password } = query || {};
     const qb = this.userRepository.createQueryBuilder('user');

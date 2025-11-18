@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsByteLength, IsEnum } from 'class-validator';
 import { MateStatusEnum } from '../entity/mate.entity';
 import { DataLength } from 'src/common/constants/database-enum.const';
@@ -32,3 +32,9 @@ export class AddMateDto {
   @IsByteLength(0, DataLength.Longer)
   readonly validate_msg?: string;
 }
+
+export class AddUserMateDto extends PickType(AddMateDto, [
+  'friend_id',
+  'friend_remarks',
+  'validate_msg',
+]) {}

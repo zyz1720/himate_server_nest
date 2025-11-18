@@ -10,8 +10,4 @@ export class FindAllMessageReadRecordsDto extends PartialType(FindAllDto) {
   @ApiPropertyOptional({ description: '消息id' })
   @IsOptional()
   readonly message_id?: number;
-
-  @ApiPropertyOptional({ description: '会话uuid' })
-  @IsOptional()
-  readonly session_id?: string;
 }
