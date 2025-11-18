@@ -5,6 +5,8 @@
     "GET_FAILED": "Get failed",
     "LOGIN_SUCCESS": "Login success",
     "LOGIN_FAILED": "Login failed",
+    "READ_SUCCESS": "Read success",
+    "READ_FAILED": "Read failed",
     "VALIDATE_SUCCESS": "Validate success",
     "VALIDATE_FAILED": "Validate failed",
     "CAPTCHA_EXPIRED": "Captcha expired or not exist",

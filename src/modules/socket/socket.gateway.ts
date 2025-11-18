@@ -36,7 +36,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client: Socket,
     @MessageBody() message: ReadMessageDto,
   ): Promise<Response<null>> {
-    
+    const readFlag = await this.socketService.readMessage(uid, message);
+    if (readFlag) {
+      return Response.ok(this.i18n.t('message.READ_SUCCESS'));
+    }
+    return Response.fail(this.i18n.t('message.READ_FAILED'));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -47,8 +51,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() message: SendMessageDto,
   ): Promise<Response<null>> {
     Logger.log('[chat]接收消息：', message);
-    const sender_ip = client.handshake.address;
-    message.sender_ip = sender_ip;
+    message.sender_ip = client.handshake.address;
     const toBeSentMessage = await this.socketService.createAndSendMessage(
       uid,
       message,

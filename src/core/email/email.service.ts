@@ -73,12 +73,14 @@ export class EmailService {
       captchaCode,
     );
     if (!captchaRes) {
+      await this.redisService.delValue(captchaId);
       return Response.fail(this.i18n.t('message.VALIDATE_FAILED'));
     }
     const code = StringUtil.createRandomNumber();
     await this.redisService.setValue(email + 'code', code, 600);
     const info = await this.sendCodeEmail(email, code);
     if (info) {
+      await this.redisService.delValue(captchaId);
       return Response.ok(this.i18n.t('message.SEND_SUCCESS'));
     } else {
       return Response.fail(this.i18n.t('message.SEND_FAILED'));

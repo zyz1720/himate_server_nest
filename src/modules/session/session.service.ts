@@ -7,6 +7,7 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { FindAllSessionDto } from './dto/find-all-session.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
+import { FindAllDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class SessionService {
@@ -131,5 +132,18 @@ export class SessionService {
   /* 保存会话 */
   async saveSession(session: SessionEntity) {
     return await this.sessionRepository.save(session);
+  }
+
+  /* 查询指定用户的所有会话 */
+  async findAllUserSession(uid: number, query: FindAllDto) {
+    const { current = 1, pageSize = 10 } = query || {};
+    const qb = this.sessionRepository.createQueryBuilder('session');
+    qb.where('session.user_id = :uid', { uid });
+
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+    const count = await qb.getCount();
+    const data = await qb.getMany();
+    return PageResponse.list(data, count);
   }
 }

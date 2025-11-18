@@ -168,7 +168,7 @@ export class SocketService {
         user_id: uid,
       });
     if (recordRes.code === 0) {
-      return recordRes.data;
+      return true;
     }
     return false;
   }

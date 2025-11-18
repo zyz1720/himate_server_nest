@@ -33,6 +33,7 @@ export class UserService {
     const localCode = await this.redisService.getValue(account + 'code');
 
     if (code == localCode) {
+      await this.redisService.delValue(account + 'code');
       return Response.ok(this.i18n.t('message.VALIDATE_SUCCESS'));
     } else {
       return Response.fail(this.i18n.t('message.CODE_ERROR'));

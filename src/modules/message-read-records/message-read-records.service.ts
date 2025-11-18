@@ -30,13 +30,7 @@ export class MessageReadRecordsService {
 
   /* 查询所有消息读取记录 */
   async findAllMessageReadRecords(query: FindAllMessageReadRecordsDto) {
-    const {
-      current = 1,
-      pageSize = 10,
-      user_id,
-      message_id,
-      session_id,
-    } = query || {};
+    const { current = 1, pageSize = 10, user_id, message_id } = query || {};
     const qb = this.messageReadRecordsRepository.createQueryBuilder(
       'message_read_records',
     );
@@ -48,11 +42,6 @@ export class MessageReadRecordsService {
     if (message_id) {
       qb.andWhere('message_id = :message_id', {
         message_id: message_id,
-      });
-    }
-    if (session_id) {
-      qb.andWhere('session_id LIKE :session_id', {
-        session_id: '%' + session_id + '%',
       });
     }
 
