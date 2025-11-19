@@ -78,13 +78,6 @@ export class AppFavoritesController {
     return this.favoritesService.updateUserFavorites(uid, parseInt(id), data);
   }
 
-  @ApiOperation({ summary: '用户删除音乐收藏夹' })
-  @ApiOkMsgRes()
-  @Delete(':id')
-  remove(@UserId() uid: number, @Param('id') id: string) {
-    return this.favoritesService.softDeleteUserFavorites(uid, parseInt(id));
-  }
-
   @ApiOperation({ summary: '用户批量删除音乐收藏夹' })
   @ApiOkMsgRes()
   @Delete('batch')

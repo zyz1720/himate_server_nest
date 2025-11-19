@@ -17,9 +17,9 @@ import {
 import { MateService } from './mate.service';
 import { AddUserMateDto } from './dto/add-mate.dto';
 import { UpdateMateRemarksDto } from './dto/update-mate.dto';
-import { FindAllMateDto } from './dto/find-all-mate.dto';
 import { MateEntity, MateStatusEnum } from './entity/mate.entity';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
+import { FindAllDto } from 'src/common/dto/common.dto';
 
 @ApiTags('app - 好友')
 @ApiBearerAuth()
@@ -37,21 +37,21 @@ export class AppMateController {
   @ApiOperation({ summary: '好友列表' })
   @ApiOkPageRes(MateEntity)
   @Get('friend')
-  findAllFriend(@UserId() uid: number, @Query() query: FindAllMateDto) {
+  findAllFriend(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.mateService.findAllUserMate(uid, query, MateStatusEnum.agreed);
   }
 
   @ApiOperation({ summary: '待通过好友列表' })
   @ApiOkPageRes(MateEntity)
   @Get('waiting')
-  findAllWaiting(@UserId() uid: number, @Query() query: FindAllMateDto) {
+  findAllWaiting(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.mateService.findAllUserMate(uid, query, MateStatusEnum.waiting);
   }
 
   @ApiOperation({ summary: '已拒绝的好友列表' })
   @ApiOkPageRes(MateEntity)
   @Get('rejected')
-  findAllRejected(@UserId() uid: number, @Query() query: FindAllMateDto) {
+  findAllRejected(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.mateService.findAllUserMate(uid, query, MateStatusEnum.refused);
   }
 
@@ -66,7 +66,7 @@ export class AppMateController {
     return this.mateService.updateMateRemarks(uid, parseInt(id), data);
   }
 
-  @ApiOperation({ summary: '修改好友备注' })
+  @ApiOperation({ summary: '同意好友申请' })
   @ApiOkRes(MateEntity)
   @Put('agree/:id')
   agree(@UserId() uid: number, @Param('id') id: string) {

@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPageRes } from 'src/common/response/api-response.decorator';
 import { MusicService } from './music.service';
@@ -19,6 +27,13 @@ export class AppMusicController {
   @Get()
   findAll(@Query() query: SearchMusicDto) {
     return this.musicService.searchMusic(query);
+  }
+
+  @ApiOperation({ summary: '获取音乐详情' })
+  @ApiOkPageRes(MusicEntity)
+  @Get('detail/:id')
+  findOne(@Param('id') id: string) {
+    return this.musicService.findOneMusic(parseInt(id));
   }
 
   @ApiOperation({ summary: '用户默认收藏音乐' })

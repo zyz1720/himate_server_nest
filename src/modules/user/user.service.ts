@@ -8,7 +8,10 @@ import { UserLoginByCodeDto } from '../../core/auth/dto/user-login-code.dto';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { FindAllUserDto } from './dto/find-all-user.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
-import { findOneUserEnabledDto } from './dto/find-one-user.dto';
+import {
+  findOneUserEnabledDto,
+  SearchOneUserEnabledDto,
+} from './dto/find-one-user.dto';
 import { IdsDto } from 'src/common/dto/common.dto';
 import { I18nService } from 'nestjs-i18n';
 import {
@@ -336,5 +339,27 @@ export class UserService {
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
+  }
+
+  async searchUserEnabled(query: SearchOneUserEnabledDto) {
+    const { keyword, current = 1, pageSize = 10 } = query;
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.user_name',
+        'user.account',
+        'user.user_avatar',
+        'user.self_account',
+      ])
+      .where('account LIKE :keyword', { keyword: `%${keyword}%` })
+      .orWhere('self_account LIKE :keyword', { keyword: `%${keyword}%` })
+      .andWhere('user_status = :status', { status: Status.Enabled });
+    qb.orderBy('user.create_time');
+    const count = await qb.getCount();
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+    const data = await qb.getMany();
+    return PageResponse.list(data, count);
   }
 }

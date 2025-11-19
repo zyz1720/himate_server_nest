@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MessageEntity } from './entity/message.entity';
 import { AddMessageDto } from './dto/add-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { FindAllMessageDto } from './dto/find-all-message.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
+import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class MessageService {
@@ -119,6 +120,32 @@ export class MessageService {
   /* 真删除消息 */
   async deleteMessage(id: number) {
     const result = await this.messageRepository.delete(id);
+    if (result.affected) {
+      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
+    } else {
+      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+    }
+  }
+
+  /* 查询用户所有消息 */
+  async findAllUserMessage(uid: number, query: FindAllDto) {
+    const { current = 1, pageSize = 10 } = query || {};
+    const qb = this.messageRepository.createQueryBuilder('message');
+    qb.where('message.sender_id = :uid', { uid });
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+    const count = await qb.getCount();
+    const data = await qb.getMany();
+    return PageResponse.list(data, count);
+  }
+
+  /* 批量删除用户消息 */
+  async softDeleteUserMessages(uid: number, data: IdsDto) {
+    const { ids } = data || {};
+    const result = await this.messageRepository.softDelete({
+      id: In(ids),
+      sender_id: uid,
+    });
     if (result.affected) {
       return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
     } else {

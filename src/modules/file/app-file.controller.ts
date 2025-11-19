@@ -23,13 +23,6 @@ export class AppFileController {
     return this.fileService.findAllAppFile(uid, query);
   }
 
-  @ApiOperation({ summary: '用户删除文件' })
-  @ApiOkMsgRes()
-  @Delete(':id')
-  remove(@UserId() uid: number, @Param('id') id: string) {
-    return this.fileService.softDeleteAppFile(uid, parseInt(id));
-  }
-
   @ApiOperation({ summary: '用户批量删除文件' })
   @ApiOkMsgRes()
   @Delete('batch')

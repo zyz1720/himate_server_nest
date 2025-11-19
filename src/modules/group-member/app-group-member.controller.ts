@@ -26,13 +26,6 @@ export class AppGroupMemberController {
     return this.groupMemberService.addUserGroupMember(uid, data);
   }
 
-  @ApiOperation({ summary: '踢出群成员' })
-  @ApiOkMsgRes()
-  @Post('remove')
-  remove(@UserId() uid: number, @Body() data: OperateGroupMemberDto) {
-    return this.groupMemberService.removeUserGroupMembers(uid, data);
-  }
-
   @ApiOperation({ summary: '用户更新成员信息' })
   @ApiOkRes(GroupMemberEntity)
   @Post('update')
@@ -45,6 +38,13 @@ export class AppGroupMemberController {
   @Post('auth')
   updateAuth(@UserId() uid: number, @Body() data: UpdateGroupMemberAuthDto) {
     return this.groupMemberService.updateUserGroupMemberAuth(uid, data);
+  }
+
+  @ApiOperation({ summary: '踢出群成员' })
+  @ApiOkMsgRes()
+  @Delete('remove')
+  remove(@UserId() uid: number, @Body() data: OperateGroupMemberDto) {
+    return this.groupMemberService.removeUserGroupMembers(uid, data);
   }
 
   @ApiOperation({ summary: '用户退出群聊' })

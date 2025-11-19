@@ -167,20 +167,6 @@ export class FileService {
     return PageResponse.list(data, count);
   }
 
-  /* 软删除用户的文件 */
-  async softDeleteAppFile(uid: number, id: number) {
-    const result = await this.fileRepository.softDelete({
-      id,
-      create_by: uid,
-    });
-    if (result.affected) {
-      this.batchMoveToRecycleBin([id]);
-      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
-    } else {
-      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
-    }
-  }
-
   /* 批量删除用户的文件 */
   async batchSoftDeleteAppFile(uid: number, data: IdsDto) {
     const { ids } = data || {};

@@ -1,5 +1,13 @@
 import { UserService } from './user.service';
-import { Body, Controller, Delete, Post, Get, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Post,
+  Get,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/core/auth/decorators/public.decorator';
 import { RegisterUserDto } from './dto/create-user.dto';
@@ -14,6 +22,7 @@ import {
   UpdateUserPasswordDto,
   UpdateUserAccountDto,
 } from './dto/update-user.dto';
+import { SearchOneUserEnabledDto } from './dto/find-one-user.dto';
 
 @ApiTags('app - 用户')
 @ApiBearerAuth()
@@ -33,6 +42,13 @@ export class AppUserController {
   @Get('info')
   userInfo(@UserId() uid: number) {
     return this.userService.findOneUserEnabled({ id: uid });
+  }
+
+  @ApiOperation({ summary: '搜索用户' })
+  @ApiOkRes(UserEntity)
+  @Get('search')
+  search(@Query() query: SearchOneUserEnabledDto) {
+    return this.userService.searchUserEnabled(query);
   }
 
   @ApiOperation({ summary: '修改用户信息' })

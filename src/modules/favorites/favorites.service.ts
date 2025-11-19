@@ -261,19 +261,6 @@ export class FavoritesService {
     }
   }
 
-  /* 用户删除收藏夹 */
-  async softDeleteUserFavorites(uid: number, id: number) {
-    const result = await this.favoritesRepository.softDelete({
-      id,
-      favorites_uid: uid,
-    });
-    if (result.affected) {
-      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
-    } else {
-      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
-    }
-  }
-
   /* 用户批量删除收藏夹 */
   async softDeleteUserFavoritesBatch(uid: number, data: IdsDto) {
     const { ids } = data || {};
