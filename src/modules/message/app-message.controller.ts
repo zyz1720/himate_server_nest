@@ -1,23 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  ApiOkRes,
   ApiOkMsgRes,
   ApiOkPageRes,
 } from 'src/common/response/api-response.decorator';
 import { MessageService } from './message.service';
-import { AddMessageDto } from './dto/add-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
-import { FindAllMessageDto } from './dto/find-all-message.dto';
 import { MessageEntity } from './entity/message.entity';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
