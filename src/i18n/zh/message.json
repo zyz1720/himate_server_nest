@@ -67,5 +67,7 @@
   "NO_PARSE_DATA": "未解析到有效数据",
   "DOWNLOAD_FAVORITES_FAILED": "下载收藏夹音乐失败",
   "GET_FAVORITES_FAILED": "获取收藏夹失败",
-  "UNSUPPORTED_DATA_FORMAT": "不支持的数据格式"
+  "UNSUPPORTED_DATA_FORMAT": "不支持的数据格式",
+  "ALREADY_MATE": "你们已经是好友了",
+  "WAIT_MATE": "好友申请已发送，正在等待验证"
 }

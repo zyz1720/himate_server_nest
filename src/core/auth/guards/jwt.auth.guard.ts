@@ -44,14 +44,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   handleRequest(error: any, user: any, info: any, context: ExecutionContext) {
     // 处理token过期的特殊情况
-    if (info && info.name === 'TokenExpiredError') {
+    if (info && info.name == 'TokenExpiredError') {
       throw new UnauthorizedException(
         this.i18n.t('message.ACCESS_TOKEN_EXPIRED'),
       );
     }
 
     // 处理其他JWT错误
-    if (info && info.name === 'JsonWebTokenError') {
+    if (info && info.name == 'JsonWebTokenError') {
       throw new UnauthorizedException(this.i18n.t('message.INVALID_TOKEN'));
     }
 

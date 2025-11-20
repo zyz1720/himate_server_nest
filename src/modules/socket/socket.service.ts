@@ -29,14 +29,14 @@ export class SocketService {
     if (!session) {
       return false;
     }
-    if (session.chat_type === ChatTypeEnum.group) {
+    if (session.chat_type == ChatTypeEnum.group) {
       const group = await this.groupService.verifyUserIsMember(uid, session_id);
       if (!group) {
         return false;
       }
       return session;
     }
-    if (session.chat_type === ChatTypeEnum.private) {
+    if (session.chat_type == ChatTypeEnum.private) {
       const mate = await this.mateService.verifyUserIsMate(uid, session_id);
       if (!mate) {
         return false;
@@ -56,10 +56,10 @@ export class SocketService {
 
     // 如果会话已存在且验证通过
     if (session) {
-      if (session.chat_type === ChatTypeEnum.group && group) {
+      if (session.chat_type == ChatTypeEnum.group && group) {
         return session;
       }
-      if (session.chat_type === ChatTypeEnum.private && mate) {
+      if (session.chat_type == ChatTypeEnum.private && mate) {
         return session;
       }
       return false;
@@ -71,7 +71,7 @@ export class SocketService {
         session_id,
         chat_type: ChatTypeEnum.group,
       });
-      if (result.code === 0) return result.data as SessionEntity;
+      if (result.code == 0) return result.data as SessionEntity;
     }
 
     if (mate) {
@@ -79,7 +79,7 @@ export class SocketService {
         session_id,
         chat_type: ChatTypeEnum.private,
       });
-      if (result.code === 0) return result.data as SessionEntity;
+      if (result.code == 0) return result.data as SessionEntity;
     }
 
     return false;
@@ -91,7 +91,7 @@ export class SocketService {
 
     // 如果会话已存在且验证通过
     if (session) {
-      if (session.chat_type === ChatTypeEnum.group) {
+      if (session.chat_type == ChatTypeEnum.group) {
         const group = await this.groupService.verifyUserIsMember(
           uid,
           session.session_id,
@@ -101,7 +101,7 @@ export class SocketService {
         }
         return true;
       }
-      if (session.chat_type === ChatTypeEnum.private) {
+      if (session.chat_type == ChatTypeEnum.private) {
         const mate = await this.mateService.verifyUserIsMate(
           uid,
           session.session_id,
@@ -141,7 +141,7 @@ export class SocketService {
       ...data,
       sender_id: uid,
     });
-    if (result.code === 0) {
+    if (result.code == 0) {
       const message = result.data as MessageEntity;
       session.lastMsg = message;
       await this.sessionService.saveSession(session);
@@ -166,7 +166,7 @@ export class SocketService {
         message_id: messageId,
         user_id: uid,
       });
-    if (recordRes.code === 0) {
+    if (recordRes.code == 0) {
       return true;
     }
     return false;

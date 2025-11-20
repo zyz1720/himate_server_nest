@@ -40,13 +40,13 @@ export class FileService {
     const entityData = this.fileRepository.create(data);
     const insertRes = await this.fileRepository.insert(entityData);
     if (insertRes.identifiers.length) {
-      if (file_type === FileTypeEnum.audio && use_type === UseTypeEnum.music) {
+      if (file_type == FileTypeEnum.audio && use_type == UseTypeEnum.music) {
         this.fileQueue.add('parse_music_metadata', {
           ...entityData,
           file_path: filePath,
         });
       }
-      if (file_type === FileTypeEnum.image) {
+      if (file_type == FileTypeEnum.image) {
         this.fileQueue.add('create_thumbnail_image', {
           ...entityData,
           file_path: filePath,
@@ -223,7 +223,7 @@ export class FileService {
       const waitFiles = softDeleteFiles.map((ele) => ({
         file_key: ele.file_key,
         is_recycle: ele.delete_time ? true : false,
-        is_image: ele.file_type === FileTypeEnum.image,
+        is_image: ele.file_type == FileTypeEnum.image,
       }));
       await this.fileQueue.add('force_delete_file', waitFiles);
     }

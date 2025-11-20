@@ -31,7 +31,7 @@ export class FileQueueConsumer {
       };
     }
     const insertRes = await this.musicService.addMusic(musicData);
-    if (insertRes.code === 0) {
+    if (insertRes.code == 0) {
       return true;
     } else {
       return false;
@@ -55,10 +55,10 @@ export class FileQueueConsumer {
       const { file_key, move_type } = moveInfo;
       const uploadPath = join(FILE_DIR.UPLOAD, file_key);
       const recyclePath = join(FILE_DIR.RECYCLE_BIN, file_key);
-      if (move_type === MoveTypeEnum.Delete) {
+      if (move_type == MoveTypeEnum.Delete) {
         return FileUtil.moveLocalFile(uploadPath, recyclePath);
       }
-      if (move_type === MoveTypeEnum.Restore) {
+      if (move_type == MoveTypeEnum.Restore) {
         return FileUtil.moveLocalFile(recyclePath, uploadPath);
       }
     });

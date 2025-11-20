@@ -38,21 +38,40 @@ export class AppMateController {
   @ApiOkPageRes(MateEntity)
   @Get('friend')
   findAllFriend(@UserId() uid: number, @Query() query: FindAllDto) {
-    return this.mateService.findAllUserMate(uid, query, MateStatusEnum.agreed);
+    return this.mateService.findAllUserMate(uid, query);
   }
 
-  @ApiOperation({ summary: '待通过好友列表' })
+  @ApiOperation({ summary: '用户间的好友关系' })
+  @ApiOkRes(MateEntity)
+  @Get('relation/:userId')
+  findRelation(@UserId() uid: number, @Param('userId') userId: number) {
+    return this.mateService.verifyTwoUserIsMate(
+      uid,
+      userId,
+      MateStatusEnum.agreed,
+    );
+  }
+
+  @ApiOperation({ summary: '申请我为好友的列表' })
   @ApiOkPageRes(MateEntity)
   @Get('waiting')
   findAllWaiting(@UserId() uid: number, @Query() query: FindAllDto) {
-    return this.mateService.findAllUserMate(uid, query, MateStatusEnum.waiting);
+    return this.mateService.findAllUserApplyMate(
+      uid,
+      query,
+      MateStatusEnum.waiting,
+    );
   }
 
-  @ApiOperation({ summary: '已拒绝的好友列表' })
+  @ApiOperation({ summary: '我已拒绝的好友申请列表' })
   @ApiOkPageRes(MateEntity)
   @Get('rejected')
   findAllRejected(@UserId() uid: number, @Query() query: FindAllDto) {
-    return this.mateService.findAllUserMate(uid, query, MateStatusEnum.refused);
+    return this.mateService.findAllUserApplyMate(
+      uid,
+      query,
+      MateStatusEnum.refused,
+    );
   }
 
   @ApiOperation({ summary: '修改好友备注' })
@@ -69,11 +88,16 @@ export class AppMateController {
   @ApiOperation({ summary: '同意好友申请' })
   @ApiOkRes(MateEntity)
   @Put('agree/:id')
-  agree(@UserId() uid: number, @Param('id') id: string) {
+  agree(
+    @UserId() uid: number,
+    @Param('id') id: string,
+    @Body() data: UpdateMateRemarksDto,
+  ) {
     return this.mateService.updateMateStatus(
       uid,
       parseInt(id),
       MateStatusEnum.agreed,
+      data,
     );
   }
 

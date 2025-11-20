@@ -7,6 +7,7 @@ import {
   Get,
   Put,
   Query,
+  Param,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/core/auth/decorators/public.decorator';
@@ -44,13 +45,6 @@ export class AppUserController {
     return this.userService.findOneUserEnabled({ id: uid });
   }
 
-  @ApiOperation({ summary: '搜索用户' })
-  @ApiOkRes(UserEntity)
-  @Get('search')
-  search(@Query() query: SearchOneUserEnabledDto) {
-    return this.userService.searchUserEnabled(query);
-  }
-
   @ApiOperation({ summary: '修改用户信息' })
   @ApiOkRes(UserEntity)
   @Put('info')
@@ -77,5 +71,19 @@ export class AppUserController {
   @Delete('logout')
   remove(@UserId() uid: number) {
     return this.userService.softDeleteUser(uid);
+  }
+
+  @ApiOperation({ summary: '搜索其他用户' })
+  @ApiOkRes(UserEntity)
+  @Get('search')
+  search(@Query() query: SearchOneUserEnabledDto) {
+    return this.userService.searchUserEnabled(query);
+  }
+
+  @ApiOperation({ summary: '获取其他用户详情' })
+  @ApiOkRes(UserEntity)
+  @Get('detail/:id')
+  detail(@Param('id') id: number) {
+    return this.userService.findOneUserEnabledDetail(id);
   }
 }

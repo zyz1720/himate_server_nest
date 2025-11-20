@@ -43,7 +43,7 @@ export class MusicApiService {
       if (musicRes.status != 200) {
         return Response.fail(this.i18n.t('message.GET_FAIL'));
       }
-      if (musicRes.data.code === 200) {
+      if (musicRes.data.code == 200) {
         const music = musicRes.data.data;
         return Response.ok(this.i18n.t('message.GET_SUCCESS'), music);
       } else {
@@ -66,7 +66,7 @@ export class MusicApiService {
       if (searchRes.status != 200) {
         return Response.fail(this.i18n.t('message.GET_FAIL'));
       }
-      if (searchRes.data.code === 200) {
+      if (searchRes.data.code == 200) {
         const list = searchRes.data.data.map((item: any) => {
           return {
             id: item.id,
@@ -97,7 +97,7 @@ export class MusicApiService {
       if (lyricRes.status != 200) {
         return Response.fail(this.i18n.t('message.GET_FAIL'));
       }
-      if (lyricRes.data.code === 200) {
+      if (lyricRes.data.code == 200) {
         const lyric = lyricRes.data.data;
         return Response.ok(this.i18n.t('message.GET_SUCCESS'), lyric);
       } else {
@@ -146,7 +146,7 @@ export class MusicApiService {
             })) as Response<{ file_key: string }>;
             await CommonUtil.delay();
             const lyricRes = await this.findMusicLyric(matchedMusic.id);
-            if (downloadRes.code === 0 && lyricRes.code === 0) {
+            if (downloadRes.code == 0 && lyricRes.code == 0) {
               const { lrc, trans, yrc, roma } = lyricRes.data;
               const { id } = matchedMusic;
               const insertData = queryRunner.manager.create(MusicExtraEntity, {
@@ -236,7 +236,7 @@ export class MusicApiService {
               use_type: UseTypeEnum.music,
               file_type: FileTypeEnum.image,
             })) as Response<FileEntity>;
-            if (downloadRes.code === 0) {
+            if (downloadRes.code == 0) {
               addForm.favorites_cover = downloadRes.data?.file_key;
             }
             const addFavoritesRes = queryRunner.manager.create(
@@ -273,7 +273,7 @@ export class MusicApiService {
     let musicCount = 0;
 
     const factorieRes = await this.findMoreFavorite(thirdPartyId);
-    if (factorieRes.code === 0) {
+    if (factorieRes.code == 0) {
       const queryRunner =
         this.musicRepository.manager.connection.createQueryRunner();
       await queryRunner.connect();
@@ -292,7 +292,7 @@ export class MusicApiService {
             musicIds.push(music.id);
           } else {
             const findRes = await this.findMusicUrl({ id: mid });
-            if (findRes.code === 0) {
+            if (findRes.code == 0) {
               const { url, singer: _singer, quality } = findRes.data;
               if (!quality.includes('试听')) {
                 await CommonUtil.delay();
@@ -304,7 +304,7 @@ export class MusicApiService {
                   },
                   false,
                 );
-                if (downloadRes.code === 0) {
+                if (downloadRes.code == 0) {
                   const { file_key } = downloadRes.data as FileEntity;
                   const createMusic = queryRunner.manager.create(MusicEntity, {
                     file_key: file_key,

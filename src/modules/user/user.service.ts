@@ -100,21 +100,21 @@ export class UserService {
   async findOneUserEnabled(query: findOneUserEnabledDto) {
     const { id, account, self_account, password } = query || {};
     const qb = this.userRepository.createQueryBuilder('user');
-    qb.where('user.user_status = :status', { status: Status.Enabled });
+    qb.where('user_status = :status', { status: Status.Enabled });
     if (id) {
-      qb.andWhere('user.id = :id', { id });
+      qb.andWhere('id = :id', { id });
     }
     if (account) {
-      qb.andWhere('user.account = :account', { account });
+      qb.andWhere('account = :account', { account });
     }
     if (self_account) {
-      qb.andWhere('user.self_account = :self_account', {
+      qb.andWhere('self_account = :self_account', {
         self_account,
       });
     }
     if (password) {
       const enPassword = StringUtil.encryptStr(password);
-      qb.andWhere('user.password = :enPassword', { enPassword });
+      qb.andWhere('password = :enPassword', { enPassword });
     }
     const data = await qb.getOne();
     return data;
@@ -341,6 +341,7 @@ export class UserService {
     }
   }
 
+  /* 搜索正常用户 */
   async searchUserEnabled(query: SearchOneUserEnabledDto) {
     const { keyword, current = 1, pageSize = 10 } = query;
     const qb = this.userRepository
@@ -361,5 +362,25 @@ export class UserService {
     qb.offset(pageSize * (current - 1));
     const data = await qb.getMany();
     return PageResponse.list(data, count);
+  }
+
+  /* 获取正常用户部分信息 */
+  async findOneUserEnabledDetail(id: number) {
+    const qb = this.userRepository.createQueryBuilder('user');
+    qb.where('id = :id AND user_status = :status', {
+      id,
+      status: Status.Enabled,
+    });
+    qb.select([
+      'user.id',
+      'user.user_name',
+      'user.account',
+      'user.user_avatar',
+      'user.self_account',
+      'user.sex',
+      'user.age',
+    ]);
+    const data = await qb.getOne();
+    return data;
   }
 }

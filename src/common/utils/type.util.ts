@@ -11,11 +11,11 @@ export class TypeUtil {
       return typeof value;
     };
     return (
-      getType(obj) === 'object' &&
+      getType(obj) == 'object' &&
       obj !== null &&
-      getType(obj.code) === 'number' &&
-      getType(obj.message) === 'string' &&
-      (obj.data === null ||
+      getType(obj.code) == 'number' &&
+      getType(obj.message) == 'string' &&
+      (obj.data == null ||
         typeof obj.data !== 'undefined' ||
         typeof obj.data !== 'function')
     );

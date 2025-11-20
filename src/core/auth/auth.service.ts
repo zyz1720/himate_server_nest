@@ -87,7 +87,7 @@ export class AuthService {
   async userLoginByCode(data: UserLoginByCodeDto) {
     const { account, code } = data || {};
     const res = await this.userService.validateUser({ account, code });
-    if (res.code === 0) {
+    if (res.code == 0) {
       const user = await this.userService.findOneUserEnabled({ account });
       if (user) {
         const Token = await this.login(user);

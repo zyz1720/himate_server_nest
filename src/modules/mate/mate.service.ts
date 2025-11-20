@@ -124,6 +124,25 @@ export class MateService {
     }
   }
 
+  /* 验证用户是否是好友 */
+  async verifyTwoUserIsMate(
+    userId: number,
+    friendId: number,
+    status?: MateStatusEnum,
+  ) {
+    const qb = this.mateRepository
+      .createQueryBuilder('mate')
+      .where(
+        '(user_id = :userId AND friend_id = :friendId) OR (user_id = :friendId AND friend_id = :userId)',
+        { userId, friendId },
+      );
+    if (status) {
+      qb.andWhere('mate_status = :status', { status });
+    }
+    const mate = await qb.getOne();
+    return mate;
+  }
+
   /* 添加用户好友 */
   async addUserMate(uid: number, data: AddUserMateDto) {
     const { friend_id, friend_remarks } = data || {};
@@ -135,6 +154,15 @@ export class MateService {
     });
     if (!friend || !user) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    const mate = await this.verifyTwoUserIsMate(uid, friend_id);
+    if (mate) {
+      if (mate.mate_status == MateStatusEnum.agreed) {
+        return Response.fail(this.i18n.t('message.ALREADY_MATE'));
+      }
+      if (mate.mate_status == MateStatusEnum.waiting) {
+        return Response.fail(this.i18n.t('message.WAIT_MATE'));
+      }
     }
     const entityData = this.mateRepository.create({
       ...data,
@@ -152,11 +180,7 @@ export class MateService {
   }
 
   /* 查询用户好友 */
-  async findAllUserMate(
-    uid: number,
-    query: FindAllDto,
-    mate_status?: MateStatusEnum,
-  ) {
+  async findAllUserMate(uid: number, query: FindAllDto) {
     const { current = 1, pageSize = 10 } = query || {};
     const qb = this.mateRepository
       .createQueryBuilder('mate')
@@ -165,6 +189,9 @@ export class MateService {
       .where('user_id = :user_id OR friend_id = :friend_id', {
         user_id: uid,
         friend_id: uid,
+      })
+      .andWhere('mate_status = :status', {
+        status: MateStatusEnum.agreed,
       })
       .select([
         'mate',
@@ -175,11 +202,6 @@ export class MateService {
         'friend.user_avatar',
         'friend.user_name',
       ]);
-    if (mate_status) {
-      qb.andWhere('mate_status = :mate_status', {
-        mate_status: mate_status,
-      });
-    }
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
@@ -187,9 +209,38 @@ export class MateService {
     const data = await qb.getMany();
     const list = data.map((item) => ({
       ...item,
-      theOther: item.user_id === uid ? item.friend : item.user,
+      theOther: item.user_id == uid ? item.friend : item.user,
     }));
     return PageResponse.list(list, count);
+  }
+
+  /* 查询向用户申请好友记录 */
+  async findAllUserApplyMate(
+    uid: number,
+    query: FindAllDto,
+    status: MateStatusEnum,
+  ) {
+    const { current = 1, pageSize = 10 } = query || {};
+    const qb = this.mateRepository
+      .createQueryBuilder('mate')
+      .leftJoinAndSelect('mate.user', 'user')
+      .leftJoin('mate.friend', 'friend')
+      .where('friend_id = :friend_id', {
+        friend_id: uid,
+      })
+      .select(['mate', 'user.id', 'user.user_avatar', 'user.user_name']);
+    if (status) {
+      qb.andWhere('mate_status = :status', {
+        status: status,
+      });
+    }
+
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+    const count = await qb.getCount();
+    const data = await qb.getMany();
+
+    return PageResponse.list(data, count);
   }
 
   /* 修改好友备注 */
@@ -224,11 +275,23 @@ export class MateService {
     return this.softDeleteMate(id);
   }
 
-  /* 修改好友状态 */
-  async updateMateStatus(uid: number, id: number, mate_status: MateStatusEnum) {
+  /* 被申请者修改好友状态 */
+  async updateMateStatus(
+    uid: number,
+    id: number,
+    mate_status: MateStatusEnum,
+    data?: UpdateMateRemarksDto,
+  ) {
+    const { remarks } = data || {};
     const mate = await this.mateRepository.findOne({ where: { id } });
-    if (mate.user_id !== uid && mate.friend_id !== uid) {
+    if (mate.user_id != uid && mate.friend_id != uid) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+    }
+    if (mate.friend_id != uid) {
+      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    }
+    if (remarks) {
+      mate.user_remarks = remarks;
     }
     mate.mate_status = mate_status;
     const result = await this.mateRepository.update(id, mate);
@@ -242,7 +305,7 @@ export class MateService {
     }
   }
 
-  /* 验证用户是否是好友 */
+  /* 验证用户是否属于该条好友记录 */
   async verifyUserIsMate(uid: number, mate_id: string) {
     const mate = await this.mateRepository.findOne({
       where: [

@@ -5,13 +5,13 @@ export class CommonUtil {
    * @returns 处理后的消息字符串
    */
   static getFilterMsg(data: any | string | Array<any>): string {
-    if (typeof data === 'string') {
+    if (typeof data == 'string') {
       return data;
     }
     if (data.message && Array.isArray(data.message)) {
       return data.message.join('; ');
     }
-    if (typeof data.message === 'string') {
+    if (typeof data.message == 'string') {
       return data.message;
     }
     return '';

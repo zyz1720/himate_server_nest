@@ -46,6 +46,6 @@ export class CaptchaService {
       return false;
     }
     await this.redisService.delValue(captchaId);
-    return storedCode.toLowerCase() === code.toLowerCase();
+    return storedCode.toLowerCase() == code.toLowerCase();
   }
 }

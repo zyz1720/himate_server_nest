@@ -277,7 +277,7 @@ export class GroupMemberService {
         (id) => !existingUserIds.includes(id),
       );
 
-      if (nonExistingUserIds.length === 0) {
+      if (nonExistingUserIds.length == 0) {
         return Response.fail(this.i18n.t('message.DATA_EXIST'));
       }
 
@@ -332,11 +332,11 @@ export class GroupMemberService {
     ) {
       return Response.fail(this.i18n.t('message.PERMISSION_DENIED'));
     }
-    if (member.member_role === MemberRoleEnum.owner) {
+    if (member.member_role == MemberRoleEnum.owner) {
       const excludeSelfIds = ids.filter((id) => id !== member.id);
       return this.softDeleteGroupMembers(excludeSelfIds);
     }
-    if (member.member_role === MemberRoleEnum.admin) {
+    if (member.member_role == MemberRoleEnum.admin) {
       return this.deleteNormalGroupMembers(ids);
     }
   }
@@ -347,7 +347,7 @@ export class GroupMemberService {
     if (!member) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
-    if (member.member_role === MemberRoleEnum.owner) {
+    if (member.member_role == MemberRoleEnum.owner) {
       return Response.fail(this.i18n.t('message.NO_ALLOW'));
     }
     return this.softDeleteGroupMember(member.id);
@@ -366,23 +366,23 @@ export class GroupMemberService {
   /* 更新群成员权限 */
   async updateUserGroupMemberAuth(uid: number, data: UpdateGroupMemberAuthDto) {
     const { groupId, id, ...updateData } = data;
-    if (updateData.member_role === MemberRoleEnum.owner) {
+    if (updateData.member_role == MemberRoleEnum.owner) {
       return Response.fail(this.i18n.t('message.NO_ALLOW'));
     }
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
-    if (member.member_role === MemberRoleEnum.member) {
+    if (member.member_role == MemberRoleEnum.member) {
       return Response.fail(this.i18n.t('message.NO_PERMISSION'));
     }
-    if (member.member_role === MemberRoleEnum.owner) {
-      if (member.id === id) {
+    if (member.member_role == MemberRoleEnum.owner) {
+      if (member.id == id) {
         return Response.fail(this.i18n.t('message.NO_ALLOW'));
       }
       return this.updateGroupMember(id, updateData);
     }
-    if (member.member_role === MemberRoleEnum.admin) {
+    if (member.member_role == MemberRoleEnum.admin) {
       return this.updateNormalGroupMemberAuth(id, updateData);
     }
   }

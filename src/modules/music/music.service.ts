@@ -251,7 +251,7 @@ export class MusicService {
         where: { id: In(ids) },
         select: ['id'],
       });
-      if (music.length === 0) {
+      if (music.length == 0) {
         return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
       }
 
@@ -330,7 +330,7 @@ export class MusicService {
           },
         },
       });
-      if (favorites.length === 0) {
+      if (favorites.length == 0) {
         return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
       }
 
@@ -338,7 +338,7 @@ export class MusicService {
         where: { id: In(ids) },
         select: ['id'],
       });
-      if (music.length === 0) {
+      if (music.length == 0) {
         return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
       }
 
