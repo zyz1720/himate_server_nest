@@ -7,7 +7,7 @@ import { UpdateMusicDto } from './dto/update-music.dto';
 import { FindAllMusicDto, SearchMusicDto } from './dto/find-all-music.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
-import { AppendMusicDto, OperateMusicDto } from './dto/operate-music.dto';
+import { AppendMusicDto } from './dto/operate-music.dto';
 import { IdsDto } from 'src/common/dto/common.dto';
 import { FavoritesEntity } from '../favorites/entity/favorites.entity';
 import { Whether } from 'src/common/constants/database-enum.const';
@@ -172,26 +172,51 @@ export class MusicService {
     }
   }
 
+  /* 查询默认收藏的音乐 */
+  async findUserDefaultFavoritesMusic(uid: number, query: FindAllMusicDto) {
+    const { current = 1, pageSize = 10 } = query || {};
+    const qb = this.musicRepository
+      .createQueryBuilder('music')
+      .leftJoin('music.favorites', 'favorites')
+      .where(
+        'favorites.favorites_uid = :favorites_uid AND favorites.is_default = :is_default',
+        {
+          favorites_uid: uid,
+          is_default: Whether.Y,
+        },
+      )
+      .limit(pageSize)
+      .offset(pageSize * (current - 1));
+    const total = await qb.getCount();
+    const list = await qb.getMany();
+    return PageResponse.list(list, total);
+  }
+
   /* 查询收藏的音乐 */
   async findUserFavoritesMusic(
-    current: number,
-    pageSize: number,
+    uid: number,
     favoritesId: number,
+    query: FindAllMusicDto,
   ) {
+    const { current = 1, pageSize = 10 } = query || {};
     const qb = this.musicRepository
       .createQueryBuilder('music')
       .leftJoin('music.favorites', 'favorites')
       .where('favorites.id = :favoritesId', {
         favoritesId,
       })
+      .andWhere(
+        '(favorites.favorites_uid = :uid OR favorites.is_public = :isPublic)',
+        {
+          uid,
+          isPublic: Whether.Y,
+        },
+      )
       .limit(pageSize)
       .offset(pageSize * (current - 1));
     const total = await qb.getCount();
     const list = await qb.getMany();
-    return {
-      total,
-      list,
-    };
+    return PageResponse.list(list, total);
   }
 
   /* 用户搜索音乐 */
@@ -270,8 +295,8 @@ export class MusicService {
   }
 
   /* 用户移除收藏夹音乐 */
-  async removeFavoritesMusic(uid: number, query: OperateMusicDto) {
-    const { favoritesId, ids } = query || {};
+  async removeFavoritesMusic(uid: number, favoritesId: number, query: IdsDto) {
+    const { ids } = query || {};
     // 使用事务保证操作一致性
     const queryRunner =
       this.musicRepository.manager.connection.createQueryRunner();

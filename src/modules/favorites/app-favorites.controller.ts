@@ -21,7 +21,6 @@ import { UpdateUserFavoritesDto } from './dto/update-favorites.dto';
 import { SearchFavoritesDto } from './dto/find-all-favorites.dto';
 import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 import { FavoritesEntity } from './entity/favorites.entity';
-import { FindOneFavoritesDto } from './dto/find-one-favorites';
 
 @ApiTags('app - 音乐收藏夹')
 @ApiBearerAuth()
@@ -29,7 +28,7 @@ import { FindOneFavoritesDto } from './dto/find-one-favorites';
 export class AppFavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
-  @ApiOperation({ summary: '创建音乐收藏夹' })
+  @ApiOperation({ summary: '创建歌单' })
   @ApiOkRes(FavoritesEntity)
   @Post()
   create(@UserId() uid: number, @Body() data: AppAddFavoritesDto) {
@@ -39,35 +38,35 @@ export class AppFavoritesController {
     });
   }
 
-  @ApiOperation({ summary: '用户音乐收藏夹列表' })
+  @ApiOperation({ summary: '我的歌单' })
   @ApiOkPageRes(FavoritesEntity)
   @Get('oneself')
   findAll(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.favoritesService.findUserFavorites(uid, query);
   }
 
-  @ApiOperation({ summary: '搜索音乐收藏夹' })
+  @ApiOperation({ summary: '搜索歌单' })
   @ApiOkRes(FavoritesEntity)
   @Get()
   search(@Query() query: SearchFavoritesDto) {
     return this.favoritesService.searchFavorites(query);
   }
 
-  @ApiOperation({ summary: '用户音乐收藏夹详情' })
+  @ApiOperation({ summary: '歌单详情' })
   @ApiOkPageRes(FavoritesEntity)
-  @Get('detail')
-  findDetail(@UserId() uid: number, @Query() query: FindOneFavoritesDto) {
-    return this.favoritesService.findUserFavoritesDetail(uid, query);
+  @Get('detail/:id')
+  findDetail(@UserId() uid: number, @Param('id') id: string) {
+    return this.favoritesService.findUserFavoritesDetail(uid, parseInt(id));
   }
 
-  @ApiOperation({ summary: '用户默认音乐收藏夹详情' })
+  @ApiOperation({ summary: '默认收藏详情' })
   @ApiOkPageRes(FavoritesEntity)
   @Get('default')
-  findDefault(@UserId() uid: number, @Query() query: FindAllDto) {
-    return this.favoritesService.findUserDefaultFavorites(uid, query);
+  findDefault(@UserId() uid: number) {
+    return this.favoritesService.findUserDefaultFavorites(uid);
   }
 
-  @ApiOperation({ summary: '用户修改音乐收藏夹信息' })
+  @ApiOperation({ summary: '修改歌单信息' })
   @ApiOkRes(FavoritesEntity)
   @Put(':id')
   update(
@@ -78,7 +77,7 @@ export class AppFavoritesController {
     return this.favoritesService.updateUserFavorites(uid, parseInt(id), data);
   }
 
-  @ApiOperation({ summary: '用户批量删除音乐收藏夹' })
+  @ApiOperation({ summary: '批量删除歌单' })
   @ApiOkMsgRes()
   @Delete('batch')
   removeBatch(@UserId() uid: number, @Body() data: IdsDto) {

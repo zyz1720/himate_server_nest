@@ -14,7 +14,6 @@ import {
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { Whether } from 'src/common/constants/database-enum.const';
-import { FindOneFavoritesDto } from './dto/find-one-favorites';
 import { IdsDto } from 'src/common/dto/common.dto';
 import { MusicService } from '../music/music.service';
 
@@ -184,35 +183,25 @@ export class FavoritesService {
   }
 
   /* 查询用户收藏夹详情 */
-  async findUserFavoritesDetail(uid: number, query: FindOneFavoritesDto) {
-    const { id, current = 1, pageSize = 10 } = query || {};
+  async findUserFavoritesDetail(uid: number, id: number) {
     const qb = this.favoritesRepository
       .createQueryBuilder('favorites')
       .leftJoinAndSelect('favorites.user', 'user')
       .select(['favorites', 'user.id', 'user.user_name', 'user.user_avatar'])
-      .where('favorites.id = :id AND favorites.favorites_uid = :uid', {
-        id,
-        uid,
-      });
+      .where('favorites.id = :id', { id })
+      .andWhere(
+        '(favorites.favorites_uid = :uid OR favorites.is_public = :isPublic)',
+        {
+          uid,
+          isPublic: Whether.Y,
+        },
+      );
     const favorites = await qb.getOne();
-    if (!favorites) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
-    }
-    const { total, list } = await this.musicService.findUserFavoritesMusic(
-      current,
-      pageSize,
-      id,
-    );
-    favorites.music = list;
-    return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
-      ...favorites,
-      musicCount: total,
-    });
+    return favorites;
   }
 
   /* 查询默用户认收藏夹 */
-  async findUserDefaultFavorites(uid: number, query: FindAllFavoritesDto) {
-    const { current = 1, pageSize = 10 } = query || {};
+  async findUserDefaultFavorites(uid: number) {
     const favorites = await this.favoritesRepository
       .createQueryBuilder('favorites')
       .where('favorites_uid = :uid AND is_default = :is_default', {
@@ -221,20 +210,7 @@ export class FavoritesService {
       })
       .getOne();
 
-    if (!favorites) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
-    }
-    const { total, list } = await this.musicService.findUserFavoritesMusic(
-      current,
-      pageSize,
-      favorites.id,
-    );
-    favorites.music = list;
-
-    return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
-      ...favorites,
-      musicCount: total,
-    });
+    return favorites;
   }
 
   /* 用户更新收藏夹音乐信息 */
