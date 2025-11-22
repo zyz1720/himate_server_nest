@@ -15,8 +15,8 @@ export enum FileTypeEnum {
   image = 'image',
   video = 'video',
   audio = 'audio',
-  other = 'other',
   document = 'document',
+  other = 'other',
 }
 export enum UseTypeEnum {
   user = 'user',

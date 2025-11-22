@@ -21,7 +21,6 @@ export class CaptchaService {
     try {
       const captcha = svgCaptcha.create();
       const captchaId = StringUtil.createUUID();
-      console.log(captchaId, captcha.text);
       await this.redisService.setValue(captchaId, captcha.text, 60);
       return Response.ok(
         this.i18n.t('message.GET_SUCCESS'),
