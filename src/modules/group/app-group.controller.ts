@@ -20,7 +20,6 @@ import { AppAppFindAllGroupDto } from './dto/find-all-group.dto';
 import { GroupEntity } from './entity/group.entity';
 import { IdsDto } from 'src/common/dto/common.dto';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
-import { FindOneGroupDto } from './dto/find-one-group.dto';
 
 @ApiTags('app - 群组')
 @ApiBearerAuth()
@@ -28,28 +27,28 @@ import { FindOneGroupDto } from './dto/find-one-group.dto';
 export class AppGroupController {
   constructor(private readonly groupService: GroupService) {}
 
-  @ApiOperation({ summary: '用户创建群组' })
+  @ApiOperation({ summary: '创建群组' })
   @ApiOkRes(GroupEntity)
   @Post()
   create(@UserId() uid: number, @Body() data: IdsDto) {
     return this.groupService.addUserGroup(uid, data);
   }
 
-  @ApiOperation({ summary: '用户的群组列表' })
+  @ApiOperation({ summary: '群组列表' })
   @ApiOkPageRes(GroupEntity)
   @Get()
   findAll(@UserId() uid: number, @Query() query: AppAppFindAllGroupDto) {
     return this.groupService.findAllUserGroup(uid, query);
   }
 
-  @ApiOperation({ summary: '获取用户的群组详情' })
+  @ApiOperation({ summary: '群组详情' })
   @ApiOkRes(GroupEntity)
-  @Get('detail')
-  findOne(@UserId() uid: number, @Query() query: FindOneGroupDto) {
-    return this.groupService.findOneUserGroup(uid, query);
+  @Get('detail/:id')
+  findOne(@UserId() uid: number, @Param('id') id: string) {
+    return this.groupService.findOneUserGroup(uid, parseInt(id));
   }
 
-  @ApiOperation({ summary: '修改用户群组信息' })
+  @ApiOperation({ summary: '修改群组信息' })
   @ApiOkRes(GroupEntity)
   @Put(':id')
   update(

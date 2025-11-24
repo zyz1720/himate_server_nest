@@ -36,7 +36,7 @@ export class AppMateController {
 
   @ApiOperation({ summary: '好友列表' })
   @ApiOkPageRes(MateEntity)
-  @Get('friend')
+  @Get()
   findAllFriend(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.mateService.findAllUserMate(uid, query);
   }

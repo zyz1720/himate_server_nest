@@ -17,7 +17,7 @@ import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { UserEntity } from '../user/entity/user.entity';
 import { GroupEntity } from '../group/entity/group.entity';
-import { OperateGroupMemberDto } from './dto/operate-group-member.dto';
+import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class GroupMemberService {
@@ -221,10 +221,17 @@ export class GroupMemberService {
 
   /* 查询所有群成员 */
   async findAllGroupMemberByGroupId(
-    current: number,
-    pageSize: number,
+    uid: number,
     groupId: number,
+    query: FindAllDto,
   ) {
+    const { current = 1, pageSize = 10 } = query || {};
+    // 检查用户是否是群成员
+    const isMember = await this.findUserIsMember(uid, groupId);
+    if (!isMember) {
+      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    }
+
     const qb = this.groupMemberRepository
       .createQueryBuilder('group_member')
       .where('group_primary_id = :groupId', { groupId })
@@ -244,15 +251,13 @@ export class GroupMemberService {
       .offset(pageSize * (current - 1));
     const total = await qb.getCount();
     const list = await qb.getMany();
-    return {
-      total,
-      list,
-    };
+
+    return PageResponse.list(list, total);
   }
 
   /* 邀请群成员 */
-  async addUserGroupMember(uid: number, data: OperateGroupMemberDto) {
-    const { groupId, ids } = data;
+  async addUserGroupMember(uid: number, groupId: number, data: IdsDto) {
+    const { ids } = data;
     // 使用事务保证操作一致性
     const queryRunner =
       this.groupMemberRepository.manager.connection.createQueryRunner();
@@ -320,8 +325,8 @@ export class GroupMemberService {
   }
 
   /* 用户移除群成员 */
-  async removeUserGroupMembers(uid: number, data: OperateGroupMemberDto) {
-    const { groupId, ids } = data;
+  async removeUserGroupMembers(uid: number, groupId: number, data: IdsDto) {
+    const { ids } = data;
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
@@ -354,18 +359,25 @@ export class GroupMemberService {
   }
 
   /* 更新群成员信息 */
-  async updateUserGroupMember(uid: number, data: AppUpdateGroupMemberDto) {
-    const { groupId, ...updateData } = data;
+  async updateUserGroupMember(
+    uid: number,
+    groupId: number,
+    data: AppUpdateGroupMemberDto,
+  ) {
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
-    return this.updateGroupMember(member.id, updateData);
+    return this.updateGroupMember(member.id, data);
   }
 
   /* 更新群成员权限 */
-  async updateUserGroupMemberAuth(uid: number, data: UpdateGroupMemberAuthDto) {
-    const { groupId, id, ...updateData } = data;
+  async updateUserGroupMemberAuth(
+    uid: number,
+    groupId: number,
+    data: UpdateGroupMemberAuthDto,
+  ) {
+    const { id, ...updateData } = data;
     if (updateData.member_role == MemberRoleEnum.owner) {
       return Response.fail(this.i18n.t('message.NO_ALLOW'));
     }

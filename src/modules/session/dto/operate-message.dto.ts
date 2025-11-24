@@ -20,8 +20,13 @@ export class ReadMessageDto {
   @IsInt()
   readonly messageId: number;
 
+  @ApiProperty({ description: '会话uuid', required: true })
+  @IsNotEmpty()
+  @IsUUID()
+  readonly session_id: string;
+
   @ApiProperty({ description: '会话id', required: true })
   @IsNotEmpty()
   @IsInt()
-  readonly sessionId: number;
+  readonly session_primary_id: number;
 }

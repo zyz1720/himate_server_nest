@@ -34,22 +34,12 @@ export class UpdateGroupMemberDto {
 
 export class AppUpdateGroupMemberDto extends PickType(UpdateGroupMemberDto, [
   'member_remarks',
-]) {
-  @ApiPropertyOptional({ description: '群成员id' })
-  @IsOptional()
-  @IsInt()
-  readonly groupId?: number;
-}
+]) {}
 
 export class UpdateGroupMemberAuthDto extends PickType(UpdateGroupMemberDto, [
   'member_role',
   'member_status',
 ]) {
-  @ApiPropertyOptional({ description: '群组id' })
-  @IsOptional()
-  @IsInt()
-  readonly groupId?: number;
-
   @ApiPropertyOptional({ description: '群成员id' })
   @IsOptional()
   @IsInt()

@@ -18,7 +18,6 @@ import {
   MemberRoleEnum,
   MemberStatusEnum,
 } from '../group-member/entity/group-member.entity';
-import { FindOneGroupDto } from './dto/find-one-group.dto';
 
 @Injectable()
 export class GroupService {
@@ -207,8 +206,7 @@ export class GroupService {
   }
 
   /* 查询用户群组详情 */
-  async findOneUserGroup(uid: number, query: FindOneGroupDto) {
-    const { id, current = 1, pageSize = 10 } = query || {};
+  async findOneUserGroup(uid: number, id: number) {
     // 检查用户是否属于该群组
     const member = await this.groupMemberService.findUserIsMember(uid, id);
     if (!member) {
@@ -218,30 +216,8 @@ export class GroupService {
     const group = await this.groupRepository.findOne({
       where: { id },
     });
-    if (!group) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
-    }
 
-    // 分页查询群成员
-    const { total, list } =
-      await this.groupMemberService.findAllGroupMemberByGroupId(
-        current,
-        pageSize,
-        id,
-      );
-    group.members = list;
-    const oneself = {
-      id: member.id,
-      member_remarks: member.member_remarks,
-      member_role: member.member_role,
-      member_status: member.member_status,
-    };
-
-    return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
-      ...group,
-      oneself,
-      memberCount: total,
-    });
+    return group;
   }
 
   /* 修改用户群组信息 */
