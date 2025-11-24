@@ -31,11 +31,7 @@ export class GroupEntity {
   group_name: string;
 
   @ApiProperty({ description: '群组头像' })
-  @Column({
-    comment: '群组头像',
-    length: DataLength.Long,
-    default: 'default_assets/default_group_avatar.jpg',
-  })
+  @Column({ comment: '群组头像', length: DataLength.Long, nullable: true })
   group_avatar: string;
 
   @ApiProperty({ description: '群组简介' })

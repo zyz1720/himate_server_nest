@@ -24,11 +24,7 @@ export class AddFavoritesDto {
   @IsByteLength(0, DataLength.Long)
   readonly favorites_name: string;
 
-  @ApiProperty({
-    description: '收藏夹封面',
-    required: false,
-    default: 'default_assets/default_favorites_cover.jpg',
-  })
+  @ApiProperty({ description: '收藏夹封面', required: false })
   @IsOptional()
   @IsByteLength(0, DataLength.Long)
   readonly favorites_cover?: string;

@@ -187,12 +187,11 @@ export class UserService {
     if (password) {
       data.password = StringUtil.encryptStr(password);
     }
-    const result = await this.userRepository.update(id, data);
-    if (result.affected) {
-      return Response.ok(
-        this.i18n.t('message.UPDATE_SUCCESS'),
-        result.generatedMaps[0],
-      );
+    const existUser = await this.findOneUserEnabled({ id });
+    const updatedUser = this.userRepository.merge(existUser, data);
+    const result = await this.userRepository.save(updatedUser);
+    if (result) {
+      return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'), result);
     } else {
       return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
     }
@@ -204,12 +203,10 @@ export class UserService {
     if (!existUser) {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
-    const result = await this.userRepository.update(id, data);
-    if (result.affected) {
-      return Response.ok(
-        this.i18n.t('message.UPDATE_SUCCESS'),
-        result.generatedMaps[0],
-      );
+    const updatedUser = this.userRepository.merge(existUser, data);
+    const result = await this.userRepository.save(updatedUser);
+    if (result) {
+      return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'), result);
     } else {
       return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
     }

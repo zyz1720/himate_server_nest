@@ -23,6 +23,11 @@ export class UpdateUserDto extends PickType(FindAllUserDto, [
   @IsByteLength(0, DataLength.Long)
   readonly user_avatar?: string;
 
+  @ApiPropertyOptional({ description: '背景图' })
+  @IsOptional()
+  @IsByteLength(0, DataLength.Long)
+  readonly user_bg_img?: string;
+
   @ApiPropertyOptional({ description: '密码' })
   @IsOptional()
   @Length(6, 18, { message: '密码长度为6-18位' })
@@ -32,6 +37,7 @@ export class UpdateUserDto extends PickType(FindAllUserDto, [
 export class AppUpdateUserDto extends PickType(UpdateUserDto, [
   'self_account',
   'user_name',
+  'user_bg_img',
   'user_avatar',
   'sex',
   'birthday',

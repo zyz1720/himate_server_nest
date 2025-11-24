@@ -8,11 +8,7 @@ export class AddGroupDto {
   @IsByteLength(0, DataLength.Medium)
   readonly group_name: string;
 
-  @ApiProperty({
-    description: '群组头像',
-    required: false,
-    default: 'default_assets/default_group_avatar.jpg',
-  })
+  @ApiProperty({ description: '群组头像', required: false })
   @IsOptional()
   @IsByteLength(0, DataLength.Long)
   readonly group_avatar?: string;

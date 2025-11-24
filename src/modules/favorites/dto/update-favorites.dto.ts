@@ -18,10 +18,7 @@ export class UpdateFavoritesDto {
   @IsByteLength(0, DataLength.Long)
   readonly favorites_name?: string;
 
-  @ApiPropertyOptional({
-    description: '收藏夹封面',
-    default: 'default_assets/default_favorites_cover.jpg',
-  })
+  @ApiPropertyOptional({ description: '收藏夹封面' })
   @IsOptional()
   @IsByteLength(0, DataLength.Long)
   readonly favorites_cover?: string;

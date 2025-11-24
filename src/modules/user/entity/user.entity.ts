@@ -32,12 +32,12 @@ export class UserEntity {
   user_name: string;
 
   @ApiProperty({ description: '用户头像' })
-  @Column({
-    length: DataLength.Long,
-    default: 'default_assets/default_user_avatar.jpg',
-    comment: '用户头像',
-  })
+  @Column({ length: DataLength.Long, nullable: true, comment: '用户头像' })
   user_avatar: string;
+
+  @ApiProperty({ description: '用户背景图' })
+  @Column({ length: DataLength.Long, nullable: true, comment: '用户背景图' })
+  user_bg_img: string;
 
   @ApiProperty({ description: '性别' })
   @Column({
@@ -53,7 +53,7 @@ export class UserEntity {
   birthday: Date;
 
   @ApiProperty({ description: '年龄' })
-  @Column({ type: 'tinyint', nullable: true, comment: '年龄' })
+  @Column({ type: 'tinyint', comment: '年龄', default: 0 })
   age: number;
 
   @ApiProperty({ description: '账号' })
