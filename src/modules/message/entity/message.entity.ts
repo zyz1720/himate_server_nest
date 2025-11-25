@@ -23,6 +23,7 @@ export enum MsgTypeEnum {
   image = 'image',
   video = 'video',
   audio = 'audio',
+  file = 'file',
   other = 'other',
 }
 

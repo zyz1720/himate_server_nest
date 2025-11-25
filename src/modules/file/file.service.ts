@@ -170,8 +170,10 @@ export class FileService {
   /* 批量删除用户的文件 */
   async batchSoftDeleteAppFile(uid: number, data: IdsDto) {
     const { ids } = data || {};
-    const qb = this.fileRepository.createQueryBuilder('file');
-    qb.softDelete().where('create_by = :uid AND id IN (:...ids)', { uid, ids });
+    const qb = this.fileRepository
+      .createQueryBuilder('file')
+      .softDelete()
+      .where('create_by = :uid AND id IN (:...ids)', { uid, ids });
     const result = await qb.execute();
     if (result.affected) {
       this.batchMoveToRecycleBin(ids);
