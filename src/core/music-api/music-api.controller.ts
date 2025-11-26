@@ -46,8 +46,10 @@ export class MusicApiController {
   }
 
   @ApiOperation({ summary: '同步收藏夹' })
-  @Get('sync/:url')
-  syncFavorite(@UserId() uid: number, @Param('url') url: string) {
-    return this.musicApiService.syncMusicFavorites(uid, url);
+  @Get('sync')
+  syncFavorite(@UserId() uid: number, @Query('target') target: string) {
+    console.log(uid, target);
+
+    return this.musicApiService.syncMusicFavorites(uid, target);
   }
 }

@@ -129,9 +129,9 @@ export class MusicApiService {
           word: element.title,
           pageSize: 10,
         });
-        if ('list' in findRes) {
-          const newlist = findRes.list as any[];
-          const matchedMusic = newlist.find(
+        if ('data' in findRes) {
+          const newList = findRes.data as any[];
+          const matchedMusic = newList.find(
             (item) =>
               item.title.includes(element.title) &&
               (item.artist.includes(element.artist) ||
@@ -272,15 +272,15 @@ export class MusicApiService {
     const musicIds = [];
     let musicCount = 0;
 
-    const factorieRes = await this.findMoreFavorite(thirdPartyId);
-    if (factorieRes.code == 0) {
+    const favoriteRes = await this.findMoreFavorite(thirdPartyId);
+    if (favoriteRes.code == 0) {
       const queryRunner =
         this.musicRepository.manager.connection.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       try {
-        const { songlist, songnum } = factorieRes.data;
+        const { songlist, songnum } = favoriteRes.data;
         musicCount = songnum;
         const downloadPromises = songlist.map(async (item: any) => {
           const { id: mid, interval, title, singer, album } = item;

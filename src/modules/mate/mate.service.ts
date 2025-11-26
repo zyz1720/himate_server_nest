@@ -191,13 +191,14 @@ export class MateService {
       .createQueryBuilder('mate')
       .leftJoinAndSelect('mate.user', 'user')
       .leftJoinAndSelect('mate.friend', 'friend')
-      .where('user_id = :user_id OR friend_id = :friend_id', {
-        user_id: uid,
-        friend_id: uid,
-      })
-      .andWhere('mate_status = :status', {
-        status: MateStatusEnum.agreed,
-      })
+      .where(
+        '(mate.user_id = :user_id OR mate.friend_id = :friend_id) AND mate.mate_status = :status',
+        {
+          user_id: uid,
+          friend_id: uid,
+          status: MateStatusEnum.agreed,
+        },
+      )
       .select([
         'mate',
         'user.id',
