@@ -130,22 +130,27 @@ export class MateService {
     friendId: number,
     status?: MateStatusEnum,
   ) {
-    const qb = this.mateRepository
-      .createQueryBuilder('mate')
-      .where(
-        '(user_id = :userId AND friend_id = :friendId) OR (user_id = :friendId AND friend_id = :userId)',
-        { userId, friendId },
-      );
+    let conditions = [
+      { user_id: userId, friend_id: friendId },
+      { user_id: friendId, friend_id: userId },
+    ];
     if (status) {
-      qb.andWhere('mate_status = :status', { status });
+      conditions = conditions.map((item) => {
+        return { ...item, mate_status: status };
+      });
     }
-    const mate = await qb.getOne();
+    const mate = await this.mateRepository.findOne({
+      where: conditions,
+    });
     return mate;
   }
 
   /* 添加用户好友 */
   async addUserMate(uid: number, data: AddUserMateDto) {
     const { friend_id, friend_remarks } = data || {};
+    if (uid === friend_id) {
+      return Response.fail(this.i18n.t('message.NO_ALLOW'));
+    }
     const user = await this.userService.findOneUserEnabled({
       id: uid,
     });
@@ -210,6 +215,7 @@ export class MateService {
     const list = data.map((item) => ({
       ...item,
       theOther: item.user_id == uid ? item.friend : item.user,
+      remarks: item.user_id == uid ? item.friend_remarks : item.user_remarks,
     }));
     return PageResponse.list(list, count);
   }

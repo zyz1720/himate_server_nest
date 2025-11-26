@@ -374,6 +374,7 @@ export class UserService {
       'user.account',
       'user.user_avatar',
       'user.self_account',
+      'user.user_bg_img',
       'user.sex',
       'user.age',
     ]);

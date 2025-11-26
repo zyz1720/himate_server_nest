@@ -1,6 +1,6 @@
-import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { FindAllUserDto } from './find-all-user.dto';
-import { IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 import { FindAllDto } from 'src/common/dto/common.dto';
 
 export class findOneUserEnabledDto extends PickType(FindAllUserDto, [
@@ -17,7 +17,7 @@ export class findOneUserEnabledDto extends PickType(FindAllUserDto, [
 }
 
 export class SearchOneUserEnabledDto extends FindAllDto {
-  @ApiPropertyOptional({ description: '搜索关键词' })
-  @IsOptional()
-  readonly keyword?: string;
+  @ApiProperty({ description: '搜索关键词' })
+  @IsNotEmpty()
+  readonly keyword: string;
 }

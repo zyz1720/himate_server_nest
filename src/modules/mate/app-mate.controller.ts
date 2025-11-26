@@ -44,10 +44,10 @@ export class AppMateController {
   @ApiOperation({ summary: '用户间的好友关系' })
   @ApiOkRes(MateEntity)
   @Get('relation/:userId')
-  findRelation(@UserId() uid: number, @Param('userId') userId: number) {
+  findRelation(@UserId() uid: number, @Param('userId') userId: string) {
     return this.mateService.verifyTwoUserIsMate(
       uid,
-      userId,
+      parseInt(userId),
       MateStatusEnum.agreed,
     );
   }
