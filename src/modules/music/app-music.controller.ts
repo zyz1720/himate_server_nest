@@ -8,7 +8,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiOkPageRes } from 'src/common/response/api-response.decorator';
+import {
+  ApiOkPageRes,
+  ApiOkMsgRes,
+} from 'src/common/response/api-response.decorator';
 import { MusicService } from './music.service';
 import { SearchMusicDto } from './dto/find-all-music.dto';
 import { MusicEntity } from './entity/music.entity';
@@ -29,10 +32,10 @@ export class AppMusicController {
     return this.musicService.searchMusic(query);
   }
 
-  @ApiOperation({ summary: '默认收藏的音乐' })
+  @ApiOperation({ summary: '收藏的音乐' })
   @ApiOkPageRes(MusicEntity)
-  @Get('favorites/default')
-  getDefault(@UserId() uid: number, @Query() query: FindAllDto) {
+  @Get('favorites/liked')
+  getLiked(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.musicService.findUserDefaultFavoritesMusic(uid, query);
   }
 
@@ -54,11 +57,25 @@ export class AppMusicController {
     return this.musicService.findOneMusic(parseInt(id));
   }
 
-  @ApiOperation({ summary: '默认收藏音乐' })
-  @ApiOkPageRes(MusicEntity)
-  @Post('default')
-  default(@UserId() uid: number, @Body() data: IdsDto) {
+  @ApiOperation({ summary: '音乐是否收藏' })
+  @ApiOkMsgRes()
+  @Get('isLiked/:id')
+  isLiked(@UserId() uid: number, @Param('id') id: string) {
+    return this.musicService.isFavoriteMusic(uid, parseInt(id));
+  }
+
+  @ApiOperation({ summary: '收藏音乐' })
+  @ApiOkMsgRes()
+  @Post('like')
+  like(@UserId() uid: number, @Body() data: IdsDto) {
     return this.musicService.favoritesMusic(uid, data);
+  }
+
+  @ApiOperation({ summary: '取消收藏音乐' })
+  @ApiOkMsgRes()
+  @Delete('dislike')
+  dislike(@UserId() uid: number, @Body() data: IdsDto) {
+    return this.musicService.dislikeMusic(uid, data);
   }
 
   @ApiOperation({ summary: '添加音乐到歌单' })
@@ -68,7 +85,7 @@ export class AppMusicController {
     return this.musicService.appendFavoritesMusic(uid, data);
   }
 
-  @ApiOperation({ summary: '移除歌单音乐' })
+  @ApiOperation({ summary: '从歌单移除音乐' })
   @ApiOkPageRes(MusicEntity)
   @Delete('favorites/:favoritesId')
   remove(

@@ -172,6 +172,24 @@ export class MusicService {
     }
   }
 
+  /* 查询音乐是否收藏 */
+  async isFavoriteMusic(uid: number, id: number) {
+    const result = await this.musicRepository
+      .createQueryBuilder('music')
+      .leftJoin('music.favorites', 'favorites')
+      .where(
+        'favorites.favorites_uid = :favorites_uid AND favorites.is_default = :is_default AND music.id = :id',
+        {
+          favorites_uid: uid,
+          is_default: Whether.Y,
+          id: id,
+        },
+      )
+      .getExists();
+
+    return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
+  }
+
   /* 查询默认收藏的音乐 */
   async findUserDefaultFavoritesMusic(uid: number, query: FindAllMusicDto) {
     const { current = 1, pageSize = 10 } = query || {};
@@ -288,6 +306,55 @@ export class MusicService {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.error('收藏音乐失败:', error);
+      return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /*  用户取消收藏音乐 */
+  async dislikeMusic(uid: number, query: IdsDto) {
+    const { ids } = query || {};
+    // 使用事务保证操作一致性
+    const queryRunner =
+      this.musicRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const defaultFavorites = await queryRunner.manager.findOne(
+        FavoritesEntity,
+        {
+          where: { is_default: Whether.Y, favorites_uid: uid },
+          relations: ['music'],
+          select: {
+            music: {
+              id: true,
+            },
+          },
+        },
+      );
+      if (!defaultFavorites) {
+        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      }
+
+      const music = await queryRunner.manager.find(MusicEntity, {
+        where: { id: In(ids) },
+        select: ['id'],
+      });
+      if (music.length == 0) {
+        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      }
+
+      defaultFavorites.music = defaultFavorites.music.filter(
+        (item) => !ids.includes(item.id),
+      );
+
+      await queryRunner.manager.save(FavoritesEntity, defaultFavorites);
+      await queryRunner.commitTransaction();
+      return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'));
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error('取消收藏音乐失败:', error);
       return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
     } finally {
       await queryRunner.release();

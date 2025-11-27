@@ -41,7 +41,7 @@ export class MusicApiService {
         { id, quality, type, ekey },
       );
       if (musicRes.status != 200) {
-        return Response.fail(this.i18n.t('message.GET_FAIL'));
+        return Response.fail(this.i18n.t('message.GET_FAILED'));
       }
       if (musicRes.data.code == 200) {
         const music = musicRes.data.data;
@@ -51,7 +51,7 @@ export class MusicApiService {
       }
     } catch (error) {
       Logger.error(error);
-      return Response.fail(this.i18n.t('message.GET_FAIL'));
+      return Response.fail(this.i18n.t('message.GET_FAILED'));
     }
   }
 
@@ -64,7 +64,7 @@ export class MusicApiService {
         { params: { word, current, pageSize } },
       );
       if (searchRes.status != 200) {
-        return Response.fail(this.i18n.t('message.GET_FAIL'));
+        return Response.fail(this.i18n.t('message.GET_FAILED'));
       }
       if (searchRes.data.code == 200) {
         const list = searchRes.data.data.map((item: any) => {
@@ -83,7 +83,7 @@ export class MusicApiService {
       }
     } catch (error) {
       Logger.error(error);
-      return Response.fail(this.i18n.t('message.GET_FAIL'));
+      return Response.fail(this.i18n.t('message.GET_FAILED'));
     }
   }
 
@@ -95,7 +95,7 @@ export class MusicApiService {
         { params: { id: mid } },
       );
       if (lyricRes.status != 200) {
-        return Response.fail(this.i18n.t('message.GET_FAIL'));
+        return Response.fail(this.i18n.t('message.GET_FAILED'));
       }
       if (lyricRes.data.code == 200) {
         const lyric = lyricRes.data.data;
@@ -105,7 +105,7 @@ export class MusicApiService {
       }
     } catch (error) {
       Logger.error(error);
-      return Response.fail(this.i18n.t('message.GET_FAIL'));
+      return Response.fail(this.i18n.t('message.GET_FAILED'));
     }
   }
 
@@ -354,17 +354,17 @@ export class MusicApiService {
         },
       );
       if (favoriteRes.status != 200) {
-        return Response.fail(this.i18n.t('message.GET_FAIL'));
+        return Response.fail(this.i18n.t('message.GET_FAILED'));
       }
       if (favoriteRes.data.code == 0) {
         const favorite = favoriteRes.data.data.cdlist[0];
         return Response.ok(this.i18n.t('message.GET_SUCCESS'), favorite);
       } else {
-        return Response.fail(this.i18n.t('message.GET_FAIL'));
+        return Response.fail(this.i18n.t('message.GET_FAILED'));
       }
     } catch (error) {
       Logger.error('获取第三方歌单时发生错误', error);
-      return Response.fail(this.i18n.t('message.GET_FAIL'));
+      return Response.fail(this.i18n.t('message.GET_FAILED'));
     }
   }
 
