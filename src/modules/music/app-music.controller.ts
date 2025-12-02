@@ -54,7 +54,7 @@ export class AppMusicController {
   @ApiOkPageRes(MusicEntity)
   @Get('detail/:id')
   findOne(@Param('id') id: string) {
-    return this.musicService.findOneMusic(parseInt(id));
+    return this.musicService.findOneMusicDetails(parseInt(id));
   }
 
   @ApiOperation({ summary: '音乐是否收藏' })

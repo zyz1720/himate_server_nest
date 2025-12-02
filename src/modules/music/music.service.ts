@@ -449,4 +449,13 @@ export class MusicService {
       await queryRunner.release();
     }
   }
+
+  /* 查询音乐所有信息 */
+  async findOneMusicDetails(id: number) {
+    const music = await this.musicRepository.findOne({
+      where: { id },
+      relations: ['musicExtra'],
+    });
+    return music;
+  }
 }
