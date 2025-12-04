@@ -28,6 +28,13 @@ import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 export class AppGroupMemberController {
   constructor(private readonly groupMemberService: GroupMemberService) {}
 
+  @ApiOperation({ summary: '用户在群组中的信息' })
+  @ApiOkPageRes(GroupMemberEntity)
+  @Get('oneself/:group_id')
+  findOne(@UserId() uid: number, @Param('group_id') group_id: string) {
+    return this.groupMemberService.findUserInGroupInfo(uid, group_id);
+  }
+
   @ApiOperation({ summary: '获取群下所有成员' })
   @ApiOkPageRes(GroupMemberEntity)
   @Get('/:groupId')

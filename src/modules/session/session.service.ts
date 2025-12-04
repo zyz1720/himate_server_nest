@@ -139,16 +139,16 @@ export class SessionService {
     return result;
   }
 
-  /* 保存会话 */
-  async saveSession(session: SessionEntity) {
-    return await this.sessionRepository.save(session);
-  }
-
   /* 查询指定用户的所有会话 */
   async findAllUserSession(uid: number, query: FindAllDto) {
     const { current = 1, pageSize = 10 } = query || {};
-    const qb = this.sessionRepository.createQueryBuilder('session');
-    qb.where('session.user_id = :uid', { uid });
+    const groupIds = await this.groupService.findAllUserExistGroup(uid);
+    const mateIds = await this.mateService.findAllUserExistMate(uid);
+    const sessionIds = [...groupIds, ...mateIds];
+    const qb = this.sessionRepository
+      .createQueryBuilder('session')
+      .leftJoinAndSelect('session.lastMsg', 'lastMsg')
+      .where('session.session_id IN (:...sessionIds)', { sessionIds });
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
@@ -248,7 +248,7 @@ export class SessionService {
     if (result.code == 0) {
       const message = result.data as MessageEntity;
       session.lastMsg = message;
-      await this.saveSession(session);
+      await this.sessionRepository.save(session);
       return message;
     }
     return false;

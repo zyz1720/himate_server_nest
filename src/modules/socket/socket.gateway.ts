@@ -10,7 +10,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
 import { SessionService } from '../session/session.service';
-import { RedisService } from 'src/core/Redis/redis.service';
 import { Response } from 'src/common/response/api-response';
 import { MessageEntity } from '../message/entity/message.entity';
 import { WsUserId } from 'src/core/auth/decorators/ws-user.decorator';
@@ -37,10 +36,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WsUserId() uid: number,
     client: Socket,
     @MessageBody() message: ReadMessageDto,
-  ): Promise<Response<null>> {
+  ): Promise<Response<boolean>> {
     const readFlag = await this.sessionService.readMessage(uid, message);
     if (readFlag) {
-      return Response.ok(this.i18n.t('message.READ_SUCCESS'));
+      return Response.ok(this.i18n.t('message.READ_SUCCESS'), readFlag);
     }
     return Response.fail(this.i18n.t('message.READ_FAILED'));
   }
@@ -51,7 +50,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WsUserId() uid: number,
     client: Socket,
     @MessageBody() message: SendMessageDto,
-  ): Promise<Response<null>> {
+  ): Promise<Response<MessageEntity>> {
     Logger.log('[chat]接收消息：', message);
     message.sender_ip = client.handshake.address;
     const toBeSentMessage = await this.sessionService.createAndSendMessage(
@@ -60,7 +59,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
     if (toBeSentMessage) {
       this.emitMessage(message.session_id, toBeSentMessage);
-      return Response.ok(this.i18n.t('message.SEND_SUCCESS'));
+      return Response.ok(this.i18n.t('message.SEND_SUCCESS'), toBeSentMessage);
     }
     return Response.fail(this.i18n.t('message.SEND_FAILED'));
   }

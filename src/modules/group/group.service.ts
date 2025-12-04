@@ -263,4 +263,18 @@ export class GroupService {
     });
     return group;
   }
+
+  /* 查询用户存在的群组group_id */
+  async findAllUserExistGroup(uid: number) {
+    const groupIds = await this.groupRepository.find({
+      relations: ['members'],
+      where: {
+        members: {
+          user_id: uid,
+        },
+      },
+      select: ['group_id'],
+    });
+    return groupIds;
+  }
 }

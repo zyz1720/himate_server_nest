@@ -24,6 +24,7 @@ import { MusicExtraModule } from './modules/music-extra/music-extra.module';
 import { FileModule } from './modules/file/file.module';
 import { UserModule } from './modules/user/user.module';
 import { MusicApiModule } from './core/music-api/music-api.module';
+import { SocketModule } from './modules/socket/socket.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './common/subscriber/user.subscriber';
@@ -131,6 +132,7 @@ import envConfig from '../config/env';
     MusicExtraModule,
     MusicApiModule,
     FileModule,
+    SocketModule,
   ],
 
   controllers: [AppController],

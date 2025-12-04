@@ -33,6 +33,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const type = context.getType();
     if (type == 'ws') {
       const client = context.switchToWs().getClient();
+      console.log('client.handshake', client.handshake);
+
       const token = client.handshake?.auth?.Authorization;
       if (token) {
         client.handshake.headers.authorization = token;

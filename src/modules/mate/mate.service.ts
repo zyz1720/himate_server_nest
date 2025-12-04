@@ -328,4 +328,22 @@ export class MateService {
     });
     return mate;
   }
+
+  /* 查询用户存在的好友mate_id */
+  async findAllUserExistMate(uid: number) {
+    const mateIds = await this.mateRepository.find({
+      where: [
+        {
+          user_id: uid,
+          mate_status: MateStatusEnum.agreed,
+        },
+        {
+          friend_id: uid,
+          mate_status: MateStatusEnum.agreed,
+        },
+      ],
+      select: ['mate_id'],
+    });
+    return mateIds;
+  }
 }

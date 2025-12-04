@@ -398,4 +398,25 @@ export class GroupMemberService {
       return this.updateNormalGroupMemberAuth(id, updateData);
     }
   }
+
+  /* 用户在群组中的信息 */
+  async findUserInGroupInfo(uid: number, group_id: string) {
+    const member = await this.groupMemberRepository.findOne({
+      relations: ['group'],
+      where: {
+        user_id: uid,
+        group: {
+          group_id: group_id,
+        },
+      },
+      select: [
+        'id',
+        'user_id',
+        'member_role',
+        'member_status',
+        'member_remarks',
+      ],
+    });
+    return member;
+  }
 }
