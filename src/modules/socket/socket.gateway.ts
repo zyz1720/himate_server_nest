@@ -1,5 +1,6 @@
-import { JwtAuthGuard } from 'src/core/auth/guards/jwt.auth.guard';
+import { WsJwtAuthGuard } from 'src/core/auth/guards/ws-jwt.auth.guard';
 import {
+  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -30,11 +31,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('read-message')
   async handleMessage(
     @WsUserId() uid: number,
-    client: Socket,
     @MessageBody() message: ReadMessageDto,
   ): Promise<Response<boolean>> {
     const readFlag = await this.sessionService.readMessage(uid, message);
@@ -44,14 +44,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return Response.fail(this.i18n.t('message.READ_FAILED'));
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('send-message')
   async sendMessage(
     @WsUserId() uid: number,
-    client: Socket,
+    @ConnectedSocket() client: Socket,
     @MessageBody() message: SendMessageDto,
   ): Promise<Response<MessageEntity>> {
-    Logger.log('[chat]接收消息：', message);
+    Logger.log('[send-message]接收消息：', message);
     message.sender_ip = client.handshake.address;
     const toBeSentMessage = await this.sessionService.createAndSendMessage(
       uid,

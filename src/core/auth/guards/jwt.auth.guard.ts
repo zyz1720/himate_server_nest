@@ -7,7 +7,6 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { I18nService } from 'nestjs-i18n';
-import { Response } from 'src/common/response/api-response';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -29,22 +28,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    // 单独处理Socket验证
-    const type = context.getType();
-    if (type == 'ws') {
-      const client = context.switchToWs().getClient();
-      console.log('client.handshake', client.handshake);
-
-      const token = client.handshake?.auth?.Authorization;
-      if (token) {
-        client.handshake.headers.authorization = token;
-      }
-    }
-
     return super.canActivate(context);
   }
 
-  handleRequest(error: any, user: any, info: any, context: ExecutionContext) {
+  handleRequest(error: any, user: any, info: any) {
     // 处理token过期的特殊情况
     if (info && info.name == 'TokenExpiredError') {
       throw new UnauthorizedException(
@@ -60,16 +47,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (error || !user) {
       throw error || new UnauthorizedException(this.i18n.t('message.NO_LOGIN'));
     }
-    if ((error || !user) && context.getType() == 'ws') {
-      const client = context.switchToWs().getClient();
-      client.emit('error', Response.fail(this.i18n.t('message.NO_LOGIN')));
-      client.disconnect();
-      throw error || new UnauthorizedException(this.i18n.t('message.NO_LOGIN'));
-    }
-
-    // 将用户信息附加到客户端对象
-    const client = context.switchToWs().getClient();
-    client.user = user;
 
     return user;
   }

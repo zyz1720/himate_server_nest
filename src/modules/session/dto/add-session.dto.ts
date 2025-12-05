@@ -17,4 +17,9 @@ export class AddSessionDto {
   @IsNotEmpty()
   @IsEnum(ChatTypeEnum)
   readonly chat_type: ChatTypeEnum;
+
+  @ApiPropertyOptional({ description: '创建人id' })
+  @IsOptional()
+  @IsInt()
+  readonly create_by?: number;
 }

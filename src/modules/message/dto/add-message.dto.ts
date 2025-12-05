@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsOptional,
@@ -32,4 +32,9 @@ export class AddMessageDto {
   @IsOptional()
   @IsEnum(MsgTypeEnum)
   readonly msg_type?: MsgTypeEnum;
+
+  @ApiPropertyOptional({ description: '创建人id' })
+  @IsOptional()
+  @IsInt()
+  readonly create_by?: number;
 }

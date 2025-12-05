@@ -144,7 +144,10 @@ export class SessionService {
     const { current = 1, pageSize = 10 } = query || {};
     const groupIds = await this.groupService.findAllUserExistGroup(uid);
     const mateIds = await this.mateService.findAllUserExistMate(uid);
-    const sessionIds = [...groupIds, ...mateIds];
+    const sessionIds = [
+      ...groupIds.map((g) => g.group_id),
+      ...mateIds.map((m) => m.mate_id),
+    ];
     const qb = this.sessionRepository
       .createQueryBuilder('session')
       .leftJoinAndSelect('session.lastMsg', 'lastMsg')
@@ -203,6 +206,7 @@ export class SessionService {
     if (group) {
       const result = await this.addSession({
         session_id,
+        create_by: uid,
         chat_type: ChatTypeEnum.group,
       });
       if (result.code == 0) return result.data as SessionEntity;
@@ -211,6 +215,7 @@ export class SessionService {
     if (mate) {
       const result = await this.addSession({
         session_id,
+        create_by: uid,
         chat_type: ChatTypeEnum.private,
       });
       if (result.code == 0) return result.data as SessionEntity;
@@ -243,11 +248,14 @@ export class SessionService {
     }
     const result = await this.messageService.addMessage({
       ...data,
+      session_primary_id: session.id,
       sender_id: uid,
+      create_by: uid,
     });
     if (result.code == 0) {
       const message = result.data as MessageEntity;
       session.lastMsg = message;
+      session.update_by = uid;
       await this.sessionRepository.save(session);
       return message;
     }

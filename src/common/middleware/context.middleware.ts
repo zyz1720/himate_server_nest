@@ -9,6 +9,7 @@ export class ContextMiddleware implements NestMiddleware {
 
   use(req: FastifyRequest['raw'], res: FastifyReply['raw'], next: () => void) {
     const token = req.headers.authorization?.split(' ')[1];
+
     if (token) {
       try {
         const user = this.authService.verifyToken(token);
