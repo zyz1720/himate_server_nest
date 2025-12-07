@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { MessageReadRecordsEntity } from './entity/message-read-records.entity';
 import { AddMessageReadRecordsDto } from './dto/add-message-read-records.dto';
 import { UpdateMessageReadRecordsDto } from './dto/update-message-read-records.dto';
@@ -108,5 +108,19 @@ export class MessageReadRecordsService {
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
+  }
+
+  /* 查询会话下的用户读取记录数量 */
+  async findCountBySessionId(uid: number, sessionId: number) {
+    const count = await this.messageReadRecordsRepository.count({
+      where: {
+        message: {
+          session_primary_id: sessionId,
+          sender_id: Not(uid),
+        },
+        user_id: uid,
+      },
+    });
+    return count;
   }
 }

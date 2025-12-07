@@ -212,10 +212,19 @@ export class GroupService {
     if (!member) {
       return Response.fail(this.i18n.t('message.NO_PERMISSION'));
     }
-
-    const group = await this.groupRepository.findOne({
-      where: { id },
-    });
+    const group = await this.groupRepository
+      .createQueryBuilder('group')
+      .leftJoinAndSelect('group.members', 'members')
+      .where('group.id = :id', { id })
+      .select([
+        'group.id',
+        'group.group_id',
+        'group.group_name',
+        'group.group_avatar',
+        'group.group_introduce',
+        'members.user_id',
+      ])
+      .getOne();
 
     return group;
   }
@@ -250,14 +259,25 @@ export class GroupService {
   }
 
   /* group_id 验证用户是否属于群组且状态正常 */
-  async verifyUserIsMember(uid: number, group_id: string) {
+  async findOneGroupMemberBase(uid: number, group_id: string) {
     const group = await this.groupRepository.findOne({
-      relations: ['members'],
+      relations: ['members', 'members.user'],
       where: {
         group_id: group_id,
         members: {
           user_id: uid,
           member_status: MemberStatusEnum.normal,
+        },
+      },
+      select: {
+        id: true,
+        group_id: true,
+        members: {
+          user_id: true,
+          member_remarks: true,
+          user: {
+            user_avatar: true,
+          },
         },
       },
     });
@@ -276,5 +296,14 @@ export class GroupService {
       select: ['group_id'],
     });
     return groupIds;
+  }
+
+  /* 查询指定群组的基本信息 */
+  async findOneGroupBase(group_id: string) {
+    const result = await this.groupRepository.findOne({
+      where: { group_id },
+      select: ['id', 'group_name', 'group_avatar'],
+    });
+    return result;
   }
 }

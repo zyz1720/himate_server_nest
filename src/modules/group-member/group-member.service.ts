@@ -242,11 +242,12 @@ export class GroupMemberService {
         'group_member.member_remarks',
         'group_member.member_role',
         'group_member.member_status',
+        'group_member.create_time',
         'user.id',
         'user.user_name',
         'user.user_avatar',
       ])
-      .orderBy('member_role', 'ASC')
+      .orderBy('group_member.create_time', 'ASC')
       .limit(pageSize)
       .offset(pageSize * (current - 1));
     const total = await qb.getCount();

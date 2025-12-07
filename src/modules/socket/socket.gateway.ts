@@ -20,6 +20,12 @@ import {
   ReadMessageDto,
   SendMessageDto,
 } from '../session/dto/operate-message.dto';
+import { SenderInfoDto } from 'src/common/dto/common.dto';
+
+interface MessageWithSenderInfo {
+  message: MessageEntity;
+  senderInfo: SenderInfoDto;
+}
 
 @WebSocketGateway(3001, { namespace: 'socket' })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -50,7 +56,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WsUserId() uid: number,
     @ConnectedSocket() client: Socket,
     @MessageBody() message: SendMessageDto,
-  ): Promise<Response<MessageEntity>> {
+  ): Promise<Response<MessageWithSenderInfo>> {
     Logger.log('[send-message]接收消息：', message);
     message.sender_ip = client.handshake.address;
     const toBeSentMessage = await this.sessionService.createAndSendMessage(
@@ -58,14 +64,26 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       message,
     );
     if (toBeSentMessage) {
-      this.emitMessage(message.session_id, toBeSentMessage);
+      client.to(message.session_id).emit('message', toBeSentMessage);
       return Response.ok(this.i18n.t('message.SEND_SUCCESS'), toBeSentMessage);
     }
     return Response.fail(this.i18n.t('message.SEND_FAILED'));
   }
 
-  emitMessage(room: string, message: MessageEntity) {
-    this.server.to(room).emit('message', message);
+  @UseGuards(WsJwtAuthGuard)
+  @SubscribeMessage('join-room')
+  async joinRoom(client: Socket, session_id: string) {
+    Logger.log(`客户端 ${client.id}, 加入房间 ${session_id}`);
+    await client.join(session_id);
+    return Response.ok(this.i18n.t('message.JOIN_SUCCESS'), session_id);
+  }
+
+  @UseGuards(WsJwtAuthGuard)
+  @SubscribeMessage('leave-room')
+  async leaveRoom(client: Socket, session_id: string) {
+    Logger.log(`客户端 ${client.id}, 退出房间 ${session_id}`);
+    await client.leave(session_id);
+    return Response.ok(this.i18n.t('message.LEAVE_SUCCESS'), session_id);
   }
 
   handleConnection(client: Socket) {
@@ -73,7 +91,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     Logger.log(`客户端已连接：${client.id}`);
   }
 
-  async handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket) {
     // 监听连接关闭事件
     Logger.log(`客户端已断开连接：${client.id}`);
   }

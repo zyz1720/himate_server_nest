@@ -134,12 +134,17 @@ export class FavoritesService {
   /* 用户查询音乐收藏夹 */
   async findUserFavorites(uid: number, query: FindAllFavoritesDto) {
     const { current = 1, pageSize = 10 } = query || {};
-    const qb = this.favoritesRepository.createQueryBuilder('favorites');
-    qb.where('favorites_uid = :uid', { uid });
-    qb.andWhere('is_default = :is_default', { is_default: Whether.N });
-    qb.orderBy('create_time', 'DESC');
-    qb.limit(pageSize);
-    qb.offset(pageSize * (current - 1));
+    const qb = this.favoritesRepository
+      .createQueryBuilder('favorites')
+      // .leftJoinAndSelect('favorites.music', 'music')
+      .loadRelationCountAndMap('favorites.musicCount', 'favorites.music')
+      .where(
+        'favorites.favorites_uid = :uid AND favorites.is_default = :is_default',
+        { uid, is_default: Whether.N },
+      )
+      .orderBy('favorites.create_time', 'DESC')
+      .limit(pageSize)
+      .offset(pageSize * (current - 1));
     const count = await qb.getCount();
     const data = await qb.getMany();
     return PageResponse.list(data, count);
@@ -148,9 +153,9 @@ export class FavoritesService {
   /* 用户搜索音乐收藏夹 */
   async searchFavorites(query: SearchFavoritesDto) {
     const { current = 1, pageSize = 10, keyword } = query || {};
-    const qb = this.favoritesRepository.createQueryBuilder('favorites');
-    qb.leftJoinAndSelect('favorites.user', 'user')
-      .leftJoinAndSelect('favorites.music', 'music')
+    const qb = this.favoritesRepository
+      .createQueryBuilder('favorites')
+      .leftJoinAndSelect('favorites.user', 'user')
       .loadRelationCountAndMap('favorites.musicCount', 'favorites.music')
       .select([
         'favorites.id',

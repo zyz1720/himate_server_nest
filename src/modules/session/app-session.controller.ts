@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiOkPageRes } from 'src/common/response/api-response.decorator';
 import { SessionService } from './session.service';
@@ -17,5 +17,16 @@ export class AppSessionController {
   @Get()
   findAll(@UserId() uid: number, @Query() query: FindAllDto) {
     return this.sessionService.findAllUserSession(uid, query);
+  }
+
+  @ApiOperation({ summary: '会话消息列表' })
+  @ApiOkPageRes(SessionEntity)
+  @Get('/:session_id')
+  findAllMsg(
+    @UserId() uid: number,
+    @Param('session_id') session_id: string,
+    @Query() query: FindAllDto,
+  ) {
+    return this.sessionService.findAllSessionMessages(uid, session_id, query);
   }
 }

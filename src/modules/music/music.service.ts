@@ -298,7 +298,7 @@ export class MusicService {
         return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
       }
 
-      defaultFavorites.music = [...defaultFavorites.music, ...music];
+      defaultFavorites.music = [...(defaultFavorites.music || []), ...music];
 
       await queryRunner.manager.save(FavoritesEntity, defaultFavorites);
       await queryRunner.commitTransaction();

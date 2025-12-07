@@ -3,7 +3,7 @@ import { IsOptional } from 'class-validator';
 import { FindAllDto } from 'src/common/dto/common.dto';
 
 export class FindAllSessionDto extends PartialType(FindAllDto) {
-  @ApiPropertyOptional({ description: '会话id' })
+  @ApiPropertyOptional({ description: '会话uuid' })
   @IsOptional()
   readonly session_id?: string;
 

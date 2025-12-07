@@ -9,10 +9,13 @@ import {
   OneToMany,
   OneToOne,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { DataLength } from 'src/common/constants/database-enum.const';
 import { MessageEntity } from 'src/modules/message/entity/message.entity';
+import { MateEntity } from 'src/modules/mate/entity/mate.entity';
+import { GroupEntity } from 'src/modules/group/entity/group.entity';
 
 // 枚举定义
 export enum ChatTypeEnum {
@@ -27,8 +30,8 @@ export class SessionEntity {
   id: number;
 
   @ApiProperty({ description: '会话uuid' })
-  @Index('idx_session_session_id')
   @Column({ comment: '会话uuid', length: DataLength.UUID })
+  @Index('idx_session_session_id')
   session_id: string;
 
   @ApiProperty({ description: '最后一条消息的id' })
@@ -62,6 +65,20 @@ export class SessionEntity {
   @Index('idx_session_delete_time')
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
+
+  @ManyToOne(() => MateEntity, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'mate_id', referencedColumnName: 'mate_id' })
+  @Index('idx_session_mate_id')
+  mate?: MateEntity;
+
+  @ManyToOne(() => GroupEntity, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'group_id', referencedColumnName: 'group_id' })
+  @Index('idx_session_group_id')
+  group?: GroupEntity;
 
   @OneToOne(() => MessageEntity)
   @JoinColumn({ name: 'last_msg_id' })

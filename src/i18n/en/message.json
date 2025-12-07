@@ -67,5 +67,7 @@
     "NO_PARSE_DATA": "No parse data",
     "DOWNLOAD_FAVORITES_FAILED": "Download favorites failed",
     "GET_FAVORITES_FAILED": "Get favorites failed",
-    "UNSUPPORTED_DATA_FORMAT": "Unsupported data format"
+    "UNSUPPORTED_DATA_FORMAT": "Unsupported data format",
+    "JOIN_SUCCESS": "Join room success",
+    "LEAVE_SUCCESS": "Leave room success"
 }

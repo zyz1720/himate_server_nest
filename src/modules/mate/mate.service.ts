@@ -312,23 +312,6 @@ export class MateService {
     }
   }
 
-  /* 验证用户是否属于该条好友记录 */
-  async verifyUserIsMate(uid: number, mate_id: string) {
-    const mate = await this.mateRepository.findOne({
-      where: [
-        {
-          user_id: uid,
-          mate_id: mate_id,
-        },
-        {
-          friend_id: uid,
-          mate_id: mate_id,
-        },
-      ],
-    });
-    return mate;
-  }
-
   /* 查询用户存在的好友mate_id */
   async findAllUserExistMate(uid: number) {
     const mateIds = await this.mateRepository.find({
@@ -345,5 +328,42 @@ export class MateService {
       select: ['mate_id'],
     });
     return mateIds;
+  }
+
+  /* 查询用户好友基础信息 */
+  async findOneMateBase(uid: number, mate_id: string) {
+    const mate = await this.mateRepository.findOne({
+      relations: ['user', 'friend'],
+      where: [
+        {
+          user_id: uid,
+          mate_id: mate_id,
+          mate_status: MateStatusEnum.agreed,
+        },
+        {
+          friend_id: uid,
+          mate_id: mate_id,
+          mate_status: MateStatusEnum.agreed,
+        },
+      ],
+      select: {
+        id: true,
+        mate_id: true,
+        user_remarks: true,
+        friend_remarks: true,
+        user_id: true,
+        friend_id: true,
+        user: {
+          id: true,
+          user_avatar: true,
+        },
+        friend: {
+          id: true,
+          user_avatar: true,
+        },
+      },
+    });
+
+    return mate;
   }
 }

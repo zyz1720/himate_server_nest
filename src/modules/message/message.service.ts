@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { MessageEntity } from './entity/message.entity';
 import { AddMessageDto } from './dto/add-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -8,6 +8,7 @@ import { FindAllMessageDto } from './dto/find-all-message.dto';
 import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
+import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
 
 @Injectable()
 export class MessageService {
@@ -151,5 +152,88 @@ export class MessageService {
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
+  }
+
+  // 查询会话下的消息数量
+  async findCountBySessionId(uid: number, sessionId: number) {
+    const count = await this.messageRepository.count({
+      where: { session_primary_id: sessionId, sender_id: Not(uid) },
+    });
+    return count;
+  }
+
+  /* 查询会话下的所有消息 */
+  async findAllBySessionId(sessionId: number, query: FindAllDto) {
+    const { current = 1, pageSize = 10 } = query || {};
+
+    const qb = this.messageRepository.createQueryBuilder('message');
+    qb.leftJoinAndSelect(
+      'message.session',
+      'session',
+      'session.id = message.session_primary_id',
+    );
+    qb.leftJoinAndSelect('message.user', 'user', 'user.id = message.sender_id');
+    qb.leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
+      groupType: ChatTypeEnum.group,
+    });
+    qb.leftJoin(
+      'group.members',
+      'groupMember',
+      'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
+    );
+
+    qb.leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
+      privateType: ChatTypeEnum.private,
+    });
+    qb.where('message.session_primary_id = :sessionId', { sessionId });
+    qb.orderBy('message.create_time', 'DESC');
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+
+    // 7. 选择需要的字段
+    qb.select([
+      'message',
+      'session.chat_type',
+      'session.session_id',
+      'user.id',
+      'user.user_name',
+      'user.user_avatar',
+      'group.group_id',
+      'groupMember.member_remarks',
+      'mate.mate_id',
+      'mate.friend_id',
+      'mate.friend_remarks',
+      'mate.user_id',
+      'mate.user_remarks',
+    ]);
+
+    const [messages, total] = await qb.getManyAndCount();
+    const result = messages.map((message) => {
+      const { session, user, ...msgData } = message as any;
+      const groupMember = session?.group?.members[0] || {};
+      const mate = session?.mate || {};
+
+      let remarks = user.user_name;
+      if (session.chat_type === ChatTypeEnum.group) {
+        remarks = groupMember?.member_remarks || user.user_name;
+      } else if (session.chat_type === ChatTypeEnum.private) {
+        remarks =
+          msgData?.sender_id === mate?.user_id
+            ? mate?.user_remarks || user.user_name
+            : mate?.friend_remarks || user.user_name;
+      }
+
+      return {
+        message: msgData,
+        senderInfo: {
+          chat_type: session.chat_type,
+          user_id: user.id,
+          remarks,
+          avatar: user.user_avatar,
+        },
+      };
+    });
+
+    return PageResponse.list(result, total);
   }
 }
