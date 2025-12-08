@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class AddMessageReadRecordsDto {
   @ApiProperty({ description: '用户id', required: true })
@@ -11,4 +11,9 @@ export class AddMessageReadRecordsDto {
   @IsNotEmpty()
   @IsInt()
   readonly message_id: number;
+
+  @ApiPropertyOptional({ description: '创建人id' })
+  @IsOptional()
+  @IsInt()
+  readonly create_by?: number;
 }

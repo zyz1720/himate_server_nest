@@ -19,7 +19,7 @@ export class AppSessionController {
     return this.sessionService.findAllUserSession(uid, query);
   }
 
-  @ApiOperation({ summary: '会话消息列表' })
+  @ApiOperation({ summary: '会话所有消息' })
   @ApiOkPageRes(SessionEntity)
   @Get('/:session_id')
   findAllMsg(

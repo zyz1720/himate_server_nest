@@ -59,7 +59,7 @@ export class MessageEntity {
   msg_type: MsgTypeEnum;
 
   @ApiProperty({ description: '消息密钥' })
-  @Column({ comment: '消息密钥', length: DataLength.Long, nullable: true })
+  @Column({ comment: '消息密钥', length: DataLength.Short, nullable: true })
   msg_secret: string;
 
   @ApiProperty({ description: '创建时间' })

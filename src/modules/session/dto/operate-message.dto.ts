@@ -24,9 +24,4 @@ export class ReadMessageDto {
   @IsNotEmpty()
   @IsUUID()
   readonly session_id: string;
-
-  @ApiProperty({ description: '会话id', required: true })
-  @IsNotEmpty()
-  @IsInt()
-  readonly session_primary_id: number;
 }

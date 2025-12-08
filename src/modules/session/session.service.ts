@@ -202,8 +202,6 @@ export class SessionService {
     const count = await qb.getCount();
     const sessions = await qb.getMany();
 
-    console.log(sessions[0].mate);
-
     // 处理会话数据，添加会话名称、头像和未读消息数量
     const processedSessions = await Promise.all(
       sessions.map(async (session) => {
@@ -460,12 +458,8 @@ export class SessionService {
 
   /* 读取消息 */
   async readMessage(uid: number, data: ReadMessageDto) {
-    const { messageId, session_id, session_primary_id } = data;
-    const session = await this.verifySessionByDoubleId(
-      uid,
-      session_primary_id,
-      session_id,
-    );
+    const { messageId, session_id } = data;
+    const session = await this.verifySessionBySessionId(uid, session_id);
     if (!session) {
       return false;
     }
@@ -477,6 +471,7 @@ export class SessionService {
       await this.messageReadRecordsService.addMessageReadRecords({
         message_id: messageId,
         user_id: uid,
+        create_by: uid,
       });
     if (recordRes.code == 0) {
       return true;
