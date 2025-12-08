@@ -160,7 +160,40 @@ export class SessionService {
     // 获取会话列表
     const qb = this.sessionRepository
       .createQueryBuilder('session')
-      .leftJoinAndSelect('session.lastMsg', 'lastMsg')
+      .leftJoin('session.lastMsg', 'lastMsg')
+      .leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
+        groupType: ChatTypeEnum.group,
+      })
+      .leftJoin(
+        'group.members',
+        'groupMember',
+        'groupMember.user_id = lastMsg.sender_id AND groupMember.group_primary_id = group.id',
+      )
+      .leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
+        privateType: ChatTypeEnum.private,
+      })
+      .leftJoin('mate.user', 'user')
+      .leftJoin('mate.friend', 'friend')
+      .select([
+        'session',
+        'lastMsg.content',
+        'lastMsg.msg_type',
+        'lastMsg.msg_secret',
+        'group.id',
+        'group.group_name',
+        'group.group_avatar',
+        'groupMember.member_remarks',
+        'groupMember.user_id',
+        'user.id',
+        'user.user_avatar',
+        'friend.id',
+        'friend.user_avatar',
+        'mate.mate_id',
+        'mate.friend_id',
+        'mate.friend_remarks',
+        'mate.user_id',
+        'mate.user_remarks',
+      ])
       .where('session.session_id IN (:...sessionIds)', { sessionIds })
       .orderBy('session.update_time', 'DESC');
 
@@ -169,36 +202,37 @@ export class SessionService {
     const count = await qb.getCount();
     const sessions = await qb.getMany();
 
+    console.log(sessions[0].mate);
+
     // 处理会话数据，添加会话名称、头像和未读消息数量
     const processedSessions = await Promise.all(
       sessions.map(async (session) => {
-        let sessionName = '';
-        let sessionAvatar = '';
-        let unreadCount = 0;
-        let userId = 0;
-        let groupId = 0;
+        const { group, mate, ...sessionData } = session;
+        const sessionExtra = {
+          session_name: null,
+          session_avatar: null,
+          unread_count: 0,
+          userId: 0,
+          groupId: 0,
+          lastSenderRemarks: null,
+        };
 
-        if (session.chat_type === ChatTypeEnum.group) {
-          const group = await this.groupService.findOneGroupBase(
-            session.session_id,
-          );
-          groupId = group?.id || 0;
-          sessionName = group?.group_name || '未知群组';
-          sessionAvatar = group?.group_avatar || '';
-        } else {
-          const mate = await this.mateService.findOneMateBase(
-            uid,
-            session.session_id,
-          );
-
-          if (mate) {
-            const targetUser = mate.user_id === uid ? mate.friend : mate.user;
-            const remark =
-              mate.user_id === uid ? mate.friend_remarks : mate.user_remarks;
-            sessionName = remark || '未知用户';
-            sessionAvatar = targetUser?.user_avatar || '';
-            userId = targetUser?.id || 0;
-          }
+        if (session.chat_type === ChatTypeEnum.group && group) {
+          sessionExtra.groupId = group?.id || 0;
+          sessionExtra.session_name = group?.group_name || '未知群组';
+          sessionExtra.session_avatar = group?.group_avatar || '';
+          sessionExtra.lastSenderRemarks =
+            group?.members[0]?.user_id === uid
+              ? null
+              : group?.members[0]?.member_remarks || '';
+        }
+        if (session.chat_type === ChatTypeEnum.private && mate) {
+          const targetUser = mate.user_id === uid ? mate.friend : mate.user;
+          const remark =
+            mate.user_id === uid ? mate.friend_remarks : mate.user_remarks;
+          sessionExtra.session_name = remark || '未知用户';
+          sessionExtra.session_avatar = targetUser?.user_avatar || '';
+          sessionExtra.userId = targetUser?.id || 0;
         }
 
         // 计算未读消息数量
@@ -211,15 +245,11 @@ export class SessionService {
             uid,
             session.id,
           );
-        unreadCount = messageCount - readCount;
+        sessionExtra.unread_count = messageCount - readCount;
 
         return {
-          ...session,
-          groupId: groupId,
-          userId: userId,
-          sessionName: sessionName,
-          sessionAvatar: sessionAvatar,
-          unreadCount: unreadCount,
+          session: sessionData,
+          sessionExtra: sessionExtra,
         };
       }),
     );
