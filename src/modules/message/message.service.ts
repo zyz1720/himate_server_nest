@@ -236,4 +236,93 @@ export class MessageService {
 
     return PageResponse.list(result, total);
   }
+
+  /* 查询会话下的所有未读消息 */
+  async findAllUnreadBySessionId(
+    uid: number,
+    sessionId: number,
+    query: FindAllDto,
+  ) {
+    const { current = 1, pageSize = 10 } = query || {};
+
+    const qb = this.messageRepository.createQueryBuilder('message');
+    qb.leftJoinAndSelect(
+      'message.session',
+      'session',
+      'session.id = message.session_primary_id',
+    );
+    qb.leftJoinAndSelect('message.user', 'user', 'user.id = message.sender_id');
+    qb.leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
+      groupType: ChatTypeEnum.group,
+    });
+    qb.leftJoin(
+      'group.members',
+      'groupMember',
+      'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
+    );
+
+    qb.leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
+      privateType: ChatTypeEnum.private,
+    });
+    qb.leftJoin(
+      'message.read_records',
+      'readRecords',
+      'readRecords.user_id = :uid',
+      { uid },
+    );
+
+    // 查询条件：指定会话、发送者不是当前用户、没有读取记录
+    qb.where('message.session_primary_id = :sessionId', { sessionId });
+    qb.andWhere('message.sender_id != :uid', { uid });
+    qb.andWhere('readRecords.id IS NULL');
+    qb.orderBy('message.create_time', 'DESC');
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+
+    // 选择需要的字段
+    qb.select([
+      'message',
+      'session.chat_type',
+      'session.session_id',
+      'user.id',
+      'user.user_name',
+      'user.user_avatar',
+      'group.group_id',
+      'groupMember.member_remarks',
+      'mate.mate_id',
+      'mate.friend_id',
+      'mate.friend_remarks',
+      'mate.user_id',
+      'mate.user_remarks',
+    ]);
+
+    const [messages, total] = await qb.getManyAndCount();
+    const result = messages.map((message) => {
+      const { session, user, ...msgData } = message as any;
+      const groupMember = session?.group?.members[0] || {};
+      const mate = session?.mate || {};
+
+      let remarks = user.user_name;
+      if (session.chat_type === ChatTypeEnum.group) {
+        remarks = groupMember?.member_remarks || user.user_name;
+      } else if (session.chat_type === ChatTypeEnum.private) {
+        remarks =
+          msgData?.sender_id === mate?.user_id
+            ? mate?.user_remarks || user.user_name
+            : mate?.friend_remarks || user.user_name;
+      }
+
+      return {
+        message: msgData,
+        senderInfo: {
+          chat_type: session.chat_type,
+          user_id: user.id,
+          remarks,
+          avatar: user.user_avatar,
+        },
+      };
+    });
+
+    return PageResponse.list(result, total);
+  }
 }

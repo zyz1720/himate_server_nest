@@ -11,6 +11,9 @@ import { EmailModule } from './core/email/email.module';
 import { RedisModule } from './core/Redis/redis.module';
 import { UploadModule } from './core/upload/upload.module';
 import { CaptchaModule } from './core/captcha/captcha.module';
+import { MusicApiModule } from './core/music-api/music-api.module';
+import { SocketModule } from './core/socket/socket.module';
+import { SseModule } from './core/sse/sse.module';
 import { AppPackageModule } from './modules/app-package/app-package.module';
 import { SessionModule } from './modules/session/session.module';
 import { MateModule } from './modules/mate/mate.module';
@@ -23,8 +26,6 @@ import { MusicModule } from './modules/music/music.module';
 import { MusicExtraModule } from './modules/music-extra/music-extra.module';
 import { FileModule } from './modules/file/file.module';
 import { UserModule } from './modules/user/user.module';
-import { MusicApiModule } from './core/music-api/music-api.module';
-import { SocketModule } from './modules/socket/socket.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './common/subscriber/user.subscriber';
@@ -120,6 +121,9 @@ import envConfig from '../config/env';
     UploadModule,
     UserModule,
     RedisModule,
+    SseModule,
+    SocketModule,
+    MusicApiModule,
     AppPackageModule,
     SessionModule,
     MateModule,
@@ -130,9 +134,7 @@ import envConfig from '../config/env';
     FavoritesModule,
     MusicModule,
     MusicExtraModule,
-    MusicApiModule,
     FileModule,
-    SocketModule,
   ],
 
   controllers: [AppController],

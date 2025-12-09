@@ -8,7 +8,6 @@ import { MateModule } from '../mate/mate.module';
 import { GroupModule } from '../group/group.module';
 import { MessageModule } from '../message/message.module';
 import { MessageReadRecordsModule } from '../message-read-records/message-read-records.module';
-import { SseSessionController } from './sse-session.controller';
 
 @Module({
   imports: [
@@ -18,7 +17,7 @@ import { SseSessionController } from './sse-session.controller';
     MessageModule,
     MessageReadRecordsModule,
   ],
-  controllers: [SessionController, AppSessionController, SseSessionController],
+  controllers: [SessionController, AppSessionController],
   providers: [SessionService],
   exports: [SessionService],
 })
