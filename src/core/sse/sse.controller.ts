@@ -1,10 +1,11 @@
-import { Controller, Sse, MessageEvent } from '@nestjs/common';
+import { Controller, Sse, MessageEvent, Req, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SseService } from './sse.service';
 import { ApiOkMsgRes } from 'src/common/response/api-response.decorator';
 import { I18nService } from 'nestjs-i18n';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 import { Observable, interval, map } from 'rxjs';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 @ApiTags('common - SSE')
 @ApiBearerAuth()
@@ -19,13 +20,6 @@ export class SseController {
   @ApiOkMsgRes()
   @Sse('unread')
   pushUnread(@UserId() uid: number): Observable<MessageEvent> {
-    return interval(1000).pipe(
-      map((count) => ({
-        data: {
-          message: `Hello from SSE! Count: ${count} ${uid}`,
-          timestamp: new Date().toISOString(),
-        },
-      })),
-    );
+    return this.sseService.createUserConnection(String(uid));
   }
 }

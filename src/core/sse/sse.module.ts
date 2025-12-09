@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { SseService } from './sse.service';
 import { SseController } from './sse.controller';
-import { FileModule } from 'src/modules/file/file.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [FileModule],
+  imports: [RedisModule],
   controllers: [SseController],
   providers: [SseService],
   exports: [SseService],

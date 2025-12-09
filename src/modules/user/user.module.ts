@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entity/user.entity';
 import { AuthModule } from 'src/core/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
-import { RedisModule } from 'src/core/Redis/redis.module';
+import { RedisModule } from 'src/core/redis/redis.module';
 import { AppUserController } from './app-user.controller';
 
 @Module({

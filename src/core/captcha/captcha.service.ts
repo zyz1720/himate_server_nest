@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../Redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 import { StringUtil } from 'src/common/utils/string.util';
 import { Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';

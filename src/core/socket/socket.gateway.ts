@@ -51,16 +51,24 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('join-room')
-  async joinRoom(client: Socket, session_id: string) {
-    Logger.log(`客户端 ${client.id}, 加入房间 ${session_id}`);
+  async joinRoom(
+    @WsUserId() uid: number,
+    @ConnectedSocket() client: Socket,
+    @MessageBody() session_id: string,
+  ) {
+    Logger.log(`用户 ${uid} 客户端 ${client.id}, 加入房间 ${session_id}`);
     await client.join(session_id);
     return Response.ok(this.i18n.t('message.JOIN_SUCCESS'), session_id);
   }
 
   @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('leave-room')
-  async leaveRoom(client: Socket, session_id: string) {
-    Logger.log(`客户端 ${client.id}, 退出房间 ${session_id}`);
+  async leaveRoom(
+    @WsUserId() uid: number,
+    @ConnectedSocket() client: Socket,
+    @MessageBody() session_id: string,
+  ) {
+    Logger.log(`用户 ${uid} 客户端 ${client.id}, 退出房间 ${session_id}`);
     await client.leave(session_id);
     return Response.ok(this.i18n.t('message.LEAVE_SUCCESS'), session_id);
   }

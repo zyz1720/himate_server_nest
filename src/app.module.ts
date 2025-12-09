@@ -8,7 +8,7 @@ import { JwtAuthGuard } from './core/auth/guards/jwt.auth.guard';
 import { RolesGuard } from './core/auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { EmailModule } from './core/email/email.module';
-import { RedisModule } from './core/Redis/redis.module';
+import { RedisModule } from './core/redis/redis.module';
 import { UploadModule } from './core/upload/upload.module';
 import { CaptchaModule } from './core/captcha/captcha.module';
 import { MusicApiModule } from './core/music-api/music-api.module';

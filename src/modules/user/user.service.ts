@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entity/user.entity';
-import { RedisService } from 'src/core/Redis/redis.service';
+import { RedisService } from 'src/core/redis/redis.service';
 import { StringUtil } from 'src/common/utils/string.util';
 import { UserLoginByCodeDto } from '../../core/auth/dto/user-login-code.dto';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
