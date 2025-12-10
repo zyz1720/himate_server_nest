@@ -1,13 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsOptional,
-  IsArray,
-  ArrayNotEmpty,
-  IsNumber,
-  IsNotEmpty,
-} from 'class-validator';
-import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
+import { IsOptional, IsArray, ArrayNotEmpty, IsNumber } from 'class-validator';
 
 export class FindAllDto {
   @ApiPropertyOptional({ description: '页数', default: 1 })
@@ -33,35 +26,4 @@ export class IdsDto {
   @IsArray()
   @ArrayNotEmpty()
   readonly ids: number[];
-}
-
-export class SenderInfoDto {
-  @ApiProperty({
-    description: '聊天类型',
-    type: 'enum',
-    enum: ChatTypeEnum,
-  })
-  @IsNotEmpty()
-  chat_type: ChatTypeEnum;
-
-  @ApiProperty({
-    description: '用户id',
-    type: 'number',
-  })
-  @IsNotEmpty()
-  user_id: number;
-
-  @ApiProperty({
-    description: '用户备注',
-    type: 'string',
-  })
-  @IsNotEmpty()
-  remarks: string;
-
-  @ApiProperty({
-    description: '用户头像',
-    type: 'string',
-  })
-  @IsNotEmpty()
-  avatar: string;
 }

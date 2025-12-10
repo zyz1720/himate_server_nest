@@ -9,6 +9,7 @@ import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
+import { MessageWithSenderInfo } from '../session/session.service';
 
 @Injectable()
 export class MessageService {
@@ -126,6 +127,14 @@ export class MessageService {
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
+  }
+
+  /* 查询指定消息 */
+  async findMessagesByIds(ids: number[] = []) {
+    const result = await this.messageRepository.find({
+      where: { id: In(ids) },
+    });
+    return result;
   }
 
   /* 查询用户所有消息 */
@@ -312,7 +321,7 @@ export class MessageService {
             : mate?.friend_remarks || user.user_name;
       }
 
-      return {
+      const messageWithSenderInfo: MessageWithSenderInfo = {
         message: msgData,
         senderInfo: {
           chat_type: session.chat_type,
@@ -321,6 +330,8 @@ export class MessageService {
           avatar: user.user_avatar,
         },
       };
+
+      return messageWithSenderInfo;
     });
 
     return PageResponse.list(result, total);

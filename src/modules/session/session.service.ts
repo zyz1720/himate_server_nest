@@ -14,14 +14,29 @@ import { GroupService } from '../group/group.service';
 import { MateService } from '../mate/mate.service';
 import { ReadMessageDto, SendMessageDto } from './dto/operate-message.dto';
 import { MessageEntity } from '../message/entity/message.entity';
-import { SenderInfoDto } from 'src/common/dto/common.dto';
+import { SenderInfoDto, SessionExtraDto } from './dto/operate-message.dto';
 import { GroupEntity } from '../group/entity/group.entity';
 import { MateEntity } from '../mate/entity/mate.entity';
 
-interface SessionWithSenderInfo {
+export interface SessionWithExtraSenderInfo {
+  memberIds: number[];
   session: SessionEntity;
+  sessionExtra: SessionExtraDto;
   senderInfo: SenderInfoDto;
 }
+
+export interface MessageWithSenderInfo {
+  message: MessageEntity;
+  senderInfo: SenderInfoDto;
+}
+
+export interface SessionWithExtra {
+  session: SessionEntity;
+  sessionExtra: SessionExtraDto;
+}
+
+export type FullSessionMessage = MessageWithSenderInfo &
+  SessionWithExtraSenderInfo;
 
 @Injectable()
 export class SessionService {
@@ -157,6 +172,39 @@ export class SessionService {
       ...mateIds.map((m) => m.mate_id),
     ];
 
+    if (sessionIds.length === 0) {
+      return PageResponse.list([], 0);
+    }
+
+    const unreadSessionsQuery = this.sessionRepository
+      .createQueryBuilder('session')
+      .leftJoin('session.messages', 'messages')
+      .leftJoin(
+        'messages.read_records',
+        'readRecords',
+        'readRecords.user_id = :userId',
+        { userId: uid },
+      )
+      .select('session.id', 'sessionId')
+      .addSelect(
+        'COUNT(CASE WHEN readRecords.id IS NULL THEN 1 END)',
+        'unreadCount',
+      )
+      .where('session.session_id IN (:...sessionIds)', { sessionIds })
+      .groupBy('session.id')
+      .having('COUNT(CASE WHEN readRecords.id IS NULL THEN 1 END) > 0');
+
+    const unreadSessions = await unreadSessionsQuery.getRawMany();
+    if (unreadSessions.length === 0) {
+      return PageResponse.list([], 0);
+    }
+
+    const unreadIds = unreadSessions.map((item) => item.sessionId);
+    const unreadCountMap = unreadSessions.reduce((map, item) => {
+      map[item.sessionId] = parseInt(item.unreadCount) || 0;
+      return map;
+    }, {});
+
     // 获取会话列表
     const qb = this.sessionRepository
       .createQueryBuilder('session')
@@ -194,65 +242,78 @@ export class SessionService {
         'mate.user_id',
         'mate.user_remarks',
       ])
-      .where('session.session_id IN (:...sessionIds)', { sessionIds })
+      .where('session.id IN (:...unreadIds)', {
+        unreadIds,
+      })
       .orderBy('session.update_time', 'DESC');
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const sessions = await qb.getMany();
+
+    const [sessions, count] = await qb.getManyAndCount();
 
     // 处理会话数据，添加会话名称、头像和未读消息数量
     const processedSessions = await Promise.all(
       sessions.map(async (session) => {
         const { group, mate, ...sessionData } = session;
-        const sessionExtra = {
-          session_name: null,
-          session_avatar: null,
-          unread_count: 0,
-          userId: 0,
-          groupId: 0,
-          lastSenderRemarks: null,
-        };
+        let sessionExtra = {};
 
         if (session.chat_type === ChatTypeEnum.group && group) {
-          sessionExtra.groupId = group?.id || 0;
-          sessionExtra.session_name = group?.group_name || '未知群组';
-          sessionExtra.session_avatar = group?.group_avatar || '';
-          sessionExtra.lastSenderRemarks =
-            group?.members[0]?.user_id === uid
-              ? null
-              : group?.members[0]?.member_remarks || '';
+          sessionExtra = this.formatGroupSessionExtra(uid, group);
         }
         if (session.chat_type === ChatTypeEnum.private && mate) {
-          const targetUser = mate.user_id === uid ? mate.friend : mate.user;
-          const remark =
-            mate.user_id === uid ? mate.friend_remarks : mate.user_remarks;
-          sessionExtra.session_name = remark || '未知用户';
-          sessionExtra.session_avatar = targetUser?.user_avatar || '';
-          sessionExtra.userId = targetUser?.id || 0;
+          sessionExtra = this.formatPrivateSessionExtra(uid, mate);
         }
 
-        // 计算未读消息数量
-        const messageCount = await this.messageService.findCountBySessionId(
-          uid,
-          session.id,
-        );
-        const readCount =
-          await this.messageReadRecordsService.findCountBySessionId(
-            uid,
-            session.id,
-          );
-        sessionExtra.unread_count = messageCount - readCount;
-
         return {
-          session: sessionData,
+          session: {
+            ...sessionData,
+            unread_count: unreadCountMap[session.id] || 0,
+          },
           sessionExtra: sessionExtra,
         };
       }),
     );
 
     return PageResponse.list(processedSessions, count);
+  }
+
+  /**
+   * 格式化群组会话额外信息
+   * @param uid 用户ID
+   * @param group 群组实体
+   */
+  formatGroupSessionExtra(uid: number, group: GroupEntity) {
+    const sessionExtra: SessionExtraDto = {
+      session_name: group?.group_name || '未知群组',
+      session_avatar: group?.group_avatar || '',
+      userId: 0,
+      groupId: group?.id || 0,
+      lastSenderRemarks:
+        group?.members[0]?.user_id === uid
+          ? null
+          : group?.members[0]?.member_remarks || '',
+    };
+    return sessionExtra;
+  }
+
+  /**
+   * 格式化私聊会话额外信息
+   * @param uid 用户ID
+   * @param mate 好友实体
+   */
+  formatPrivateSessionExtra(uid: number, mate: MateEntity) {
+    const targetUser = mate.user_id === uid ? mate.friend : mate.user;
+    const remark =
+      mate.user_id === uid ? mate.friend_remarks : mate.user_remarks;
+    const sessionExtra: SessionExtraDto = {
+      session_name: remark || '未知用户',
+      session_avatar: targetUser?.user_avatar || '',
+      userId: targetUser?.id || 0,
+      groupId: 0,
+      lastSenderRemarks: null,
+    };
+    return sessionExtra;
   }
 
   /**
@@ -267,12 +328,13 @@ export class SessionService {
     session: SessionEntity,
     group: GroupEntity,
   ) {
-    return {
+    const senderInfo: SenderInfoDto = {
       chat_type: session?.chat_type,
       user_id: uid,
       remarks: group?.members[0]?.member_remarks || '',
       avatar: group?.members[0]?.user?.user_avatar || '',
-    } as SenderInfoDto;
+    };
+    return senderInfo;
   }
 
   /**
@@ -288,7 +350,7 @@ export class SessionService {
     mate: MateEntity,
   ) {
     const targetUser = mate?.user_id === uid ? mate?.user : mate?.friend;
-    return {
+    const senderInfo: SenderInfoDto = {
       chat_type: session?.chat_type,
       user_id: uid,
       remarks:
@@ -296,7 +358,8 @@ export class SessionService {
           ? mate?.user_remarks || ''
           : mate?.friend_remarks || '',
       avatar: targetUser?.user_avatar || '',
-    } as SenderInfoDto;
+    };
+    return senderInfo;
   }
 
   /* 双重id验证会话的合法性 */
@@ -306,25 +369,31 @@ export class SessionService {
       return false;
     }
     if (session.chat_type == ChatTypeEnum.group) {
-      const group = await this.groupService.findOneGroupMemberBase(
-        uid,
-        session_id,
-      );
+      const { group, memberIds } =
+        await this.groupService.findOneGroupMemberBase(uid, session_id);
       if (!group) {
         return false;
       }
+
       return {
+        memberIds,
         session,
+        sessionExtra: this.formatGroupSessionExtra(uid, group),
         senderInfo: this.formatGroupSenderInfo(uid, session, group),
       };
     }
     if (session.chat_type == ChatTypeEnum.private) {
-      const mate = await this.mateService.findOneMateBase(uid, session_id);
+      const { mate, memberIds } = await this.mateService.findOneMateBase(
+        uid,
+        session_id,
+      );
       if (!mate) {
         return false;
       }
       return {
+        memberIds,
         session,
+        sessionExtra: this.formatPrivateSessionExtra(uid, mate),
         senderInfo: this.formatPrivateSenderInfo(uid, session, mate),
       };
     }
@@ -352,23 +421,29 @@ export class SessionService {
 
   /* 会话session_id验证会话的合法性, 若不存在则创建 */
   async verifySessionWithCreateBySessionId(uid: number, session_id: string) {
-    const [group, mate, session] = await Promise.all([
+    const [groupResult, mateResult, session] = await Promise.all([
       this.groupService.findOneGroupMemberBase(uid, session_id),
       this.mateService.findOneMateBase(uid, session_id),
       this.findOneSessionBySessionId(session_id),
     ]);
+    const { group, memberIds: groupMemberIds } = groupResult;
+    const { mate, memberIds: mateMemberIds } = mateResult;
 
     // 如果会话已存在且验证通过
     if (session) {
       if (session.chat_type == ChatTypeEnum.group && group) {
         return {
+          memberIds: groupMemberIds,
           session,
+          sessionExtra: this.formatGroupSessionExtra(uid, group),
           senderInfo: this.formatGroupSenderInfo(uid, session, group),
         };
       }
       if (session.chat_type == ChatTypeEnum.private && mate) {
         return {
+          memberIds: mateMemberIds,
           session,
+          sessionExtra: this.formatPrivateSessionExtra(uid, mate),
           senderInfo: this.formatPrivateSenderInfo(uid, session, mate),
         };
       }
@@ -385,7 +460,9 @@ export class SessionService {
       session.group = group;
       const savedSession = await this.sessionRepository.save(session);
       return {
+        memberIds: groupMemberIds,
         session: savedSession,
+        sessionExtra: this.formatGroupSessionExtra(uid, group),
         senderInfo: this.formatGroupSenderInfo(uid, savedSession, group),
       };
     }
@@ -399,7 +476,9 @@ export class SessionService {
       session.mate = mate;
       const savedSession = await this.sessionRepository.save(session);
       return {
+        memberIds: mateMemberIds,
         session: savedSession,
+        sessionExtra: this.formatPrivateSessionExtra(uid, mate),
         senderInfo: this.formatPrivateSenderInfo(uid, savedSession, mate),
       };
     }
@@ -409,7 +488,7 @@ export class SessionService {
 
   /* 验证会话的合法性 */
   async verifySessionLegality(uid: number, session_id: string, id?: number) {
-    let sessionWithSenderInfo: SessionWithSenderInfo | false = false;
+    let sessionWithSenderInfo: SessionWithExtraSenderInfo | false = false;
     if (id) {
       sessionWithSenderInfo = await this.verifySessionByDoubleId(
         uid,
@@ -428,15 +507,16 @@ export class SessionService {
   /* 创建并发送消息 */
   async createAndSendMessage(uid: number, data: SendMessageDto) {
     const { session_primary_id, session_id } = data;
-    const sessionWithSenderInfo = await this.verifySessionLegality(
+    const sessionWithExtraSenderInfo = await this.verifySessionLegality(
       uid,
       session_id,
       session_primary_id,
     );
-    if (!sessionWithSenderInfo) {
+    if (!sessionWithExtraSenderInfo) {
       return false;
     }
-    const { session, senderInfo } = sessionWithSenderInfo;
+    const { session, sessionExtra, senderInfo, memberIds } =
+      sessionWithExtraSenderInfo;
     const result = await this.messageService.addMessage({
       ...data,
       session_primary_id: session.id,
@@ -447,32 +527,38 @@ export class SessionService {
       const message = result.data as MessageEntity;
       session.lastMsg = message;
       session.update_by = uid;
-      await this.sessionRepository.save(session);
-      return {
+      const savedSession = await this.sessionRepository.save(session);
+      const fullSessionMessage: FullSessionMessage = {
         message,
         senderInfo,
+        session: savedSession,
+        sessionExtra,
+        memberIds,
       };
+      return fullSessionMessage;
     }
     return false;
   }
 
   /* 读取消息 */
   async readMessage(uid: number, data: ReadMessageDto) {
-    const { messageId, session_id } = data;
+    const { ids, session_id } = data;
     const session = await this.verifySessionBySessionId(uid, session_id);
     if (!session) {
       return false;
     }
-    const messageRes = await this.messageService.findOneMessage(messageId);
-    if (messageRes.code !== 0) {
+    const message = await this.messageService.findMessagesByIds(ids);
+    if (!message) {
       return false;
     }
     const recordRes =
-      await this.messageReadRecordsService.addMessageReadRecords({
-        message_id: messageId,
-        user_id: uid,
-        create_by: uid,
-      });
+      await this.messageReadRecordsService.batchAddMessageReadRecords(
+        ids.map((id) => ({
+          message_id: id,
+          user_id: uid,
+          create_by: uid,
+        })),
+      );
     if (recordRes.code == 0) {
       return true;
     }
@@ -490,5 +576,18 @@ export class SessionService {
       return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
     }
     return this.messageService.findAllBySessionId(session.id, query);
+  }
+
+  /* 分页查询会话未读消息 */
+  async findAllSessionMessagesUnread(
+    uid: number,
+    session_id: string,
+    query: FindAllDto,
+  ) {
+    const session = await this.verifySessionBySessionId(uid, session_id);
+    if (!session) {
+      return PageResponse.list([], 0);
+    }
+    return this.messageService.findAllUnreadBySessionId(uid, session.id, query);
   }
 }

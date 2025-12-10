@@ -363,7 +363,15 @@ export class MateService {
         },
       },
     });
+    const mateWithMemberIds = {
+      mate,
+      memberIds: [],
+    };
+    if (!mate) {
+      return mateWithMemberIds;
+    }
+    mateWithMemberIds.memberIds = [mate?.user_id, mate?.friend_id];
 
-    return mate;
+    return mateWithMemberIds;
   }
 }

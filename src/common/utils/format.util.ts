@@ -5,7 +5,7 @@ export class FormatUtil {
    * @param startsWithStr 前缀字符串，用于筛选需要格式化的键
    * @returns 格式化后的新数据对象
    */
-  static formatleftJoinData(originalData: any, startsWithStr: string): any {
+  static formatGroupQueryData(originalData: any, startsWithStr: string): any {
     const newData = {};
     for (const key in originalData) {
       if (key.startsWith(startsWithStr)) {

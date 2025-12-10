@@ -4,6 +4,7 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -20,13 +21,20 @@ import { Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 
 @WebSocketGateway(3001, { namespace: 'socket' })
-export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class SocketGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   constructor(
     private readonly i18n: I18nService,
     private readonly socketService: SocketService,
   ) {}
   @WebSocketServer()
   server: Server;
+
+  // 在网关初始化完成后调用
+  afterInit(server: Server) {
+    this.socketService.setServer(server);
+  }
 
   @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('read-message')
@@ -46,7 +54,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     Logger.log('[send-message]接收消息：', message);
     message.sender_ip = client.handshake.address;
-    return this.socketService.sendMessage(uid, message);
+    const res = await this.socketService.sendMessage(uid, message);
+    if (res.code === 0) {
+      client.to(message.session_id).emit('message', [res.data]);
+    }
+    return res;
   }
 
   @UseGuards(WsJwtAuthGuard)
@@ -58,6 +70,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     Logger.log(`用户 ${uid} 客户端 ${client.id}, 加入房间 ${session_id}`);
     await client.join(session_id);
+    await this.socketService.processAllSessionMessagesUnread(uid, session_id);
     return Response.ok(this.i18n.t('message.JOIN_SUCCESS'), session_id);
   }
 

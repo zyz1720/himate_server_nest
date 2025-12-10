@@ -28,6 +28,18 @@ export class MessageReadRecordsService {
     }
   }
 
+  /* 批量添加消息读取记录 */
+  async batchAddMessageReadRecords(data: AddMessageReadRecordsDto[]) {
+    const entityData = this.messageReadRecordsRepository.create(data);
+    const insertRes =
+      await this.messageReadRecordsRepository.insert(entityData);
+    if (insertRes.identifiers.length) {
+      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), entityData);
+    } else {
+      return Response.fail(this.i18n.t('message.CREATE_FAILED'));
+    }
+  }
+
   /* 查询所有消息读取记录 */
   async findAllMessageReadRecords(query: FindAllMessageReadRecordsDto) {
     const { current = 1, pageSize = 10, user_id, message_id } = query || {};

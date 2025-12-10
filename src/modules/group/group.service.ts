@@ -272,6 +272,8 @@ export class GroupService {
       select: {
         id: true,
         group_id: true,
+        group_name: true,
+        group_avatar: true,
         members: {
           user_id: true,
           member_remarks: true,
@@ -281,7 +283,24 @@ export class GroupService {
         },
       },
     });
-    return group;
+    const groupWithMemberIds = {
+      group,
+      memberIds: [],
+    };
+    if (!group) {
+      return groupWithMemberIds;
+    }
+    const groupWithMembers = await this.groupRepository
+      .createQueryBuilder('group')
+      .leftJoin('group.members', 'members')
+      .select(['members.user_id'])
+      .where('group.group_id = :group_id', { group_id })
+      .getRawMany();
+
+    groupWithMemberIds.memberIds = groupWithMembers.map(
+      (item) => item.members_user_id,
+    );
+    return groupWithMemberIds;
   }
 
   /* 查询用户存在的群组group_id */
