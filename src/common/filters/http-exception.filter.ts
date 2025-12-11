@@ -20,8 +20,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
-    const res = exception.getResponse();
+    const result = exception.getResponse();
 
-    response.status(status).send(Response.fail(CommonUtil.getFilterMsg(res)));
+    response
+      .status(status)
+      .send(Response.fail(CommonUtil.getFilterFailedMsg(result)));
   }
 }

@@ -20,7 +20,7 @@ export class UserSubscriber implements EntitySubscriberInterface {
       if (entity[field]) {
         return;
       }
-      entity[field] = AuthInfo?.userId ?? 0;
+      entity[field] = AuthInfo?.userId || 0;
     }
   }
 

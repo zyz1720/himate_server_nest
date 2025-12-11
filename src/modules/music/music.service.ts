@@ -102,7 +102,7 @@ export class MusicService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 
@@ -158,7 +158,7 @@ export class MusicService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 
@@ -295,7 +295,7 @@ export class MusicService {
         select: ['id'],
       });
       if (music.length == 0) {
-        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
       }
 
       defaultFavorites.music = [...(defaultFavorites.music || []), ...music];
@@ -334,7 +334,7 @@ export class MusicService {
         },
       );
       if (!defaultFavorites) {
-        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
       }
 
       const music = await queryRunner.manager.find(MusicEntity, {
@@ -342,7 +342,7 @@ export class MusicService {
         select: ['id'],
       });
       if (music.length == 0) {
-        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
       }
 
       defaultFavorites.music = defaultFavorites.music.filter(
@@ -381,7 +381,7 @@ export class MusicService {
         },
       });
       if (!favorites) {
-        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
       }
 
       favorites.music = favorites.music.filter(
@@ -423,7 +423,7 @@ export class MusicService {
         },
       });
       if (favorites.length == 0) {
-        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
       }
 
       const music = await queryRunner.manager.find(MusicEntity, {
@@ -431,7 +431,7 @@ export class MusicService {
         select: ['id'],
       });
       if (music.length == 0) {
-        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
       }
 
       favorites.forEach((item) => {

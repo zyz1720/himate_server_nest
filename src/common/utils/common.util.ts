@@ -4,17 +4,17 @@ export class CommonUtil {
    * @param data 要处理的消息数据
    * @returns 处理后的消息字符串
    */
-  static getFilterMsg(data: any | string | Array<any>): string {
+  static getFilterFailedMsg(data: any | string | Array<any>): string {
     if (typeof data == 'string') {
       return data;
     }
-    if (data.message && Array.isArray(data.message)) {
+    if (data?.message && Array.isArray(data?.message)) {
       return data.message.join('; ');
     }
-    if (typeof data.message == 'string') {
+    if (typeof data?.message == 'string') {
       return data.message;
     }
-    return '';
+    return 'failed !';
   }
 
   /**

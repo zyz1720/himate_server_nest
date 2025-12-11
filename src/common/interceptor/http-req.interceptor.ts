@@ -7,7 +7,7 @@ import {
 import { Observable, map } from 'rxjs';
 import { TypeUtil } from '../utils/type.util';
 import { Response } from '../response/api-response';
-import { I18nContext } from 'nestjs-i18n';
+import { CommonUtil } from '../utils/common.util';
 
 export interface IResponse<T> {
   data: T;
@@ -25,12 +25,9 @@ export class HttpReqTransformInterceptor<T>
         if (result) {
           return TypeUtil.isResponse(result)
             ? result
-            : Response.ok(
-                I18nContext.current().t('message.OPERATE_SUCCESS'),
-                result,
-              );
+            : Response.ok('Operation successful', result);
         } else {
-          return Response.fail(I18nContext.current().t('message.GET_FAILED'));
+          return Response.fail(CommonUtil.getFilterFailedMsg(result));
         }
       }),
     );

@@ -6,6 +6,7 @@ import {
 } from 'src/modules/session/dto/operate-message.dto';
 import { Response } from 'src/common/response/api-response';
 import { SseService } from '../sse/sse.service';
+import { I18nService } from 'nestjs-i18n';
 import { Server } from 'socket.io';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class SocketService {
   constructor(
     private readonly sessionService: SessionService,
     private readonly sseService: SseService,
+    private readonly i18n: I18nService,
   ) {}
 
   // 用于存储 Server 对象的引用
@@ -27,9 +29,9 @@ export class SocketService {
   async readMessage(uid: number, message: ReadMessageDto) {
     const readFlag = await this.sessionService.readMessage(uid, message);
     if (readFlag) {
-      return Response.ok('read success', readFlag);
+      return Response.ok(this.i18n.t('message.READ_SUCCESS'), readFlag);
     }
-    return Response.fail('read failed');
+    return Response.fail(this.i18n.t('message.READ_FAILED'));
   }
 
   // 发送消息
@@ -40,17 +42,16 @@ export class SocketService {
       this.sseService.sendToUsers(memberIds, [
         { session, sessionExtra, isLatest: true },
       ]);
-      return Response.ok('send success', {
+      return Response.ok(this.i18n.t('message.SEND_SUCCESS'), {
         message,
         senderInfo,
       });
     }
-    return Response.fail('send failed');
+    return Response.fail(this.i18n.t('message.SEND_FAILED'));
   }
 
-  /* 分页查询并推送会话未读消息 */
+  // 处理所有会话未读消息并推送
   async processAllSessionMessagesUnread(uid: number, session_id: string) {
-    // 递归分页获取所有未读消息并推送
     const pushUnreadMessages = async (currentPage: number = 1) => {
       const pageSize = 20;
       const unreadMessages =

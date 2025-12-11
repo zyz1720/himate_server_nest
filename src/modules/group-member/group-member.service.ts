@@ -91,7 +91,7 @@ export class GroupMemberService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 
@@ -295,7 +295,7 @@ export class GroupMemberService {
         where: { id: groupId },
       });
       if (!group) {
-        return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
       }
 
       const members = await queryRunner.manager.find(GroupMemberEntity, {
@@ -356,7 +356,7 @@ export class GroupMemberService {
     const { ids } = data;
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     if (
       member.member_role !== MemberRoleEnum.owner &&
@@ -377,7 +377,7 @@ export class GroupMemberService {
   async removeOneselfMember(uid: number, groupId: number) {
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     if (member.member_role == MemberRoleEnum.owner) {
       return Response.fail(this.i18n.t('message.NO_ALLOW'));
@@ -393,7 +393,7 @@ export class GroupMemberService {
   ) {
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     return this.updateGroupMember(member.id, data);
   }
@@ -410,7 +410,7 @@ export class GroupMemberService {
     }
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     if (member.member_role == MemberRoleEnum.member) {
       return Response.fail(this.i18n.t('message.NO_PERMISSION'));

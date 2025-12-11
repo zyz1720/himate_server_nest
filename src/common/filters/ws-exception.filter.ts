@@ -5,7 +5,6 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Socket } from 'socket.io';
-import { I18nContext } from 'nestjs-i18n';
 import { Response as ApiResponse } from '../response/api-response';
 import { CommonUtil } from '../utils/common.util';
 
@@ -19,9 +18,7 @@ export class WsExceptionFilter implements ExceptionFilter {
 
     client.emit(
       'error',
-      ApiResponse.fail(
-        I18nContext.current().t(CommonUtil.getFilterMsg(response)),
-      ),
+      ApiResponse.fail(CommonUtil.getFilterFailedMsg(response)),
     );
   }
 }

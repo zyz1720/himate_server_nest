@@ -30,11 +30,27 @@ export class MessageReadRecordsService {
 
   /* 批量添加消息读取记录 */
   async batchAddMessageReadRecords(data: AddMessageReadRecordsDto[]) {
-    const entityData = this.messageReadRecordsRepository.create(data);
-    const insertRes =
-      await this.messageReadRecordsRepository.insert(entityData);
-    if (insertRes.identifiers.length) {
-      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), entityData);
+    const existRecords = await this.messageReadRecordsRepository
+      .createQueryBuilder('message_read_records')
+      .where('user_id IN (:...user_ids)', {
+        user_ids: data.map((item) => item.user_id),
+      })
+      .andWhere('message_id IN (:...message_ids)', {
+        message_ids: data.map((item) => item.message_id),
+      })
+      .select('message_id')
+      .getRawMany();
+    const newRecords = data.filter(
+      (item) =>
+        !existRecords.find((record) => record.message_id === item.message_id),
+    );
+    if (newRecords.length === 0) {
+      return Response.fail(this.i18n.t('message.CREATE_SUCCESS'));
+    }
+
+    const result = await this.messageReadRecordsRepository.insert(newRecords);
+    if (result.identifiers.length) {
+      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), result);
     } else {
       return Response.fail(this.i18n.t('message.CREATE_FAILED'));
     }
@@ -72,7 +88,7 @@ export class MessageReadRecordsService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 

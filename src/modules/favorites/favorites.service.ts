@@ -84,7 +84,7 @@ export class FavoritesService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 

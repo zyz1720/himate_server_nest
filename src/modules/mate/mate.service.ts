@@ -77,7 +77,7 @@ export class MateService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 
@@ -158,7 +158,7 @@ export class MateService {
       id: friend_id,
     });
     if (!friend || !user) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     const mate = await this.verifyTwoUserIsMate(uid, friend_id);
     if (mate) {
@@ -255,7 +255,7 @@ export class MateService {
     const { remarks } = data || {};
     const mate = await this.mateRepository.findOne({ where: { id } });
     if (mate.user_id !== uid && mate.friend_id !== uid) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     if (mate.user_id == uid) {
       mate.friend_remarks = remarks;
@@ -277,7 +277,7 @@ export class MateService {
   async softDeleteUserMate(uid: number, id: number) {
     const mate = await this.mateRepository.findOne({ where: { id } });
     if (mate.user_id !== uid && mate.friend_id !== uid) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     return this.softDeleteMate(id);
   }
@@ -292,7 +292,7 @@ export class MateService {
     const { remarks } = data || {};
     const mate = await this.mateRepository.findOne({ where: { id } });
     if (mate.user_id != uid && mate.friend_id != uid) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     if (mate.friend_id != uid) {
       return Response.fail(this.i18n.t('message.NO_PERMISSION'));

@@ -8,7 +8,6 @@ import {
 import { TypeORMError } from 'typeorm';
 import { Response as ApiResponse } from '../response/api-response';
 import { CommonUtil } from '../utils/common.util';
-import { I18nContext } from 'nestjs-i18n';
 
 @Catch(TypeORMError)
 export class DatabaseExceptionFilter implements ExceptionFilter {
@@ -19,11 +18,11 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
 
     const message =
-      I18nContext.current().t('message.DATA_OPERATION_FAILED') +
+      'database operation failed ' +
       (exception?.code || exception?.message || exception?.name);
 
     response
       .status(HttpStatus.BAD_REQUEST)
-      .send(ApiResponse.fail(CommonUtil.getFilterMsg(message)));
+      .send(ApiResponse.fail(CommonUtil.getFilterFailedMsg(message)));
   }
 }

@@ -82,7 +82,7 @@ export class MessageService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 
@@ -129,12 +129,13 @@ export class MessageService {
     }
   }
 
-  /* 查询指定消息id */
+  /* 查询指定消息id列表 */
   async findMessageIdsByIds(ids: number[] = []) {
-    const result = await this.messageRepository.find({
-      where: { id: In(ids) },
-      select: ['id'],
-    });
+    const result = await this.messageRepository
+      .createQueryBuilder('message')
+      .select('message.id')
+      .where('message.id IN (:...ids)', { ids })
+      .getRawMany();
     return result;
   }
 
@@ -145,8 +146,8 @@ export class MessageService {
     qb.where('message.sender_id = :uid', { uid });
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
+
     return PageResponse.list(data, count);
   }
 
@@ -164,58 +165,48 @@ export class MessageService {
     }
   }
 
-  // 查询会话下的消息数量
-  async findCountBySessionId(uid: number, sessionId: number) {
-    const count = await this.messageRepository.count({
-      where: { session_primary_id: sessionId, sender_id: Not(uid) },
-    });
-    return count;
-  }
-
-  /* 查询会话下的所有消息 */
+  /* 查询会话下的所有消息的详细信息 */
   async findAllBySessionId(sessionId: number, query: FindAllDto) {
     const { current = 1, pageSize = 10 } = query || {};
 
-    const qb = this.messageRepository.createQueryBuilder('message');
-    qb.leftJoinAndSelect(
-      'message.session',
-      'session',
-      'session.id = message.session_primary_id',
-    );
-    qb.leftJoinAndSelect('message.user', 'user', 'user.id = message.sender_id');
-    qb.leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
-      groupType: ChatTypeEnum.group,
-    });
-    qb.leftJoin(
-      'group.members',
-      'groupMember',
-      'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
-    );
-
-    qb.leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
-      privateType: ChatTypeEnum.private,
-    });
-    qb.where('message.session_primary_id = :sessionId', { sessionId });
-    qb.orderBy('message.create_time', 'DESC');
-    qb.limit(pageSize);
-    qb.offset(pageSize * (current - 1));
-
-    // 7. 选择需要的字段
-    qb.select([
-      'message',
-      'session.chat_type',
-      'session.session_id',
-      'user.id',
-      'user.user_name',
-      'user.user_avatar',
-      'group.group_id',
-      'groupMember.member_remarks',
-      'mate.mate_id',
-      'mate.friend_id',
-      'mate.friend_remarks',
-      'mate.user_id',
-      'mate.user_remarks',
-    ]);
+    const qb = this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoin(
+        'message.session',
+        'session',
+        'session.id = message.session_primary_id',
+      )
+      .leftJoin('message.user', 'user', 'user.id = message.sender_id')
+      .leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
+        groupType: ChatTypeEnum.group,
+      })
+      .leftJoin(
+        'group.members',
+        'groupMember',
+        'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
+      )
+      .leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
+        privateType: ChatTypeEnum.private,
+      })
+      .where('message.session_primary_id = :sessionId', { sessionId })
+      .orderBy('message.create_time', 'DESC')
+      .limit(pageSize)
+      .offset(pageSize * (current - 1))
+      .select([
+        'message',
+        'session.chat_type',
+        'session.session_id',
+        'user.id',
+        'user.user_name',
+        'user.user_avatar',
+        'group.group_id',
+        'groupMember.member_remarks',
+        'mate.mate_id',
+        'mate.friend_id',
+        'mate.friend_remarks',
+        'mate.user_id',
+        'mate.user_remarks',
+      ]);
 
     const [messages, total] = await qb.getManyAndCount();
     const result = messages.map((message) => {
@@ -247,7 +238,7 @@ export class MessageService {
     return PageResponse.list(result, total);
   }
 
-  /* 查询会话下的所有未读消息 */
+  /* 查询会话下的所有未读消息的详细信息 */
   async findAllUnreadBySessionId(
     uid: number,
     sessionId: number,
@@ -255,56 +246,52 @@ export class MessageService {
   ) {
     const { current = 1, pageSize = 10 } = query || {};
 
-    const qb = this.messageRepository.createQueryBuilder('message');
-    qb.leftJoinAndSelect(
-      'message.session',
-      'session',
-      'session.id = message.session_primary_id',
-    );
-    qb.leftJoinAndSelect('message.user', 'user', 'user.id = message.sender_id');
-    qb.leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
-      groupType: ChatTypeEnum.group,
-    });
-    qb.leftJoin(
-      'group.members',
-      'groupMember',
-      'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
-    );
-
-    qb.leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
-      privateType: ChatTypeEnum.private,
-    });
-    qb.leftJoin(
-      'message.read_records',
-      'readRecords',
-      'readRecords.user_id = :uid',
-      { uid },
-    );
-
-    // 查询条件：指定会话、发送者不是当前用户、没有读取记录
-    qb.where('message.session_primary_id = :sessionId', { sessionId });
-    qb.andWhere('message.sender_id != :uid', { uid });
-    qb.andWhere('readRecords.id IS NULL');
-    qb.orderBy('message.create_time', 'DESC');
-    qb.limit(pageSize);
-    qb.offset(pageSize * (current - 1));
-
-    // 选择需要的字段
-    qb.select([
-      'message',
-      'session.chat_type',
-      'session.session_id',
-      'user.id',
-      'user.user_name',
-      'user.user_avatar',
-      'group.group_id',
-      'groupMember.member_remarks',
-      'mate.mate_id',
-      'mate.friend_id',
-      'mate.friend_remarks',
-      'mate.user_id',
-      'mate.user_remarks',
-    ]);
+    const qb = this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoin(
+        'message.session',
+        'session',
+        'session.id = message.session_primary_id',
+      )
+      .leftJoin('message.user', 'user', 'user.id = message.sender_id')
+      .leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
+        groupType: ChatTypeEnum.group,
+      })
+      .leftJoin(
+        'group.members',
+        'groupMember',
+        'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
+      )
+      .leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
+        privateType: ChatTypeEnum.private,
+      })
+      .leftJoin(
+        'message.read_records',
+        'readRecords',
+        'readRecords.user_id = :uid',
+        { uid },
+      )
+      .where('message.session_primary_id = :sessionId', { sessionId })
+      .andWhere('message.sender_id != :uid', { uid })
+      .andWhere('readRecords.id IS NULL')
+      .orderBy('message.create_time', 'DESC')
+      .limit(pageSize)
+      .offset(pageSize * (current - 1))
+      .select([
+        'message',
+        'session.chat_type',
+        'session.session_id',
+        'user.id',
+        'user.user_name',
+        'user.user_avatar',
+        'group.group_id',
+        'groupMember.member_remarks',
+        'mate.mate_id',
+        'mate.friend_id',
+        'mate.friend_remarks',
+        'mate.user_id',
+        'mate.user_remarks',
+      ]);
 
     const [messages, total] = await qb.getManyAndCount();
     const result = messages.map((message) => {
@@ -345,43 +332,21 @@ export class MessageService {
     query: FindAllDto,
   ) {
     const { current = 1, pageSize = 10 } = query || {};
-
-    const qb = this.messageRepository.createQueryBuilder('message');
-    qb.leftJoinAndSelect(
-      'message.session',
-      'session',
-      'session.id = message.session_primary_id',
-    );
-    qb.leftJoinAndSelect('message.user', 'user', 'user.id = message.sender_id');
-    qb.leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
-      groupType: ChatTypeEnum.group,
-    });
-    qb.leftJoin(
-      'group.members',
-      'groupMember',
-      'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
-    );
-
-    qb.leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
-      privateType: ChatTypeEnum.private,
-    });
-    qb.leftJoin(
-      'message.read_records',
-      'readRecords',
-      'readRecords.user_id = :uid',
-      { uid },
-    );
-
-    // 查询条件：指定会话、发送者不是当前用户、没有读取记录
-    qb.where('message.session_primary_id = :sessionId', { sessionId });
-    qb.andWhere('message.sender_id != :uid', { uid });
-    qb.andWhere('readRecords.id IS NULL');
-    qb.orderBy('message.create_time', 'DESC');
-    qb.limit(pageSize);
-    qb.offset(pageSize * (current - 1));
-
-    // 选择需要的字段
-    qb.select(['message.id']);
+    const qb = this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoin(
+        'message.read_records',
+        'readRecords',
+        'readRecords.user_id = :uid',
+        { uid },
+      )
+      .where('message.session_primary_id = :sessionId', { sessionId })
+      .andWhere('message.sender_id != :uid', { uid })
+      .andWhere('readRecords.id IS NULL')
+      .orderBy('message.create_time', 'DESC')
+      .limit(pageSize)
+      .offset(pageSize * (current - 1))
+      .select(['message.id']);
 
     const [messages, total] = await qb.getManyAndCount();
 

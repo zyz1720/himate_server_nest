@@ -79,7 +79,7 @@ export class SessionService {
     if (result) {
       return Response.ok(this.i18n.t('message.GET_SUCCESS'), result);
     } else {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
   }
 
@@ -179,6 +179,9 @@ export class SessionService {
         'unreadCount',
       )
       .where('session.session_id IN (:...sessionIds)', { sessionIds })
+      .andWhere('messages.sender_id != :userId', {
+        userId: uid,
+      })
       .groupBy('session.id')
       .having('COUNT(CASE WHEN readRecords.id IS NULL THEN 1 END) > 0');
 
@@ -352,6 +355,25 @@ export class SessionService {
     return senderInfo;
   }
 
+  /* 会话session_id验证会话的合法性 */
+  async verifySessionBySessionId(uid: number, session_id: string) {
+    const [isMember, isMate, session] = await Promise.all([
+      this.groupMemberService.findIsMemberByGroupId(uid, session_id),
+      this.mateService.findIsMateByMateId(uid, session_id),
+      this.findOneSessionBySessionId(session_id),
+    ]);
+    if (session) {
+      if (session.chat_type == ChatTypeEnum.group && isMember) {
+        return session;
+      }
+      if (session.chat_type == ChatTypeEnum.private && isMate) {
+        return session;
+      }
+      return false;
+    }
+    return false;
+  }
+
   /* 双重id验证会话的合法性 */
   async verifySessionByDoubleId(uid: number, id: number, session_id: string) {
     const session = await this.findOneSessionByDoubleId(id, session_id);
@@ -386,25 +408,6 @@ export class SessionService {
         sessionExtra: this.formatPrivateSessionExtra(uid, mate),
         senderInfo: this.formatPrivateSenderInfo(uid, session, mate),
       };
-    }
-    return false;
-  }
-
-  /* 会话session_id验证会话的合法性 */
-  async verifySessionBySessionId(uid: number, session_id: string) {
-    const [isMember, isMate, session] = await Promise.all([
-      this.groupMemberService.findIsMemberByGroupId(uid, session_id),
-      this.mateService.findIsMateByMateId(uid, session_id),
-      this.findOneSessionBySessionId(session_id),
-    ]);
-    if (session) {
-      if (session.chat_type == ChatTypeEnum.group && isMember) {
-        return session;
-      }
-      if (session.chat_type == ChatTypeEnum.private && isMate) {
-        return session;
-      }
-      return false;
     }
     return false;
   }
@@ -541,13 +544,16 @@ export class SessionService {
     if (messages.length === 0) {
       return false;
     }
+    const messageRecords = messages.map((message) => ({
+      user_id: uid,
+      message_id: message.message_id,
+      create_by: uid,
+      update_by: uid,
+    }));
+
     const recordRes =
       await this.messageReadRecordsService.batchAddMessageReadRecords(
-        messages.map((message) => ({
-          message_id: message.id,
-          user_id: uid,
-          create_by: uid,
-        })),
+        messageRecords,
       );
     if (recordRes.code == 0) {
       return true;
@@ -563,7 +569,7 @@ export class SessionService {
   ) {
     const session = await this.verifySessionBySessionId(uid, session_id);
     if (!session) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     return this.messageService.findAllBySessionId(session.id, query);
   }

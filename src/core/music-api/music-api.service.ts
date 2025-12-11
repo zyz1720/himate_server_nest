@@ -373,7 +373,7 @@ export class MusicApiService {
     const { musicId: id, matchId: mid } = data;
     const musicRes = await this.musicService.findOneMusicAndExtra(id);
     if (musicRes.code !== 0) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     if (mid) {
       const musicUrlRes = await this.findMusicUrl({ id: mid });

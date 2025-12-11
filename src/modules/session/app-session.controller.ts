@@ -34,7 +34,7 @@ export class AppSessionController {
     return this.sessionService.findAllSessionMessages(uid, session_id, query);
   }
 
-  @ApiOperation({ summary: '未读会话列表' })
+  @ApiOperation({ summary: '未读会话id列表' })
   @ApiOkPageRes(SessionWithExtra)
   @Get('unread/:session_id')
   findUnread(

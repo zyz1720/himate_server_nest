@@ -201,7 +201,7 @@ export class UserService {
   async updateUserEnabled(id: number, data: UpdateUserDto) {
     const existUser = await this.findOneUserEnabled({ id });
     if (!existUser) {
-      return Response.fail(this.i18n.t('message.DATA_NOEXIST'));
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
     }
     const updatedUser = this.userRepository.merge(existUser, data);
     const result = await this.userRepository.save(updatedUser);
