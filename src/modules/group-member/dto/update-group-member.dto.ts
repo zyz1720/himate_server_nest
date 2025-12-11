@@ -10,7 +10,12 @@ export class UpdateGroupMemberDto {
   @ApiPropertyOptional({ description: '关联群组id' })
   @IsOptional()
   @IsInt()
-  readonly group_id?: number;
+  readonly group_primary_id?: number;
+
+  @ApiPropertyOptional({ description: '关联群组uuid' })
+  @IsOptional()
+  @IsByteLength(0, DataLength.UUID)
+  readonly group_id?: string;
 
   @ApiPropertyOptional({ description: '用户id' })
   @IsOptional()

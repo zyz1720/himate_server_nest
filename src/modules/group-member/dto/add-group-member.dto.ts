@@ -10,7 +10,12 @@ export class AddGroupMemberDto {
   @ApiProperty({ description: '关联群组id', required: true })
   @IsNotEmpty()
   @IsInt()
-  readonly group_id: number;
+  readonly group_primary_id: number;
+
+  @ApiProperty({ description: '关联群组uuid', required: true })
+  @IsNotEmpty()
+  @IsByteLength(0, DataLength.UUID)
+  readonly group_id: string;
 
   @ApiProperty({ description: '用户id', required: true })
   @IsNotEmpty()

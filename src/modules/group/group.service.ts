@@ -144,13 +144,14 @@ export class GroupService {
       const group = queryRunner.manager.create(GroupEntity, {
         group_name: groupName,
       });
-      const groupRes = await queryRunner.manager.save(group);
+      const savedGroup = await queryRunner.manager.save(group);
 
       // 创建群成员记录
       const groupMembers = [];
       groupMembers.push(
         queryRunner.manager.create(GroupMemberEntity, {
-          group_primary_id: groupRes.id,
+          group_primary_id: savedGroup.id,
+          group_id: savedGroup.group_id,
           user_id: uid,
           member_remarks: userIdToName.get(uid) || '未知用户',
           member_role: MemberRoleEnum.owner,
@@ -162,7 +163,8 @@ export class GroupService {
         if (userId !== uid) {
           groupMembers.push(
             queryRunner.manager.create(GroupMemberEntity, {
-              group_primary_id: groupRes.id,
+              group_primary_id: savedGroup.id,
+              group_id: savedGroup.group_id,
               user_id: userId,
               member_remarks: userIdToName.get(userId) || '未知用户',
               member_role: MemberRoleEnum.member,
@@ -174,7 +176,7 @@ export class GroupService {
 
       // 提交事务
       await queryRunner.commitTransaction();
-      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), groupRes);
+      return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), savedGroup);
     } catch (error) {
       // 回滚事务
       await queryRunner.rollbackTransaction();
@@ -258,7 +260,7 @@ export class GroupService {
     return this.softDeleteGroup(id);
   }
 
-  /* group_id 验证用户是否属于群组且状态正常 */
+  /* 查询用户群组基本信息 */
   async findOneGroupMemberBase(uid: number, group_id: string) {
     const group = await this.groupRepository.findOne({
       relations: ['members', 'members.user'],
@@ -290,16 +292,12 @@ export class GroupService {
     if (!group) {
       return groupWithMemberIds;
     }
-    const groupWithMembers = await this.groupRepository
-      .createQueryBuilder('group')
-      .leftJoin('group.members', 'members')
-      .select(['members.user_id'])
-      .where('group.group_id = :group_id', { group_id })
-      .getRawMany();
-
-    groupWithMemberIds.memberIds = groupWithMembers.map(
-      (item) => item.members_user_id,
-    );
+    const groupWithMembers =
+      await this.groupMemberService.findAllGroupMemberIds(
+        group.id,
+        group.group_id,
+      );
+    groupWithMemberIds.memberIds = groupWithMembers.map((item) => item.user_id);
     return groupWithMemberIds;
   }
 

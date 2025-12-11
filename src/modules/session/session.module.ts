@@ -6,6 +6,7 @@ import { SessionEntity } from './entity/session.entity';
 import { AppSessionController } from './app-session.controller';
 import { MateModule } from '../mate/mate.module';
 import { GroupModule } from '../group/group.module';
+import { GroupMemberModule } from '../group-member/group-member.module';
 import { MessageModule } from '../message/message.module';
 import { MessageReadRecordsModule } from '../message-read-records/message-read-records.module';
 
@@ -14,6 +15,7 @@ import { MessageReadRecordsModule } from '../message-read-records/message-read-r
     TypeOrmModule.forFeature([SessionEntity]),
     MateModule,
     GroupModule,
+    GroupMemberModule,
     MessageModule,
     MessageReadRecordsModule,
   ],

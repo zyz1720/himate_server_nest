@@ -9,7 +9,7 @@ import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
-import { MessageWithSenderInfo } from '../session/session.service';
+import { MessageWithSenderInfo } from '../session/types/session-response.type';
 
 @Injectable()
 export class MessageService {
@@ -129,10 +129,11 @@ export class MessageService {
     }
   }
 
-  /* 查询指定消息 */
-  async findMessagesByIds(ids: number[] = []) {
+  /* 查询指定消息id */
+  async findMessageIdsByIds(ids: number[] = []) {
     const result = await this.messageRepository.find({
       where: { id: In(ids) },
+      select: ['id'],
     });
     return result;
   }
@@ -335,5 +336,55 @@ export class MessageService {
     });
 
     return PageResponse.list(result, total);
+  }
+
+  /* 查询会话下的所有未读消息 */
+  async findAllUnreadIdsBySessionId(
+    uid: number,
+    sessionId: number,
+    query: FindAllDto,
+  ) {
+    const { current = 1, pageSize = 10 } = query || {};
+
+    const qb = this.messageRepository.createQueryBuilder('message');
+    qb.leftJoinAndSelect(
+      'message.session',
+      'session',
+      'session.id = message.session_primary_id',
+    );
+    qb.leftJoinAndSelect('message.user', 'user', 'user.id = message.sender_id');
+    qb.leftJoin('session.group', 'group', 'session.chat_type = :groupType', {
+      groupType: ChatTypeEnum.group,
+    });
+    qb.leftJoin(
+      'group.members',
+      'groupMember',
+      'groupMember.user_id = message.sender_id AND groupMember.group_primary_id = group.id',
+    );
+
+    qb.leftJoin('session.mate', 'mate', 'session.chat_type = :privateType', {
+      privateType: ChatTypeEnum.private,
+    });
+    qb.leftJoin(
+      'message.read_records',
+      'readRecords',
+      'readRecords.user_id = :uid',
+      { uid },
+    );
+
+    // 查询条件：指定会话、发送者不是当前用户、没有读取记录
+    qb.where('message.session_primary_id = :sessionId', { sessionId });
+    qb.andWhere('message.sender_id != :uid', { uid });
+    qb.andWhere('readRecords.id IS NULL');
+    qb.orderBy('message.create_time', 'DESC');
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+
+    // 选择需要的字段
+    qb.select(['message.id']);
+
+    const [messages, total] = await qb.getManyAndCount();
+
+    return PageResponse.list(messages, total);
   }
 }

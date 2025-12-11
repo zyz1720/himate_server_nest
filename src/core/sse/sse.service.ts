@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Observable, Subject, finalize } from 'rxjs';
-import {
-  SessionService,
-  SessionWithExtra,
-} from 'src/modules/session/session.service';
+import { SessionService } from 'src/modules/session/session.service';
+import { SessionWithExtra } from 'src/modules/session/types/session-response.type';
 
 @Injectable()
 export class SseService {

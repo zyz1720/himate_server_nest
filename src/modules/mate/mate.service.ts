@@ -374,4 +374,23 @@ export class MateService {
 
     return mateWithMemberIds;
   }
+
+  /* 查询用户是否存在指定好友记录 */
+  async findIsMateByMateId(uid: number, mate_id: string) {
+    const isMate = await this.mateRepository.exists({
+      where: [
+        {
+          user_id: uid,
+          mate_id: mate_id,
+          mate_status: MateStatusEnum.agreed,
+        },
+        {
+          friend_id: uid,
+          mate_id: mate_id,
+          mate_status: MateStatusEnum.agreed,
+        },
+      ],
+    });
+    return isMate;
+  }
 }

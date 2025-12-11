@@ -219,6 +219,31 @@ export class GroupMemberService {
     return member;
   }
 
+  /* 查询用户是否是正常群成员 */
+  async findIsMemberByGroupId(uid: number, group_id: string) {
+    const isMember = await this.groupMemberRepository
+      .createQueryBuilder('group_member')
+      .where('group_id = :group_id AND user_id = :uid', {
+        group_id,
+        uid,
+      })
+      .andWhere('member_status = :status', { status: MemberStatusEnum.normal })
+      .getExists();
+    return isMember;
+  }
+
+  /* 查询所有群成员 */
+  async findAllGroupMemberIds(groupId: number, group_id: string) {
+    const list = await this.groupMemberRepository
+      .createQueryBuilder('group_member')
+      .where('group_primary_id = :id ', { id: groupId })
+      .andWhere('group_id = :group_id', { group_id })
+      .select(['user_id'])
+      .getRawMany();
+
+    return list;
+  }
+
   /* 查询所有群成员 */
   async findAllGroupMemberByGroupId(
     uid: number,
@@ -305,7 +330,8 @@ export class GroupMemberService {
         if (userId !== uid) {
           groupMembers.push(
             queryRunner.manager.create(GroupMemberEntity, {
-              group_primary_id: groupId,
+              group_primary_id: group.id,
+              group_id: group.group_id,
               user_id: userId,
               member_remarks: userIdToName.get(userId) || '未知用户',
               member_role: MemberRoleEnum.member,

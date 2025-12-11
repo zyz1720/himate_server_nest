@@ -11,32 +11,19 @@ import { FindAllDto } from 'src/common/dto/common.dto';
 import { MessageService } from '../message/message.service';
 import { MessageReadRecordsService } from '../message-read-records/message-read-records.service';
 import { GroupService } from '../group/group.service';
+import { GroupMemberService } from '../group-member/group-member.service';
 import { MateService } from '../mate/mate.service';
 import { ReadMessageDto, SendMessageDto } from './dto/operate-message.dto';
 import { MessageEntity } from '../message/entity/message.entity';
-import { SenderInfoDto, SessionExtraDto } from './dto/operate-message.dto';
+import {
+  FullSessionMessage,
+  SenderInfo,
+  SessionExtra,
+  SessionWithExtra,
+  SessionWithExtraSenderInfo,
+} from './types/session-response.type';
 import { GroupEntity } from '../group/entity/group.entity';
 import { MateEntity } from '../mate/entity/mate.entity';
-
-export interface SessionWithExtraSenderInfo {
-  memberIds: number[];
-  session: SessionEntity;
-  sessionExtra: SessionExtraDto;
-  senderInfo: SenderInfoDto;
-}
-
-export interface MessageWithSenderInfo {
-  message: MessageEntity;
-  senderInfo: SenderInfoDto;
-}
-
-export interface SessionWithExtra {
-  session: SessionEntity;
-  sessionExtra: SessionExtraDto;
-}
-
-export type FullSessionMessage = MessageWithSenderInfo &
-  SessionWithExtraSenderInfo;
 
 @Injectable()
 export class SessionService {
@@ -48,6 +35,7 @@ export class SessionService {
     private readonly messageReadRecordsService: MessageReadRecordsService,
     private readonly mateService: MateService,
     private readonly groupService: GroupService,
+    private readonly groupMemberService: GroupMemberService,
   ) {}
 
   /* 添加一个会话 */
@@ -265,13 +253,15 @@ export class SessionService {
           sessionExtra = this.formatPrivateSessionExtra(uid, mate);
         }
 
-        return {
+        const sessionInfo: SessionWithExtra = {
           session: {
             ...sessionData,
             unread_count: unreadCountMap[session.id] || 0,
           },
           sessionExtra: sessionExtra,
         };
+
+        return sessionInfo;
       }),
     );
 
@@ -284,7 +274,7 @@ export class SessionService {
    * @param group 群组实体
    */
   formatGroupSessionExtra(uid: number, group: GroupEntity) {
-    const sessionExtra: SessionExtraDto = {
+    const sessionExtra: SessionExtra = {
       session_name: group?.group_name || '未知群组',
       session_avatar: group?.group_avatar || '',
       userId: 0,
@@ -306,7 +296,7 @@ export class SessionService {
     const targetUser = mate.user_id === uid ? mate.friend : mate.user;
     const remark =
       mate.user_id === uid ? mate.friend_remarks : mate.user_remarks;
-    const sessionExtra: SessionExtraDto = {
+    const sessionExtra: SessionExtra = {
       session_name: remark || '未知用户',
       session_avatar: targetUser?.user_avatar || '',
       userId: targetUser?.id || 0,
@@ -328,7 +318,7 @@ export class SessionService {
     session: SessionEntity,
     group: GroupEntity,
   ) {
-    const senderInfo: SenderInfoDto = {
+    const senderInfo: SenderInfo = {
       chat_type: session?.chat_type,
       user_id: uid,
       remarks: group?.members[0]?.member_remarks || '',
@@ -350,7 +340,7 @@ export class SessionService {
     mate: MateEntity,
   ) {
     const targetUser = mate?.user_id === uid ? mate?.user : mate?.friend;
-    const senderInfo: SenderInfoDto = {
+    const senderInfo: SenderInfo = {
       chat_type: session?.chat_type,
       user_id: uid,
       remarks:
@@ -402,16 +392,16 @@ export class SessionService {
 
   /* 会话session_id验证会话的合法性 */
   async verifySessionBySessionId(uid: number, session_id: string) {
-    const [group, mate, session] = await Promise.all([
-      this.groupService.findOneGroupMemberBase(uid, session_id),
-      this.mateService.findOneMateBase(uid, session_id),
+    const [isMember, isMate, session] = await Promise.all([
+      this.groupMemberService.findIsMemberByGroupId(uid, session_id),
+      this.mateService.findIsMateByMateId(uid, session_id),
       this.findOneSessionBySessionId(session_id),
     ]);
     if (session) {
-      if (session.chat_type == ChatTypeEnum.group && group) {
+      if (session.chat_type == ChatTypeEnum.group && isMember) {
         return session;
       }
-      if (session.chat_type == ChatTypeEnum.private && mate) {
+      if (session.chat_type == ChatTypeEnum.private && isMate) {
         return session;
       }
       return false;
@@ -547,14 +537,14 @@ export class SessionService {
     if (!session) {
       return false;
     }
-    const message = await this.messageService.findMessagesByIds(ids);
-    if (!message) {
+    const messages = await this.messageService.findMessageIdsByIds(ids);
+    if (messages.length === 0) {
       return false;
     }
     const recordRes =
       await this.messageReadRecordsService.batchAddMessageReadRecords(
-        ids.map((id) => ({
-          message_id: id,
+        messages.map((message) => ({
+          message_id: message.id,
           user_id: uid,
           create_by: uid,
         })),
@@ -589,5 +579,22 @@ export class SessionService {
       return PageResponse.list([], 0);
     }
     return this.messageService.findAllUnreadBySessionId(uid, session.id, query);
+  }
+
+  /* 分页查询会话未读消息 */
+  async findAllSessionMessageIdsUnread(
+    uid: number,
+    session_id: string,
+    query: FindAllDto,
+  ) {
+    const session = await this.verifySessionBySessionId(uid, session_id);
+    if (!session) {
+      return PageResponse.list([], 0);
+    }
+    return this.messageService.findAllUnreadIdsBySessionId(
+      uid,
+      session.id,
+      query,
+    );
   }
 }

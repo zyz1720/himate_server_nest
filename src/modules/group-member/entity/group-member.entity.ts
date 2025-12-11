@@ -41,6 +41,11 @@ export class GroupMemberEntity {
   @Column({ type: 'int', comment: '关联群组id' })
   group_primary_id: number;
 
+  @ApiProperty({ description: '群组uuid' })
+  @Index('idx_group_member_group_id')
+  @Column({ comment: '群组uuid', length: DataLength.UUID })
+  group_id: string;
+
   @ApiProperty({ description: '用户id' })
   @Index('idx_group_member_user_id')
   @Column({ type: 'int', comment: '用户id' })
