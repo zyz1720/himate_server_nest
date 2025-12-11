@@ -11,15 +11,14 @@ import { CommonUtil } from '../utils/common.util';
 
 @Catch(TypeORMError)
 export class DatabaseExceptionFilter implements ExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
+  catch(exception: TypeORMError, host: ArgumentsHost) {
     Logger.error(exception?.message);
 
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
 
     const message =
-      'database operation failed ' +
-      (exception?.code || exception?.message || exception?.name);
+      'database operation failed ' + (exception?.message || exception?.name);
 
     response
       .status(HttpStatus.BAD_REQUEST)

@@ -1,24 +1,21 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { Response as ApiResponse } from '../response/api-response';
 import { CommonUtil } from '../utils/common.util';
+import { WsException } from '@nestjs/websockets';
 
-@Catch(HttpException)
+@Catch(WsException)
 export class WsExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: WsException, host: ArgumentsHost) {
     const ctx = host.switchToWs();
     const client = ctx.getClient<Socket>();
 
-    const response = exception.getResponse();
+    const error = exception.getError();
+    console.log('exception error', error);
 
     client.emit(
       'error',
-      ApiResponse.fail(CommonUtil.getFilterFailedMsg(response)),
+      ApiResponse.fail(CommonUtil.getFilterFailedMsg(error)),
     );
   }
 }

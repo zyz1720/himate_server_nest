@@ -3,6 +3,7 @@ import { AppModule } from './src/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './src/common/filters/http-exception.filter';
 import { DatabaseExceptionFilter } from 'src/common/filters/database-exception.filter';
+import { WsExceptionFilter } from 'src/common/filters/ws-exception.filter';
 import { HttpReqTransformInterceptor } from './src/common/interceptor/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
@@ -32,6 +33,7 @@ async function bootstrap() {
   app.useGlobalFilters(
     new HttpExceptionFilter(),
     new DatabaseExceptionFilter(),
+    new WsExceptionFilter(),
   );
 
   // 全局拦截器

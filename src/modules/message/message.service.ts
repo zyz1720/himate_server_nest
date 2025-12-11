@@ -325,7 +325,7 @@ export class MessageService {
     return PageResponse.list(result, total);
   }
 
-  /* 查询会话下的所有未读消息 */
+  /* 查询会话下的所有未读消息id */
   async findAllUnreadIdsBySessionId(
     uid: number,
     sessionId: number,

@@ -6,6 +6,8 @@ import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from 'src/modules/user/user.module';
 import { AuthController } from './auth.controller';
+import { WsJwtAuthGuard } from './guards/ws-jwt.auth.guard';
+import { WsThrottlerGuard } from './guards/ws-throttler.guard';
 
 @Module({
   imports: [
@@ -15,8 +17,14 @@ import { AuthController } from './auth.controller';
     forwardRef(() => UserModule), // 处理相互循环依赖
     PassportModule,
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    WsJwtAuthGuard,
+    WsThrottlerGuard,
+  ],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, WsJwtAuthGuard, WsThrottlerGuard],
 })
 export class AuthModule {}

@@ -1,10 +1,14 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiOkPageRes } from 'src/common/response/api-response.decorator';
+import {
+  ApiOkPageRes,
+  ApiOkMsgRes,
+} from 'src/common/response/api-response.decorator';
 import { SessionService } from './session.service';
 import { UserId } from 'src/core/auth/decorators/user.decorator';
 import { FindAllDto } from 'src/common/dto/common.dto';
 import {
+  MessageIds,
   MessageWithSenderInfo,
   SessionWithExtra,
 } from './types/session-response.type';
@@ -35,7 +39,7 @@ export class AppSessionController {
   }
 
   @ApiOperation({ summary: '未读会话id列表' })
-  @ApiOkPageRes(SessionWithExtra)
+  @ApiOkPageRes(MessageIds)
   @Get('unread/:session_id')
   findUnread(
     @UserId() uid: number,
@@ -50,7 +54,7 @@ export class AppSessionController {
   }
 
   @ApiOperation({ summary: '读取消息' })
-  @ApiOkPageRes(SessionWithExtra)
+  @ApiOkMsgRes()
   @Post('read')
   read(@UserId() uid: number, @Body() data: ReadMessageDto) {
     return this.sessionService.readMessage(uid, data);

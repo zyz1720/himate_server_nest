@@ -40,6 +40,7 @@ export class MessageReadRecordsService {
       })
       .select('message_id')
       .getRawMany();
+
     const newRecords = data.filter(
       (item) =>
         !existRecords.find((record) => record.message_id === item.message_id),
@@ -47,7 +48,6 @@ export class MessageReadRecordsService {
     if (newRecords.length === 0) {
       return Response.fail(this.i18n.t('message.CREATE_SUCCESS'));
     }
-
     const result = await this.messageReadRecordsRepository.insert(newRecords);
     if (result.identifiers.length) {
       return Response.ok(this.i18n.t('message.CREATE_SUCCESS'), result);

@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Observable, Subject, finalize, map } from 'rxjs';
 import { MessageEvent } from '@nestjs/common';
 import { SessionService } from 'src/modules/session/session.service';
-import { SessionWithExtra } from 'src/modules/session/types/session-response.type';
+import {
+  SessionWithExtra,
+  SessionWithMateOrGroup,
+  SessionWithMateOrGroupWithLatest,
+} from 'src/modules/session/types/session-response.type';
+import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
 
 @Injectable()
 export class SseService {
@@ -23,14 +28,14 @@ export class SseService {
   }
 
   // 向指定用户发送消息
-  sendToUser(userId: string, data: SessionWithExtra[]): boolean {
-    const subject = this.userConnections.get(userId);
+  sendToUser(uid: string, data: SessionWithExtra[]): boolean {
+    const subject = this.userConnections.get(uid);
     if (subject) {
       try {
         subject.next({ data });
         return true;
       } catch (error) {
-        console.error('Error sending SSE message to user:', userId, error);
+        Logger.error('Error sending SSE message to user:', uid, error);
         return false;
       }
     }
@@ -38,10 +43,29 @@ export class SseService {
   }
 
   // 向房间内的所有用户推送
-  sendToUsers(userIds: number[], data: SessionWithExtra[]): boolean {
+  sendToUsers(data: SessionWithMateOrGroupWithLatest): boolean {
     let successCount = 0;
-    for (const userId of userIds) {
-      if (this.sendToUser(String(userId), data)) {
+    const { session, memberIds, mate, group } = data;
+    for (const uid of memberIds) {
+      if (session.chat_type === ChatTypeEnum.group) {
+        const toBeSentData = {
+          session: session,
+          sessionExtra: this.sessionService.formatGroupSessionExtra(uid, group),
+          isLatest: data.isLatest ?? false,
+        };
+        this.sendToUser(String(uid), [toBeSentData]);
+        successCount++;
+      }
+      if (session.chat_type === ChatTypeEnum.private) {
+        const toBeSentData = {
+          session: session,
+          sessionExtra: this.sessionService.formatPrivateSessionExtra(
+            uid,
+            mate,
+          ),
+          isLatest: data.isLatest ?? false,
+        };
+        this.sendToUser(String(uid), [toBeSentData]);
         successCount++;
       }
     }

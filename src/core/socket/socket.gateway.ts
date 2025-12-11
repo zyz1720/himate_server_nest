@@ -1,4 +1,5 @@
 import { WsJwtAuthGuard } from 'src/core/auth/guards/ws-jwt.auth.guard';
+import { WsThrottlerGuard } from 'src/core/auth/guards/ws-throttler.guard';
 import {
   ConnectedSocket,
   MessageBody,
@@ -19,8 +20,10 @@ import {
 import { SocketService } from './socket.service';
 import { Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
+import { Throttle } from '@nestjs/throttler';
 
 @WebSocketGateway(3001, { namespace: 'socket' })
+@Throttle({ default: { ttl: 1000, limit: 1 } })
 export class SocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
@@ -36,7 +39,7 @@ export class SocketGateway
     this.socketService.setServer(server);
   }
 
-  @UseGuards(WsJwtAuthGuard)
+  @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
   @SubscribeMessage('read-message')
   async handleMessage(
     @WsUserId() uid: number,
@@ -45,7 +48,7 @@ export class SocketGateway
     return this.socketService.readMessage(uid, message);
   }
 
-  @UseGuards(WsJwtAuthGuard)
+  @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
   @SubscribeMessage('send-message')
   async sendMessage(
     @WsUserId() uid: number,
@@ -61,7 +64,7 @@ export class SocketGateway
     return result;
   }
 
-  @UseGuards(WsJwtAuthGuard)
+  @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
   @SubscribeMessage('join-room')
   async joinRoom(
     @WsUserId() uid: number,
@@ -74,7 +77,7 @@ export class SocketGateway
     return Response.ok(this.i18n.t('message.JOIN_SUCCESS'), session_id);
   }
 
-  @UseGuards(WsJwtAuthGuard)
+  @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
   @SubscribeMessage('leave-room')
   async leaveRoom(
     @WsUserId() uid: number,

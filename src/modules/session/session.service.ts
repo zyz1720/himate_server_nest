@@ -20,7 +20,7 @@ import {
   SenderInfo,
   SessionExtra,
   SessionWithExtra,
-  SessionWithExtraSenderInfo,
+  SessionWithMateOrGroup,
 } from './types/session-response.type';
 import { GroupEntity } from '../group/entity/group.entity';
 import { MateEntity } from '../mate/entity/mate.entity';
@@ -386,12 +386,10 @@ export class SessionService {
       if (!group) {
         return false;
       }
-
       return {
         memberIds,
         session,
-        sessionExtra: this.formatGroupSessionExtra(uid, group),
-        senderInfo: this.formatGroupSenderInfo(uid, session, group),
+        group,
       };
     }
     if (session.chat_type == ChatTypeEnum.private) {
@@ -405,8 +403,7 @@ export class SessionService {
       return {
         memberIds,
         session,
-        sessionExtra: this.formatPrivateSessionExtra(uid, mate),
-        senderInfo: this.formatPrivateSenderInfo(uid, session, mate),
+        mate,
       };
     }
     return false;
@@ -428,16 +425,14 @@ export class SessionService {
         return {
           memberIds: groupMemberIds,
           session,
-          sessionExtra: this.formatGroupSessionExtra(uid, group),
-          senderInfo: this.formatGroupSenderInfo(uid, session, group),
+          group,
         };
       }
       if (session.chat_type == ChatTypeEnum.private && mate) {
         return {
           memberIds: mateMemberIds,
           session,
-          sessionExtra: this.formatPrivateSessionExtra(uid, mate),
-          senderInfo: this.formatPrivateSenderInfo(uid, session, mate),
+          mate,
         };
       }
       return false;
@@ -451,12 +446,11 @@ export class SessionService {
         chat_type: ChatTypeEnum.group,
       });
       session.group = group;
-      const savedSession = await this.sessionRepository.save(session);
+      await this.sessionRepository.save(session);
       return {
         memberIds: groupMemberIds,
-        session: savedSession,
-        sessionExtra: this.formatGroupSessionExtra(uid, group),
-        senderInfo: this.formatGroupSenderInfo(uid, savedSession, group),
+        session,
+        group,
       };
     }
 
@@ -467,12 +461,11 @@ export class SessionService {
         chat_type: ChatTypeEnum.private,
       });
       session.mate = mate;
-      const savedSession = await this.sessionRepository.save(session);
+      await this.sessionRepository.save(session);
       return {
         memberIds: mateMemberIds,
-        session: savedSession,
-        sessionExtra: this.formatPrivateSessionExtra(uid, mate),
-        senderInfo: this.formatPrivateSenderInfo(uid, savedSession, mate),
+        session,
+        mate,
       };
     }
 
@@ -481,35 +474,34 @@ export class SessionService {
 
   /* 验证会话的合法性 */
   async verifySessionLegality(uid: number, session_id: string, id?: number) {
-    let sessionWithSenderInfo: SessionWithExtraSenderInfo | false = false;
+    let sessionWithMateOrGroup: SessionWithMateOrGroup | false = false;
     if (id) {
-      sessionWithSenderInfo = await this.verifySessionByDoubleId(
+      sessionWithMateOrGroup = await this.verifySessionByDoubleId(
         uid,
         id,
         session_id,
       );
     } else {
-      sessionWithSenderInfo = await this.verifySessionWithCreateBySessionId(
+      sessionWithMateOrGroup = await this.verifySessionWithCreateBySessionId(
         uid,
         session_id,
       );
     }
-    return sessionWithSenderInfo;
+    return sessionWithMateOrGroup;
   }
 
   /* 创建并发送消息 */
   async createAndSendMessage(uid: number, data: SendMessageDto) {
     const { session_primary_id, session_id } = data;
-    const sessionWithExtraSenderInfo = await this.verifySessionLegality(
+    const sessionWithMateOrGroup = await this.verifySessionLegality(
       uid,
       session_id,
       session_primary_id,
     );
-    if (!sessionWithExtraSenderInfo) {
+    if (!sessionWithMateOrGroup) {
       return false;
     }
-    const { session, sessionExtra, senderInfo, memberIds } =
-      sessionWithExtraSenderInfo;
+    const { session } = sessionWithMateOrGroup;
     const result = await this.messageService.addMessage({
       ...data,
       session_primary_id: session.id,
@@ -521,12 +513,11 @@ export class SessionService {
       session.lastMsg = message;
       session.update_by = uid;
       const savedSession = await this.sessionRepository.save(session);
+
       const fullSessionMessage: FullSessionMessage = {
+        ...sessionWithMateOrGroup,
         message,
-        senderInfo,
         session: savedSession,
-        sessionExtra,
-        memberIds,
       };
       return fullSessionMessage;
     }
@@ -536,6 +527,9 @@ export class SessionService {
   /* 读取消息 */
   async readMessage(uid: number, data: ReadMessageDto) {
     const { ids, session_id } = data;
+    if (!ids || ids.length === 0) {
+      return false;
+    }
     const session = await this.verifySessionBySessionId(uid, session_id);
     if (!session) {
       return false;
@@ -587,7 +581,7 @@ export class SessionService {
     return this.messageService.findAllUnreadBySessionId(uid, session.id, query);
   }
 
-  /* 分页查询会话未读消息 */
+  /* 分页查询会话未读消息id */
   async findAllSessionMessageIdsUnread(
     uid: number,
     session_id: string,

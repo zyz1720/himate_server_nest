@@ -8,6 +8,7 @@ import { Response } from 'src/common/response/api-response';
 import { SseService } from '../sse/sse.service';
 import { I18nService } from 'nestjs-i18n';
 import { Server } from 'socket.io';
+import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
 
 @Injectable()
 export class SocketService {
@@ -27,9 +28,9 @@ export class SocketService {
 
   // 读取消息
   async readMessage(uid: number, message: ReadMessageDto) {
-    const readFlag = await this.sessionService.readMessage(uid, message);
-    if (readFlag) {
-      return Response.ok(this.i18n.t('message.READ_SUCCESS'), readFlag);
+    const flag = await this.sessionService.readMessage(uid, message);
+    if (flag) {
+      return Response.ok(this.i18n.t('message.READ_SUCCESS'), flag);
     }
     return Response.fail(this.i18n.t('message.READ_FAILED'));
   }
@@ -38,14 +39,37 @@ export class SocketService {
   async sendMessage(uid: number, message: SendMessageDto) {
     const data = await this.sessionService.createAndSendMessage(uid, message);
     if (data) {
-      const { message, senderInfo, session, sessionExtra, memberIds } = data;
-      this.sseService.sendToUsers(memberIds, [
-        { session, sessionExtra, isLatest: true },
-      ]);
-      return Response.ok(this.i18n.t('message.SEND_SUCCESS'), {
-        message,
-        senderInfo,
+      const { message, session, mate, group, memberIds } = data;
+
+      this.sseService.sendToUsers({
+        session,
+        memberIds,
+        mate,
+        group,
+        isLatest: true,
       });
+      if (session.chat_type === ChatTypeEnum.group) {
+        const senderInfo = this.sessionService.formatGroupSenderInfo(
+          uid,
+          session,
+          group,
+        );
+        return Response.ok(this.i18n.t('message.SEND_SUCCESS'), {
+          message,
+          senderInfo,
+        });
+      }
+      if (session.chat_type === ChatTypeEnum.private) {
+        const senderInfo = this.sessionService.formatPrivateSenderInfo(
+          uid,
+          session,
+          mate,
+        );
+        return Response.ok(this.i18n.t('message.SEND_SUCCESS'), {
+          message,
+          senderInfo,
+        });
+      }
     }
     return Response.fail(this.i18n.t('message.SEND_FAILED'));
   }
@@ -69,6 +93,8 @@ export class SocketService {
         const hasMoreData = currentPage * pageSize < unreadMessages.total;
         if (hasMoreData) {
           await pushUnreadMessages(currentPage + 1);
+        } else {
+          return;
         }
       }
     };
