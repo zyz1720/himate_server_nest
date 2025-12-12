@@ -13,7 +13,7 @@ export class CaptchaController {
   @ApiOperation({ summary: '获取图片验证码' })
   @ApiOkMsgRes()
   @Public()
-  @Throttle({ default: { ttl: 1000, limit: 5 } })
+  @Throttle({ default: { ttl: 1000, limit: 1 } })
   @Get()
   getCaptcha() {
     return this.captchaService.generateCaptcha();

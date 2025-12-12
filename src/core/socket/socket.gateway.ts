@@ -23,7 +23,6 @@ import { I18nService } from 'nestjs-i18n';
 import { Throttle } from '@nestjs/throttler';
 
 @WebSocketGateway(3001, { namespace: 'socket' })
-@Throttle({ default: { ttl: 1000, limit: 1 } })
 export class SocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
@@ -40,6 +39,7 @@ export class SocketGateway
   }
 
   @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
+  @Throttle({ default: { ttl: 60000, limit: 1000 } })
   @SubscribeMessage('read-message')
   async handleMessage(
     @WsUserId() uid: number,
@@ -49,6 +49,7 @@ export class SocketGateway
   }
 
   @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
+  @Throttle({ default: { ttl: 60000, limit: 80 } })
   @SubscribeMessage('send-message')
   async sendMessage(
     @WsUserId() uid: number,

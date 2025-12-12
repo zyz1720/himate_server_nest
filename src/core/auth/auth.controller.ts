@@ -12,7 +12,7 @@ import { Throttle } from '@nestjs/throttler';
 @ApiTags('login - 用户登录')
 @ApiBearerAuth()
 @Public()
-@Throttle({ default: { ttl: 1000, limit: 5 } })
+@Throttle({ default: { ttl: 60000, limit: 5 } })
 @Controller('login')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
