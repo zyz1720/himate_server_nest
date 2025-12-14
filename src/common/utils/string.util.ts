@@ -1,15 +1,15 @@
 import { createHash, randomBytes } from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuid } from 'uuid';
 import { basename, extname } from 'path';
 
 export class StringUtil {
   /**
-   * 加密密码
-   * @param password 要加密的密码字符串
-   * @returns 加密后的密码字符串
+   * 生成哈希字符串
+   * @param str 要加密的字符串
+   * @returns 加密后的哈希字符串
    */
-  static encryptStr(password: string): string {
-    return createHash('sha256').update(password).digest('hex');
+  static createHashStr(str: string): string {
+    return createHash('sha256').update(str).digest('hex');
   }
 
   /**
@@ -17,7 +17,7 @@ export class StringUtil {
    * @returns 生成的uuid字符串
    */
   static createUUID(): string {
-    return uuidv4();
+    return uuid();
   }
 
   /**

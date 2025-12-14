@@ -85,7 +85,7 @@ export class SseService {
 
     while (hasMoreData) {
       try {
-        const sessions = await this.sessionService.findAllUserSession(
+        const sessions = await this.sessionService.findAllUserSessionHaveUnread(
           Number(uid),
           {
             current: currentPage,

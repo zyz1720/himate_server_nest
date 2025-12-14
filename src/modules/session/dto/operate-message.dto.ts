@@ -8,6 +8,8 @@ export class SendMessageDto extends PickType(AddMessageDto, [
   'sender_ip',
   'content',
   'msg_type',
+  'client_msg_id',
+  'reminders',
 ]) {
   @ApiProperty({ description: '会话uuid', required: true })
   @IsNotEmpty()

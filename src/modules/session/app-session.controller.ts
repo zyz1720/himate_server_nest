@@ -29,7 +29,7 @@ export class AppSessionController {
 
   @ApiOperation({ summary: '会话所有消息' })
   @ApiOkPageRes(MessageWithSenderInfo)
-  @Get('/:session_id')
+  @Get(':session_id')
   findAllMsg(
     @UserId() uid: number,
     @Param('session_id') session_id: string,
@@ -40,7 +40,7 @@ export class AppSessionController {
 
   @ApiOperation({ summary: '未读会话id列表' })
   @ApiOkPageRes(MessageIds)
-  @Get('unread/:session_id')
+  @Get(':session_id/unread')
   findUnread(
     @UserId() uid: number,
     @Param('session_id') session_id: string,

@@ -75,8 +75,7 @@ export class MessageReadRecordsService {
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 

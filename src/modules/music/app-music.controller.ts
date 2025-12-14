@@ -41,7 +41,7 @@ export class AppMusicController {
 
   @ApiOperation({ summary: '歌单的音乐' })
   @ApiOkPageRes(MusicEntity)
-  @Get('favorites/:favoritesId')
+  @Get(':favoritesId/favorites')
   getFavorites(
     @UserId() uid: number,
     @Param('favoritesId') favoritesId: number,
@@ -52,14 +52,14 @@ export class AppMusicController {
 
   @ApiOperation({ summary: '音乐详情' })
   @ApiOkPageRes(MusicEntity)
-  @Get('detail/:id')
+  @Get(':id/detail')
   findOne(@Param('id') id: string) {
     return this.musicService.findOneMusicDetails(parseInt(id));
   }
 
   @ApiOperation({ summary: '音乐是否收藏' })
   @ApiOkMsgRes()
-  @Get('isLiked/:id')
+  @Get(':id/isLiked')
   isLiked(@UserId() uid: number, @Param('id') id: string) {
     return this.musicService.isFavoriteMusic(uid, parseInt(id));
   }
@@ -87,7 +87,7 @@ export class AppMusicController {
 
   @ApiOperation({ summary: '从歌单移除音乐' })
   @ApiOkPageRes(MusicEntity)
-  @Delete('favorites/:favoritesId')
+  @Delete(':favoritesId/favorites')
   remove(
     @UserId() uid: number,
     @Param('favoritesId') favoritesId: string,

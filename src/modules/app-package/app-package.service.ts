@@ -43,8 +43,7 @@ export class AppPackageService {
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
     qb.orderBy('create_time', 'DESC');
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -120,8 +119,7 @@ export class AppPackageService {
       .orderBy('app_package.create_time', 'DESC')
       .limit(pageSize)
       .offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const list = await qb.getMany();
+    const [list, count] = await qb.getManyAndCount();
 
     return PageResponse.list(list, count);
   }

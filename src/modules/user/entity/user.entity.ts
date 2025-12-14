@@ -110,7 +110,7 @@ export class UserEntity {
 
   @BeforeInsert()
   initUserInfo() {
-    this.password = StringUtil.encryptStr(this.password);
+    this.password = StringUtil.createHashStr(this.password);
     this.self_account = 'mate_' + StringUtil.createUUID().slice(0, 8);
   }
 

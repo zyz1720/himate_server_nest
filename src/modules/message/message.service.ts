@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Not, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MessageEntity } from './entity/message.entity';
 import { AddMessageDto } from './dto/add-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -43,13 +43,13 @@ export class MessageService {
     } = query || {};
     const qb = this.messageRepository.createQueryBuilder('message');
     if (client_msg_id) {
-      qb.andWhere('client_msg_id LIKE :client_msg_id', {
-        client_msg_id: '%' + client_msg_id + '%',
+      qb.andWhere('client_msg_id = :client_msg_id', {
+        client_msg_id: client_msg_id,
       });
     }
     if (session_primary_id) {
-      qb.andWhere('session_primary_id LIKE :id', {
-        id: '%' + session_primary_id + '%',
+      qb.andWhere('session_primary_id = :id', {
+        id: session_primary_id,
       });
     }
     if (sender_id) {
@@ -69,8 +69,7 @@ export class MessageService {
     }
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 

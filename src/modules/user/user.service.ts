@@ -89,7 +89,7 @@ export class UserService {
       });
     }
     if (password) {
-      const enPassword = StringUtil.encryptStr(password);
+      const enPassword = StringUtil.createHashStr(password);
       qb.andWhere('user.password = :enPassword', { enPassword });
     }
     const data = await qb.getOne();
@@ -113,7 +113,7 @@ export class UserService {
       });
     }
     if (password) {
-      const enPassword = StringUtil.encryptStr(password);
+      const enPassword = StringUtil.createHashStr(password);
       qb.andWhere('password = :enPassword', { enPassword });
     }
     const data = await qb.getOne();
@@ -122,7 +122,7 @@ export class UserService {
 
   /* 获取用户通过账号/自定义账号 密码 */
   async findUserByAPEnabled(account: string, password: string) {
-    const enPassword = StringUtil.encryptStr(password);
+    const enPassword = StringUtil.createHashStr(password);
     const qb = this.userRepository.createQueryBuilder('user');
     qb.where('user.account = :account', { account });
     qb.orWhere('user.self_account = :account', { account });
@@ -174,10 +174,10 @@ export class UserService {
       qb.andWhere('user.user_status = :user_status', { user_status });
     }
     qb.orderBy('user.create_time');
-    const count = await qb.getCount();
     qb.limit(pageSize);
-    qb.offset(pageSize * (current - 1));
-    const data = await qb.getMany();
+    qb.offset((current - 1) * pageSize);
+
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -185,7 +185,7 @@ export class UserService {
   async updateUser(id: number, data: UpdateUserDto) {
     const { password } = data;
     if (password) {
-      data.password = StringUtil.encryptStr(password);
+      data.password = StringUtil.createHashStr(password);
     }
     const existUser = await this.findOneUserEnabled({ id });
     const updatedUser = this.userRepository.merge(existUser, data);
@@ -229,7 +229,7 @@ export class UserService {
     if (localCode !== code) {
       return Response.fail(this.i18n.t('message.CODE_ERROR'));
     }
-    existUser.password = StringUtil.encryptStr(password);
+    existUser.password = StringUtil.createHashStr(password);
     const saveRes = await this.userRepository.save(existUser);
     if (!saveRes) {
       return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
@@ -354,10 +354,10 @@ export class UserService {
       .orWhere('self_account LIKE :keyword', { keyword: `%${keyword}%` })
       .andWhere('user_status = :status', { status: Status.Enabled });
     qb.orderBy('user.create_time');
-    const count = await qb.getCount();
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const data = await qb.getMany();
+
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 

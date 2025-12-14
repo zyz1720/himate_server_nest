@@ -37,7 +37,7 @@ export class SocketService {
 
   // 发送消息
   async sendMessage(uid: number, message: SendMessageDto) {
-    const data = await this.sessionService.createAndSendMessage(uid, message);
+    const data = await this.sessionService.createMessage(uid, message);
     if (data) {
       const { message, session, mate, group, memberIds } = data;
 
@@ -74,6 +74,18 @@ export class SocketService {
     return Response.fail(this.i18n.t('message.SEND_FAILED'));
   }
 
+  // 创建并发送系统消息
+  async sendSystemMessage(uid: number, session_id: string, message: string) {
+    const systemMessage = await this.sessionService.createSystemMessage(
+      uid,
+      session_id,
+      message,
+    );
+    if (systemMessage) {
+      this.server.to(session_id).emit('system-message', [systemMessage]);
+    }
+  }
+
   // 处理所有会话未读消息并推送
   async processAllSessionMessagesUnread(uid: number, session_id: string) {
     const pushUnreadMessages = async (currentPage: number = 1) => {
@@ -88,14 +100,15 @@ export class SocketService {
           },
         );
 
-      if (unreadMessages.list?.length > 0) {
-        this.server.to(session_id).emit('message', unreadMessages.list);
-        const hasMoreData = currentPage * pageSize < unreadMessages.total;
-        if (hasMoreData) {
-          await pushUnreadMessages(currentPage + 1);
-        } else {
-          return;
-        }
+      if (unreadMessages.list.length === 0) {
+        return;
+      }
+      this.server.to(session_id).emit('unread-message', unreadMessages.list);
+      const hasMoreData = currentPage * pageSize < unreadMessages.total;
+      if (hasMoreData) {
+        await pushUnreadMessages(currentPage + 1);
+      } else {
+        return;
       }
     };
 

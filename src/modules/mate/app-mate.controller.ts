@@ -43,7 +43,7 @@ export class AppMateController {
 
   @ApiOperation({ summary: '用户间的好友关系' })
   @ApiOkRes(MateEntity)
-  @Get('relation/:userId')
+  @Get(':userId/relation')
   findRelation(@UserId() uid: number, @Param('userId') userId: string) {
     return this.mateService.verifyTwoUserIsMate(
       uid,
@@ -76,7 +76,7 @@ export class AppMateController {
 
   @ApiOperation({ summary: '修改好友备注' })
   @ApiOkRes(MateEntity)
-  @Put('remarks/:id')
+  @Put(':id/remarks')
   update(
     @UserId() uid: number,
     @Param('id') id: string,
@@ -87,7 +87,7 @@ export class AppMateController {
 
   @ApiOperation({ summary: '同意好友申请' })
   @ApiOkRes(MateEntity)
-  @Put('agree/:id')
+  @Put(':id/agree')
   agree(
     @UserId() uid: number,
     @Param('id') id: string,
@@ -103,7 +103,7 @@ export class AppMateController {
 
   @ApiOperation({ summary: '拒绝好友' })
   @ApiOkRes(MateEntity)
-  @Put('refuse/:id')
+  @Put(':id/refuse')
   refuse(@UserId() uid: number, @Param('id') id: string) {
     return this.mateService.updateMateStatus(
       uid,

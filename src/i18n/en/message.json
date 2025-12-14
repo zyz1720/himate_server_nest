@@ -1,4 +1,5 @@
 {
+    "WELCOME": "Welcome to Himate!",
     "OPERATE_SUCCESS": "Operate success",
     "OPERATE_ERROR": "Operate fail",
     "GET_SUCCESS": "Get success",
@@ -69,5 +70,12 @@
     "GET_FAVORITES_FAILED": "Get favorites failed",
     "UNSUPPORTED_DATA_FORMAT": "Unsupported data format",
     "JOIN_SUCCESS": "Join room success",
-    "LEAVE_SUCCESS": "Leave room success"
+    "LEAVE_SUCCESS": "Leave room success",
+    "GROUP_DISMISSED": "Group dismissed",
+    "GROUP_INVITED": "Invited user {userNames} to the group",
+    "GROUP_KICKED": "Kicked user {userNames} from the group",
+    "GROUP_ADMIN_UPDATED": "User {userNames} is now a group admin",
+    "GROUP_ADMIN_CANCELLED": "User {userNames} is no longer a group admin",
+    "GROUP_MEMBER_BANNED": "User {userNames} is now banned from the group",
+    "GROUP_MEMBER_EXITED": "User {userNames} has exited the group"
 }

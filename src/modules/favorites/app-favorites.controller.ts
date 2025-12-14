@@ -54,7 +54,7 @@ export class AppFavoritesController {
 
   @ApiOperation({ summary: '歌单详情' })
   @ApiOkPageRes(FavoritesEntity)
-  @Get('detail/:id')
+  @Get(':id/detail')
   findDetail(@UserId() uid: number, @Param('id') id: string) {
     return this.favoritesService.findUserFavoritesDetail(uid, parseInt(id));
   }

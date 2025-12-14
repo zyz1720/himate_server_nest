@@ -82,7 +82,7 @@ export class AppUserController {
 
   @ApiOperation({ summary: '获取其他用户详情' })
   @ApiOkRes(UserEntity)
-  @Get('detail/:id')
+  @Get(':id/detail')
   detail(@Param('id') id: number) {
     return this.userService.findOneUserEnabledDetail(id);
   }

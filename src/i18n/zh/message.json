@@ -1,4 +1,5 @@
 {
+  "WELCOME": "欢迎来到 Himate!",
   "OPERATE_SUCCESS": "操作成功",
   "OPERATE_ERROR": "操作失败",
   "GET_SUCCESS": "获取成功",
@@ -71,5 +72,12 @@
   "ALREADY_MATE": "你们已经是好友了",
   "WAIT_MATE": "好友申请已发送，正在等待验证",
   "JOIN_SUCCESS": "加入房间成功",
-  "LEAVE_SUCCESS": "退出房间成功"
+  "LEAVE_SUCCESS": "退出房间成功",
+  "GROUP_DISMISSED": "群组已被解散",
+  "GROUP_INVITED": "用户 {userNames} 加入了群组",
+  "GROUP_KICKED": "用户 {userNames} 被踢出了群组",
+  "GROUP_ADMIN_UPDATED": "用户 {userNames} 已成为群组管理员",
+  "GROUP_ADMIN_CANCELLED": "用户 {userNames} 已被取消管理员",
+  "GROUP_MEMBER_BANNED": "用户 {userNames} 已被禁言",
+  "GROUP_MEMBER_EXITED": "用户 {userNames} 已退出群组"
 }

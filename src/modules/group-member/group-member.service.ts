@@ -18,6 +18,8 @@ import { I18nService } from 'nestjs-i18n';
 import { UserEntity } from '../user/entity/user.entity';
 import { GroupEntity } from '../group/entity/group.entity';
 import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { GroupMessageEvent } from '../group/events/group-message.event';
 
 @Injectable()
 export class GroupMemberService {
@@ -25,6 +27,7 @@ export class GroupMemberService {
     @InjectRepository(GroupMemberEntity)
     private readonly groupMemberRepository: Repository<GroupMemberEntity>,
     private readonly i18n: I18nService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /* 添加一个群成员 */
@@ -78,8 +81,7 @@ export class GroupMemberService {
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -99,10 +101,7 @@ export class GroupMemberService {
   async updateGroupMember(id: number, data: UpdateGroupMemberDto) {
     const result = await this.groupMemberRepository.update(id, data);
     if (result.affected) {
-      return Response.ok(
-        this.i18n.t('message.UPDATE_SUCCESS'),
-        result.generatedMaps[0],
-      );
+      return Response.ok(this.i18n.t('message.UPDATE_SUCCESS'));
     } else {
       return Response.fail(this.i18n.t('message.UPDATE_FAILED'));
     }
@@ -148,8 +147,26 @@ export class GroupMemberService {
     }
   }
 
+  /* 批量查询成员备注 */
+  async findGroupMembersRemarks(ids: number[], role?: MemberRoleEnum) {
+    const qb = this.groupMemberRepository
+      .createQueryBuilder('group_member')
+      .select(['id', 'member_remarks'])
+      .where('id IN (:...ids)', { ids });
+
+    if (role) {
+      qb.andWhere('member_role = :role', { role });
+    }
+
+    const result = await qb.getRawMany<{
+      id: number;
+      member_remarks: string;
+    }>();
+    return result;
+  }
+
   /* 批量软删除非管理员群成员 */
-  async deleteNormalGroupMembers(ids: number[]) {
+  async softDeleteNormalGroupMembers(ids: number[]) {
     const result = await this.groupMemberRepository
       .createQueryBuilder('group_member')
       .softDelete()
@@ -159,7 +176,10 @@ export class GroupMemberService {
       })
       .execute();
     if (result.affected) {
-      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
+      return Response.ok(
+        this.i18n.t('message.DELETE_SUCCESS'),
+        result.generatedMaps,
+      );
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
@@ -168,17 +188,12 @@ export class GroupMemberService {
   /* 修改非群主和管理员的权限 */
   async updateNormalGroupMemberAuth(
     id: number,
-    data: {
-      member_role?: MemberRoleEnum;
-      member_status?: MemberStatusEnum;
-    },
+    member_status: MemberStatusEnum,
   ) {
-    const { member_role, member_status } = data;
     const result = await this.groupMemberRepository
       .createQueryBuilder('group_member')
       .update()
       .set({
-        member_role,
         member_status,
       })
       .where('id = :id AND member_role = :role', {
@@ -208,14 +223,23 @@ export class GroupMemberService {
       .where('group_primary_id = :id AND user_id = :uid', {
         id,
         uid,
-      });
+      })
+      .select([
+        'id',
+        'member_role',
+        'member_status',
+        'member_remarks',
+        'group_primary_id',
+        'group_id',
+        'user_id',
+      ]);
     if (role) {
       qb.andWhere('member_role = :role', { role });
     }
     if (status) {
       qb.andWhere('member_status = :status', { status });
     }
-    const member = await qb.getOne();
+    const member = await qb.getRawOne();
     return member;
   }
 
@@ -275,8 +299,7 @@ export class GroupMemberService {
       .orderBy('group_member.create_time', 'ASC')
       .limit(pageSize)
       .offset(pageSize * (current - 1));
-    const total = await qb.getCount();
-    const list = await qb.getMany();
+    const [list, total] = await qb.getManyAndCount();
 
     return PageResponse.list(list, total);
   }
@@ -341,6 +364,21 @@ export class GroupMemberService {
       });
       await queryRunner.manager.save(GroupMemberEntity, groupMembers);
       await queryRunner.commitTransaction();
+      // 触发群成员变更事件
+      this.eventEmitter.emitAsync(
+        'group.message',
+        new GroupMessageEvent(
+          uid,
+          group.group_id,
+          this.i18n.t('message.GROUP_INVITED', {
+            args: {
+              userNames: groupMembers
+                .map((member) => member.member_remarks)
+                .join(', '),
+            },
+          }),
+        ),
+      );
       return Response.ok(this.i18n.t('message.CREATE_SUCCESS'));
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -366,14 +404,56 @@ export class GroupMemberService {
     }
     if (member.member_role == MemberRoleEnum.owner) {
       const excludeSelfIds = ids.filter((id) => id !== member.id);
-      return this.softDeleteGroupMembers(excludeSelfIds);
+      const kickedMembers = await this.findGroupMembersRemarks(excludeSelfIds);
+      const result = await this.softDeleteGroupMembers(excludeSelfIds);
+      if (result.code === 0) {
+        const userNames = kickedMembers
+          .map((item) => item.member_remarks)
+          .join(', ');
+        this.eventEmitter.emitAsync(
+          'group.message',
+          new GroupMessageEvent(
+            uid,
+            member.group_id,
+            this.i18n.t('message.GROUP_KICKED', {
+              args: {
+                userNames: userNames,
+              },
+            }),
+          ),
+        );
+      }
+      return result;
     }
     if (member.member_role == MemberRoleEnum.admin) {
-      return this.deleteNormalGroupMembers(ids);
+      const kickedMembers = await this.findGroupMembersRemarks(
+        ids,
+        MemberRoleEnum.member,
+      );
+
+      const result = await this.softDeleteNormalGroupMembers(ids);
+      if (result.code === 0) {
+        const userNames = kickedMembers
+          .map((item) => item.member_remarks)
+          .join(', ');
+        this.eventEmitter.emitAsync(
+          'group.message',
+          new GroupMessageEvent(
+            uid,
+            member.group_id,
+            this.i18n.t('message.GROUP_KICKED', {
+              args: {
+                userNames: userNames,
+              },
+            }),
+          ),
+        );
+      }
+      return result;
     }
   }
 
-  /* 用户自己移除群成员 */
+  /* 群成员主动退出群聊 */
   async removeOneselfMember(uid: number, groupId: number) {
     const member = await this.findUserIsMember(uid, groupId);
     if (!member) {
@@ -382,7 +462,22 @@ export class GroupMemberService {
     if (member.member_role == MemberRoleEnum.owner) {
       return Response.fail(this.i18n.t('message.NO_ALLOW'));
     }
-    return this.softDeleteGroupMember(member.id);
+    const result = await this.softDeleteGroupMember(member.id);
+    if (result.code === 0) {
+      this.eventEmitter.emitAsync(
+        'group.message',
+        new GroupMessageEvent(
+          uid,
+          member.group_id,
+          this.i18n.t('message.GROUP_MEMBER_EXITED', {
+            args: {
+              userNames: member.member_remarks,
+            },
+          }),
+        ),
+      );
+    }
+    return result;
   }
 
   /* 更新群成员信息 */
@@ -419,21 +514,74 @@ export class GroupMemberService {
       if (member.id == id) {
         return Response.fail(this.i18n.t('message.NO_ALLOW'));
       }
-      return this.updateGroupMember(id, updateData);
+      const result = await this.updateGroupMember(id, updateData);
+      if (result.code === 0) {
+        const groupMembers = await this.findGroupMembersRemarks([id]);
+        if (data?.member_role === MemberRoleEnum.admin) {
+          this.eventEmitter.emitAsync(
+            'group.message',
+            new GroupMessageEvent(
+              uid,
+              member.group_id,
+              this.i18n.t('message.GROUP_ADMIN_UPDATED', {
+                args: {
+                  userNames: groupMembers[0].member_remarks,
+                },
+              }),
+            ),
+          );
+        }
+        if (data?.member_status === MemberStatusEnum.forbidden) {
+          this.eventEmitter.emitAsync(
+            'group.message',
+            new GroupMessageEvent(
+              uid,
+              member.group_id,
+              this.i18n.t('message.GROUP_MEMBER_BANNED', {
+                args: {
+                  userNames: groupMembers[0].member_remarks,
+                },
+              }),
+            ),
+          );
+        }
+      }
+      return result;
     }
     if (member.member_role == MemberRoleEnum.admin) {
-      return this.updateNormalGroupMemberAuth(id, updateData);
+      const result = await this.updateNormalGroupMemberAuth(
+        id,
+        updateData?.member_status,
+      );
+      if (result.code === 0) {
+        const groupMembers = await this.findGroupMembersRemarks([id]);
+        if (updateData?.member_status === MemberStatusEnum.forbidden) {
+          this.eventEmitter.emitAsync(
+            'group.message',
+            new GroupMessageEvent(
+              uid,
+              member.group_id,
+              this.i18n.t('message.GROUP_MEMBER_BANNED', {
+                args: {
+                  userNames: groupMembers[0].member_remarks,
+                },
+              }),
+            ),
+          );
+        }
+      }
+      return result;
     }
   }
 
   /* 用户在群组中的信息 */
-  async findUserInGroupInfo(uid: number, group_id: string) {
+  async findUserInGroupInfo(uid: number, groupId: number) {
     const member = await this.groupMemberRepository.findOne({
       relations: ['group'],
       where: {
         user_id: uid,
         group: {
-          group_id: group_id,
+          id: groupId,
         },
       },
       select: [

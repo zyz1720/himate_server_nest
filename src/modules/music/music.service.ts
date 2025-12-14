@@ -89,8 +89,7 @@ export class MusicService {
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -205,8 +204,7 @@ export class MusicService {
       )
       .limit(pageSize)
       .offset(pageSize * (current - 1));
-    const total = await qb.getCount();
-    const list = await qb.getMany();
+    const [list, total] = await qb.getManyAndCount();
     return PageResponse.list(list, total);
   }
 
@@ -232,8 +230,7 @@ export class MusicService {
       )
       .limit(pageSize)
       .offset(pageSize * (current - 1));
-    const total = await qb.getCount();
-    const list = await qb.getMany();
+    const [list, total] = await qb.getManyAndCount();
     return PageResponse.list(list, total);
   }
 
@@ -254,8 +251,7 @@ export class MusicService {
     }
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 

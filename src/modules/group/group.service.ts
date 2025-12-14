@@ -18,6 +18,8 @@ import {
   MemberRoleEnum,
   MemberStatusEnum,
 } from '../group-member/entity/group-member.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { GroupMessageEvent } from './events/group-message.event';
 
 @Injectable()
 export class GroupService {
@@ -26,6 +28,7 @@ export class GroupService {
     private readonly groupRepository: Repository<GroupEntity>,
     private readonly i18n: I18nService,
     private readonly groupMemberService: GroupMemberService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /* 添加一个群组 */
@@ -55,8 +58,7 @@ export class GroupService {
     }
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -198,12 +200,11 @@ export class GroupService {
         uid,
         role: member_role,
       })
-      .orderBy('group.create_time', 'DESC');
-    const count = await qb.getCount();
-    const data = await qb
+      .orderBy('group.create_time', 'DESC')
       .offset((current - 1) * pageSize)
-      .limit(pageSize)
-      .getMany();
+      .limit(pageSize);
+
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -250,14 +251,35 @@ export class GroupService {
   /* 解散群组 */
   async deleteUserGroup(uid: number, id: number) {
     // 检查用户是否属于该群组
-    const member = await this.groupMemberService.findUserIsMember(uid, id);
-    if (!member) {
+    const group = await this.groupRepository.findOne({
+      relations: ['members'],
+      where: {
+        id: id,
+        members: {
+          user_id: uid,
+          member_role: MemberRoleEnum.owner,
+        },
+      },
+      select: {
+        id: true,
+        group_id: true,
+      },
+    });
+    if (!group) {
       return Response.fail(this.i18n.t('message.NO_PERMISSION'));
     }
-    if (member.member_role !== MemberRoleEnum.owner) {
-      return Response.fail(this.i18n.t('message.NO_PERMISSION'));
+    const result = await this.softDeleteGroup(id);
+    if (result.code === 0) {
+      this.eventEmitter.emitAsync(
+        'group.message',
+        new GroupMessageEvent(
+          uid,
+          group.group_id,
+          this.i18n.t('message.GROUP_DISMISSED'),
+        ),
+      );
     }
-    return this.softDeleteGroup(id);
+    return result;
   }
 
   /* 查询用户群组基本信息 */

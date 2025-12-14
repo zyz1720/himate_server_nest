@@ -30,9 +30,9 @@ export class AppGroupMemberController {
 
   @ApiOperation({ summary: '用户在群组中的信息' })
   @ApiOkPageRes(GroupMemberEntity)
-  @Get('oneself/:group_id')
-  findOne(@UserId() uid: number, @Param('group_id') group_id: string) {
-    return this.groupMemberService.findUserInGroupInfo(uid, group_id);
+  @Get(':groupId/oneself')
+  findOne(@UserId() uid: number, @Param('groupId') groupId: string) {
+    return this.groupMemberService.findUserInGroupInfo(uid, parseInt(groupId));
   }
 
   @ApiOperation({ summary: '获取群下所有成员' })
@@ -52,7 +52,7 @@ export class AppGroupMemberController {
 
   @ApiOperation({ summary: '邀请成员' })
   @ApiOkMsgRes()
-  @Put('invite/:groupId')
+  @Put(':groupId/invite')
   create(
     @UserId() uid: number,
     @Param('groupId') groupId: string,
@@ -67,7 +67,7 @@ export class AppGroupMemberController {
 
   @ApiOperation({ summary: '踢出成员' })
   @ApiOkMsgRes()
-  @Delete('remove/:groupId')
+  @Delete(':groupId/remove')
   remove(
     @UserId() uid: number,
     @Param('groupId') groupId: string,
@@ -82,7 +82,7 @@ export class AppGroupMemberController {
 
   @ApiOperation({ summary: '更新信息' })
   @ApiOkRes(GroupMemberEntity)
-  @Put('update/:groupId')
+  @Put(':groupId/update')
   update(
     @UserId() uid: number,
     @Param('groupId') groupId: string,
@@ -97,7 +97,7 @@ export class AppGroupMemberController {
 
   @ApiOperation({ summary: '修改成员权限' })
   @ApiOkRes(GroupMemberEntity)
-  @Put('auth/:groupId')
+  @Put(':groupId/auth')
   updateAuth(
     @UserId() uid: number,
     @Param('groupId') groupId: string,

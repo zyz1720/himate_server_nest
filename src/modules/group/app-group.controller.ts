@@ -43,7 +43,7 @@ export class AppGroupController {
 
   @ApiOperation({ summary: '群组详情' })
   @ApiOkRes(GroupEntity)
-  @Get('detail/:id')
+  @Get(':id/detail')
   findOne(@UserId() uid: number, @Param('id') id: string) {
     return this.groupService.findOneUserGroup(uid, parseInt(id));
   }

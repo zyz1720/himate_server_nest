@@ -26,14 +26,14 @@ export class MusicApiController {
   }
 
   @ApiOperation({ summary: '查找歌词' })
-  @Get('lyric/:mid')
+  @Get(':mid/lyric')
   findLyric(@Param('mid') id: string) {
     return this.musicApiService.findMusicLyric(id);
   }
 
   @ApiOperation({ summary: '匹配没有扩展的音乐信息' })
   @Roles(Role.Admin)
-  @Get('match/:num')
+  @Get(':num/match')
   matchInfo(@Param('num') num: string) {
     return this.musicApiService.matchMusicInfo(parseInt(num));
   }

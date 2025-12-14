@@ -79,7 +79,7 @@ async function bootstrap() {
   await app.register(fastifyStatic, {
     root: FILE_DIR.THUMBNAIL,
     serve: true,
-    prefix: '/thumbnails',
+    prefix: '/thumbnail',
     index: false,
   });
 

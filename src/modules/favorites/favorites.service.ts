@@ -71,8 +71,7 @@ export class FavoritesService {
 
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -145,8 +144,7 @@ export class FavoritesService {
       .orderBy('favorites.create_time', 'DESC')
       .limit(pageSize)
       .offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 
@@ -182,8 +180,7 @@ export class FavoritesService {
     qb.orderBy('favorites.create_time', 'DESC');
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
-    const count = await qb.getCount();
-    const data = await qb.getMany();
+    const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
 

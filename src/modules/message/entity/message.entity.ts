@@ -6,14 +6,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
-  BeforeInsert,
   ManyToOne,
   JoinColumn,
   OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { DataLength } from 'src/common/constants/database-enum.const';
-import { StringUtil } from 'src/common/utils/string.util';
 import { SessionEntity } from 'src/modules/session/entity/session.entity';
 import { MessageReadRecordsEntity } from 'src/modules/message-read-records/entity/message-read-records.entity';
 import { UserEntity } from 'src/modules/user/entity/user.entity';
@@ -35,7 +33,8 @@ export class MessageEntity {
   id: number;
 
   @ApiProperty({ description: '客户端消息id' })
-  @Column({ comment: '客户端消息id', length: DataLength.UUID })
+  @Column({ comment: '客户端消息id', length: DataLength.HASH })
+  @Index('idx_message_client_msg_id', { unique: true })
   client_msg_id: string;
 
   @ApiProperty({ description: '关联会话id' })
@@ -61,6 +60,14 @@ export class MessageEntity {
   @ApiProperty({ description: '消息密钥' })
   @Column({ comment: '消息密钥', length: DataLength.Short, nullable: true })
   msg_secret: string;
+
+  @ApiProperty({ description: '是否系统消息' })
+  @Column({ type: 'boolean', comment: '是否系统消息', default: false })
+  is_system?: boolean;
+
+  @ApiProperty({ description: '要提醒的用户' })
+  @Column({ type: 'json', comment: '要提醒的用户', nullable: true })
+  reminders?: number[];
 
   @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ type: 'timestamp', comment: '创建时间' })
@@ -97,10 +104,4 @@ export class MessageEntity {
 
   @OneToMany(() => MessageReadRecordsEntity, (records) => records.message)
   read_records: MessageReadRecordsEntity[];
-
-  @BeforeInsert()
-  addClientMsgId() {
-    // 生成客户端消息id
-    this.client_msg_id = StringUtil.createUUID();
-  }
 }
