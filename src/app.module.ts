@@ -101,7 +101,7 @@ import envConfig from '../config/env';
         timezone: '+08:00', //服务器上配置的时区
         synchronize: true, //根据实体自动创建数据库表， 生产环境建议关闭
         // cache: true, // 缓存连接池，默认30秒
-        charset: 'utf8mb4_unicode_ci',
+        charset: 'utf8mb4',
         extra: {
           engine: 'InnoDB', // 指定数据库引擎
         },
