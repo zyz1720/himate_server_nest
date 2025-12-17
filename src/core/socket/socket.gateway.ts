@@ -22,7 +22,7 @@ import { Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { Throttle } from '@nestjs/throttler';
 
-@WebSocketGateway(4001, { namespace: 'socket' })
+@WebSocketGateway(3001, { namespace: 'socket' })
 export class SocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {

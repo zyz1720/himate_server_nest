@@ -84,11 +84,11 @@ async function bootstrap() {
   });
 
   // 运行的端口
-  await app.listen(4000, '0.0.0.0');
+  await app.listen(3000, '0.0.0.0');
 
   // 静态资源服务
   const staticApp = express();
   staticApp.use('/static', express.static(FILE_DIR.UPLOAD));
-  staticApp.listen(4002);
+  staticApp.listen(3002);
 }
 bootstrap();
