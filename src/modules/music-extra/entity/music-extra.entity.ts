@@ -22,7 +22,6 @@ export class MusicExtraEntity {
   id: number;
 
   @ApiProperty({ description: '音乐id' })
-  @Index('idx_music_extra_music_id_unique', { unique: true })
   @Column({ type: 'int', comment: '音乐id' })
   music_id: number;
 
@@ -72,8 +71,8 @@ export class MusicExtraEntity {
   delete_time: Date;
 
   @OneToOne(() => MusicEntity, (music) => music.musicExtra, {
-    nullable: false,
     onDelete: 'CASCADE',
+    nullable: false,
   })
   @JoinColumn({ name: 'music_id' })
   music: MusicEntity;

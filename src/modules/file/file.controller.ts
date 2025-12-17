@@ -78,6 +78,13 @@ export class FileController {
     return this.fileService.deleteFile(parseInt(id));
   }
 
+  @ApiOperation({ summary: '查询已删除文件列表' })
+  @ApiOkPageRes(FileEntity)
+  @Get('recycle_bin')
+  findAllRecycled(@Query() query: FindAllFileDto) {
+    return this.fileService.findAllRecycledFiles(query);
+  }
+
   @ApiOperation({ summary: '下载文件到服务器' })
   @ApiOkMsgRes()
   @Get('download')

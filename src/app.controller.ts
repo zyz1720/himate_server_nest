@@ -4,12 +4,12 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from './core/auth/decorators/public.decorator';
 import { ApiOkMsgRes } from 'src/common/response/api-response.decorator';
 
-@ApiTags('api - 欢迎')
-@Controller()
+@ApiTags('api - welcome')
+@Controller('welcome')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @ApiOperation({ summary: 'Welcome to Himate!' })
+  @ApiOperation({ summary: '欢迎信息' })
   @ApiOkMsgRes()
   @Public()
   @Get()

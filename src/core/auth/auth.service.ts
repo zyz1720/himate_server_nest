@@ -6,7 +6,7 @@ import { UserLoginByCodeDto } from 'src/core/auth/dto/user-login-code.dto';
 import { UserLoginByPasswordDto } from 'src/core/auth/dto/user-login-password.dto';
 import { I18nService } from 'nestjs-i18n';
 import { Response } from 'src/common/response/api-response';
-import { LoginResponseDto } from './dto/login-response.dto';
+import { LoginResponse } from './response/login.response';
 import { ConfigService } from '@nestjs/config';
 
 export interface IJwtSign {
@@ -50,7 +50,7 @@ export class AuthService {
         expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
       });
 
-      return new LoginResponseDto(accessToken, refreshToken, 'bearer');
+      return new LoginResponse(accessToken, refreshToken, 'bearer');
     } catch (error) {
       console.error(error);
       throw new UnauthorizedException(this.i18n.t('message.LOGIN_FAILED'));
@@ -73,11 +73,10 @@ export class AuthService {
   /* 用户登录（账号密码） */
   async userLogin(data: UserLoginByPasswordDto) {
     const { account, password } = data || {};
-    let user = null as Partial<UserEntity>;
-    user = await this.userService.findUserByAPEnabled(account, password);
+    const user = await this.userService.findUserByAPEnabled(account, password);
     if (user) {
-      const Token = await this.login(user);
-      return Response.ok(this.i18n.t('message.LOGIN_SUCCESS'), Token);
+      const authInfo = await this.login(user);
+      return Response.ok(this.i18n.t('message.LOGIN_SUCCESS'), authInfo);
     } else {
       return Response.fail(this.i18n.t('message.PASSWORD_OR_ACCOUNT_ERROR'));
     }

@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigService, ConfigModule } from '@nestjs/config';
@@ -30,9 +30,14 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { UserSubscriber } from './common/subscriber/user.subscriber';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { HeaderResolver, I18nModule } from 'nestjs-i18n';
-import { ContextMiddleware } from './common/middleware/context.middleware';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import {
+  AcceptLanguageResolver,
+  HeaderResolver,
+  I18nModule,
+} from 'nestjs-i18n';
 import { join } from 'path';
+import { Redis } from 'ioredis';
 import envConfig from '../config/env';
 
 @Module({
@@ -50,7 +55,11 @@ import envConfig from '../config/env';
         path: join(__dirname, '../', '/i18n/'),
         watch: true,
       },
-      resolvers: [{ use: HeaderResolver, options: ['x-custom-lang'] }],
+      disableMiddleware: true,
+      resolvers: [
+        { use: HeaderResolver, options: ['x-custom-lang'] },
+        AcceptLanguageResolver,
+      ],
     }),
 
     // 限流配置
@@ -65,6 +74,13 @@ import envConfig from '../config/env';
               limit: configService.get<number>('THROTTLE_LIMIT'),
             },
           ],
+          storage: new ThrottlerStorageRedisService(
+            new Redis({
+              host: configService.get<string>('REDIS_HOST'),
+              port: configService.get<number>('REDIS_PORT'),
+              password: configService.get<string>('REDIS_PASSWORD'),
+            }),
+          ),
         };
       },
     }),
@@ -85,7 +101,7 @@ import envConfig from '../config/env';
         timezone: '+08:00', //服务器上配置的时区
         synchronize: true, //根据实体自动创建数据库表， 生产环境建议关闭
         // cache: true, // 缓存连接池，默认30秒
-        charset: 'utf8mb4',
+        charset: 'utf8mb4_unicode_ci',
         extra: {
           engine: 'InnoDB', // 指定数据库引擎
         },
@@ -94,13 +110,13 @@ import envConfig from '../config/env';
 
     // 事件配置
     EventEmitterModule.forRoot({
-      wildcard: false, // 将其设置为“true”以使用通配符
-      delimiter: '.', // 用于对命名空间进行分段的分隔符
-      newListener: false, // 如果要发出newListener事件，请将其设置为“true”
-      removeListener: false, // 如果要发出removeListener事件，请将其设置为“true”
-      maxListeners: 10, // 可以分配给事件的最大侦听器数量
-      verboseMemoryLeak: false, // 当分配的侦听器数量超过最大值时，在内存泄漏消息中显示事件名称
-      ignoreErrors: false, // 如果发出错误事件并且没有侦听器，则禁用抛出uncaughtException
+      wildcard: false,
+      delimiter: '.',
+      newListener: false,
+      removeListener: false,
+      maxListeners: 10,
+      verboseMemoryLeak: false,
+      ignoreErrors: false,
     }),
 
     // 队列配置
@@ -115,6 +131,7 @@ import envConfig from '../config/env';
         },
       }),
     }),
+
     AuthModule,
     EmailModule,
     CaptchaModule,
@@ -154,8 +171,4 @@ import envConfig from '../config/env';
     },
   ],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer): any {
-    consumer.apply(ContextMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}

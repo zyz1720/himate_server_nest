@@ -22,7 +22,7 @@ import { Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { Throttle } from '@nestjs/throttler';
 
-@WebSocketGateway(3001, { namespace: 'socket' })
+@WebSocketGateway(4001, { namespace: 'socket' })
 export class SocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
@@ -33,13 +33,12 @@ export class SocketGateway
   @WebSocketServer()
   server: Server;
 
-  // 在网关初始化完成后调用
   afterInit(server: Server) {
     this.socketService.setServer(server);
   }
 
   @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
-  @Throttle({ default: { ttl: 60000, limit: 1000 } })
+  @Throttle({ default: { ttl: 60000, limit: 6000 } })
   @SubscribeMessage('read-message')
   async handleMessage(
     @WsUserId() uid: number,
@@ -49,14 +48,13 @@ export class SocketGateway
   }
 
   @UseGuards(WsJwtAuthGuard, WsThrottlerGuard)
-  @Throttle({ default: { ttl: 60000, limit: 80 } })
+  @Throttle({ default: { ttl: 60000, limit: 100 } })
   @SubscribeMessage('send-message')
   async sendMessage(
     @WsUserId() uid: number,
     @ConnectedSocket() client: Socket,
     @MessageBody() message: SendMessageDto,
   ) {
-    Logger.log('[send-message]接收消息：', message);
     message.sender_ip = client.handshake.address;
     const result = await this.socketService.sendMessage(uid, message);
     if (result.code === 0) {
@@ -72,7 +70,6 @@ export class SocketGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() session_id: string,
   ) {
-    Logger.log(`用户 ${uid} 客户端 ${client.id}, 加入房间 ${session_id}`);
     await client.join(session_id);
     await this.socketService.processAllSessionMessagesUnread(uid, session_id);
     return Response.ok(this.i18n.t('message.JOIN_SUCCESS'), session_id);
@@ -85,7 +82,6 @@ export class SocketGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() session_id: string,
   ) {
-    Logger.log(`用户 ${uid} 客户端 ${client.id}, 退出房间 ${session_id}`);
     await client.leave(session_id);
     return Response.ok(this.i18n.t('message.LEAVE_SUCCESS'), session_id);
   }

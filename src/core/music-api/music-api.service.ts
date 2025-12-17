@@ -274,68 +274,98 @@ export class MusicApiService {
 
     const favoriteRes = await this.findMoreFavorite(thirdPartyId);
     if (favoriteRes.code == 0) {
-      const queryRunner =
-        this.musicRepository.manager.connection.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
+      const { songlist, songnum } = favoriteRes.data;
+      musicCount = songnum;
 
-      try {
-        const { songlist, songnum } = favoriteRes.data;
-        musicCount = songnum;
-        const downloadPromises = songlist.map(async (item: any) => {
+      for (const item of songlist) {
+        const queryRunner =
+          this.musicRepository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
           const { id: mid, interval, title, singer, album } = item;
-          const music = await queryRunner.manager.findOne(MusicEntity, {
+
+          // 检查音乐是否已存在
+          const existingMusic = await queryRunner.manager.findOne(MusicEntity, {
             relations: ['musicExtra'],
             where: { musicExtra: { match_id: String(mid) } },
           });
-          if (music) {
-            musicIds.push(music.id);
-          } else {
-            const findRes = await this.findMusicUrl({ id: mid });
-            if (findRes.code == 0) {
-              const { url, singer: _singer, quality } = findRes.data;
-              if (!quality.includes('试听')) {
-                await CommonUtil.delay();
-                const downloadRes = await this.fileService.downloadSaveFile(
-                  {
-                    download_url: url,
-                    use_type: UseTypeEnum.music,
-                    file_type: FileTypeEnum.audio,
-                  },
-                  false,
-                );
-                if (downloadRes.code == 0) {
-                  const { file_key } = downloadRes.data as FileEntity;
-                  const createMusic = queryRunner.manager.create(MusicEntity, {
-                    file_key: file_key,
-                    sample_rate: 44100,
-                    bitrate: 320000,
-                    duration: interval,
-                    title,
-                    artist: _singer,
-                    artists: singer.map((e: any) => e.title),
-                    album: album.title,
-                  });
-                  await queryRunner.manager.save(createMusic);
-                  musicIds.push(createMusic.id);
-                  await CommonUtil.delay();
-                  await this.matchMusicExtra({
-                    musicId: createMusic.id,
-                    matchId: String(mid),
-                  });
-                }
-              }
-            }
-          }
-        });
 
-        await Promise.all(downloadPromises);
-        await queryRunner.commitTransaction();
-      } catch (error) {
-        Logger.error('批量下载音乐时发生错误', error);
-        await queryRunner.rollbackTransaction();
-      } finally {
-        await queryRunner.release();
+          if (existingMusic) {
+            musicIds.push(existingMusic.id);
+            await queryRunner.release();
+            continue;
+          }
+
+          // 为当前歌曲创建独立事务
+          await queryRunner.startTransaction();
+
+          const findRes = await this.findMusicUrl({ id: mid });
+          if (findRes.code != 0) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            Logger.warn(
+              `获取歌曲 ${title} (${mid}) 的下载链接失败: ${findRes.message}`,
+            );
+            continue;
+          }
+
+          const { url, singer: _singer, quality } = findRes.data;
+          if (quality.includes('试听')) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            Logger.warn(`歌曲 ${title} (${mid}) 是试听版本，跳过下载`);
+            continue;
+          }
+
+          await CommonUtil.delay();
+          const downloadRes = await this.fileService.downloadSaveFile(
+            {
+              download_url: url,
+              use_type: UseTypeEnum.music,
+              file_type: FileTypeEnum.audio,
+            },
+            false,
+          );
+
+          if (downloadRes.code != 0) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            Logger.error(
+              `下载歌曲 ${title} (${mid}) 失败: ${downloadRes.message}`,
+            );
+            continue;
+          }
+
+          const { file_key } = downloadRes.data as FileEntity;
+          const createMusic = queryRunner.manager.create(MusicEntity, {
+            file_key: file_key,
+            sample_rate: 44100,
+            bitrate: 320000,
+            duration: interval,
+            title,
+            artist: _singer,
+            artists: singer.map((e: any) => e.title),
+            album: album.title,
+          });
+
+          await queryRunner.manager.save(createMusic);
+          musicIds.push(createMusic.id);
+
+          await CommonUtil.delay();
+          await this.matchMusicExtra({
+            musicId: createMusic.id,
+            matchId: String(mid),
+          });
+
+          await queryRunner.commitTransaction();
+          Logger.log(`成功下载并保存歌曲: ${title}`);
+        } catch (error) {
+          await queryRunner.rollbackTransaction();
+          Logger.error('处理单首歌曲时发生错误', error);
+        } finally {
+          await queryRunner.release();
+        }
       }
     }
     return {

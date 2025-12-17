@@ -14,7 +14,7 @@ import { WsThrottlerGuard } from './guards/ws-throttler.guard';
     JwtModule.register({
       global: true,
     }),
-    forwardRef(() => UserModule), // 处理相互循环依赖
+    forwardRef(() => UserModule),
     PassportModule,
   ],
   providers: [

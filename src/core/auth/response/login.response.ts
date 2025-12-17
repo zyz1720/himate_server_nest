@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class LoginResponseDto {
+export class LoginResponse {
   constructor(accessToken: string, refreshToken: string, type: string) {
     this.access_token = accessToken;
     this.refresh_token = refreshToken;

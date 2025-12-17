@@ -1,7 +1,7 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { AuthService } from 'src/core/auth/auth.service';
-import { AsyncContext } from 'src/core/context/async-context.model';
+import { UserContext } from 'src/common/context/user.context';
 
 @Injectable()
 export class ContextMiddleware implements NestMiddleware {
@@ -13,7 +13,7 @@ export class ContextMiddleware implements NestMiddleware {
     if (token) {
       try {
         const user = this.authService.verifyToken(token);
-        AsyncContext.run(user, next);
+        UserContext.run(user, next);
       } catch (error) {
         Logger.error(error?.message);
         next();

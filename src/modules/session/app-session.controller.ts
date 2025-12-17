@@ -11,7 +11,7 @@ import {
   MessageIds,
   MessageWithSenderInfo,
   SessionWithExtra,
-} from './types/session-response.type';
+} from './response/session.response';
 import { ReadMessageDto } from './dto/operate-message.dto';
 
 @ApiTags('app - 会话')

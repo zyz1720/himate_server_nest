@@ -9,7 +9,7 @@ import { PageResponse, Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
 import { FindAllDto, IdsDto } from 'src/common/dto/common.dto';
 import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
-import { MessageWithSenderInfo } from '../session/types/session-response.type';
+import { MessageWithSenderInfo } from '../session/response/session.response';
 
 @Injectable()
 export class MessageService {

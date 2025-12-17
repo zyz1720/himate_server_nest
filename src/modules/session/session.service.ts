@@ -22,7 +22,7 @@ import {
   SessionExtra,
   SessionWithExtra,
   SessionWithMateOrGroup,
-} from './types/session-response.type';
+} from './response/session.response';
 import { GroupEntity } from '../group/entity/group.entity';
 import { MateEntity } from '../mate/entity/mate.entity';
 import { StringUtil } from 'src/common/utils/string.util';

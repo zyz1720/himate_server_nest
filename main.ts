@@ -3,10 +3,9 @@ import { AppModule } from './src/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './src/common/filters/http-exception.filter';
 import { DatabaseExceptionFilter } from 'src/common/filters/database-exception.filter';
-import { WsExceptionFilter } from 'src/common/filters/ws-exception.filter';
+import { WebSocketExceptionFilter } from 'src/common/filters/ws-exception.filter';
 import { HttpReqTransformInterceptor } from './src/common/interceptor/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
-import * as express from 'express';
 import { FILE_DIR } from './config/file_dir';
 import { FormatUtil } from './src/common/utils/format.util';
 import {
@@ -16,6 +15,7 @@ import {
 import fastifyCors from '@fastify/cors';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -33,7 +33,7 @@ async function bootstrap() {
   app.useGlobalFilters(
     new HttpExceptionFilter(),
     new DatabaseExceptionFilter(),
-    new WsExceptionFilter(),
+    new WebSocketExceptionFilter(),
   );
 
   // 全局拦截器
@@ -51,7 +51,7 @@ async function bootstrap() {
   // 设置全局路由前缀
   app.setGlobalPrefix('api');
 
-  // sawgger配置
+  // swagger配置
   const options = new DocumentBuilder()
     .setTitle('Himate接口文档')
     .setDescription('Himate api v2.0')
@@ -84,11 +84,11 @@ async function bootstrap() {
   });
 
   // 运行的端口
-  await app.listen(3000, '0.0.0.0');
+  await app.listen(4000, '0.0.0.0');
 
   // 静态资源服务
   const staticApp = express();
   staticApp.use('/static', express.static(FILE_DIR.UPLOAD));
-  staticApp.listen(3002);
+  staticApp.listen(4002);
 }
 bootstrap();

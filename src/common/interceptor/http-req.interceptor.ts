@@ -25,7 +25,7 @@ export class HttpReqTransformInterceptor<T>
         if (result) {
           return TypeUtil.isResponse(result)
             ? result
-            : Response.ok('Operation successful', result);
+            : Response.ok('success', result);
         } else {
           return Response.fail(CommonUtil.getFilterFailedMsg(result));
         }

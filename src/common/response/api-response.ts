@@ -12,7 +12,7 @@ export class Response<T> {
    */
   constructor(msg: string, data: T, success: boolean) {
     this.data = data || null;
-    this.message = msg || '系统提示';
+    this.message = msg || (success ? 'success' : 'failed!');
     this.code = success ? 0 : -1;
   }
 
@@ -41,7 +41,7 @@ export class Response<T> {
   @ApiProperty({
     type: String,
     description: '操作结果的消息提示',
-    example: '操作成功',
+    example: 'success',
   })
   message: string;
 
@@ -51,7 +51,7 @@ export class Response<T> {
    * @param data 响应数据
    * @returns Response<T> 成功响应对象
    */
-  static ok<T>(msg: string = '操作成功', data?: T): Response<T> {
+  static ok<T>(msg: string = 'success', data?: T): Response<T> {
     return new Response(msg, data, true);
   }
 
@@ -61,7 +61,7 @@ export class Response<T> {
    * @param data 响应数据
    * @returns Response<T> 失败响应对象
    */
-  static fail<T>(msg: string = '操作失败', data?: T): Response<T> {
+  static fail<T>(msg: string = 'failed!', data?: T): Response<T> {
     return new Response(msg, data, false);
   }
 }
@@ -82,11 +82,11 @@ export class PageResponse<T> {
   }
 
   /**
-   * 数据列表数组
+   * 数据列表
    */
   @ApiProperty({
     type: [Object],
-    description: '数据列表数组',
+    description: '数据列表',
   })
   list: T[];
 

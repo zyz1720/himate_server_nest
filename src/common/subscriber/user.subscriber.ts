@@ -4,14 +4,14 @@ import {
   InsertEvent,
   UpdateEvent,
 } from 'typeorm';
-import { AsyncContext } from 'src/core/context/async-context.model';
+import { UserContext } from 'src/common/context/user.context';
 
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface {
   readonly whiteEntities = [];
 
   editEntity(entity: any, field: string) {
-    const AuthInfo = AsyncContext.getContext();
+    const userContext = UserContext.getContext();
     if (!entity) {
       return;
     }
@@ -20,7 +20,7 @@ export class UserSubscriber implements EntitySubscriberInterface {
       if (entity[field]) {
         return;
       }
-      entity[field] = AuthInfo?.userId || 0;
+      entity[field] = userContext?.userId || 0;
     }
   }
 

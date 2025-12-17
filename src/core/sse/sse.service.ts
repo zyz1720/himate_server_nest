@@ -6,7 +6,7 @@ import {
   SessionWithExtra,
   SessionWithMateOrGroup,
   SessionWithMateOrGroupWithLatest,
-} from 'src/modules/session/types/session-response.type';
+} from 'src/modules/session/response/session.response';
 import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';
 
 @Injectable()

@@ -8,11 +8,12 @@ export class WsThrottlerGuard extends ThrottlerGuard {
       requestProps;
 
     const client = context.switchToWs().getClient();
-    // 优先使用用户ID作为限流标识，如果没有则使用IP地址，最后使用socket ID
+
     const tracker =
-      client?.user?.id?.toString() ||
+      client?.user?.userId?.toString() ||
       client?._socket?.remoteAddress ||
       client?.id;
+
     const key = generateKey(context, tracker, throttler.name);
     const { totalHits, timeToExpire, isBlocked, timeToBlockExpire } =
       await this.storageService.increment(

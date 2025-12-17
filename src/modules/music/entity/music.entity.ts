@@ -79,13 +79,11 @@ export class MusicEntity {
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
 
-  @ManyToMany(() => FavoritesEntity, (favorites) => favorites.music, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToMany(() => FavoritesEntity, (favorites) => favorites.music)
   favorites: FavoritesEntity[];
 
   @OneToOne(() => MusicExtraEntity, (musicExtra) => musicExtra.music, {
-    cascade: true,
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'music_extra_id' })
   musicExtra: MusicExtraEntity;

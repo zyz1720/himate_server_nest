@@ -90,6 +90,41 @@ export class FileService {
     return PageResponse.list(data, count);
   }
 
+  /* 查询已删除文件列表 */
+  async findAllRecycledFiles(query: FindAllFileDto) {
+    const {
+      current = 1,
+      pageSize = 10,
+      file_type,
+      use_type,
+      file_key,
+    } = query || {};
+    const qb = this.fileRepository
+      .createQueryBuilder('file')
+      .withDeleted()
+      .andWhere('delete_time IS NOT NULL');
+    if (file_type) {
+      qb.andWhere('file_type = :file_type', {
+        file_type: file_type,
+      });
+    }
+    if (use_type) {
+      qb.andWhere('use_type = :use_type', {
+        use_type: use_type,
+      });
+    }
+    if (file_key) {
+      qb.andWhere('file_key LIKE :file_key', {
+        file_key: '%' + file_key + '%',
+      });
+    }
+    qb.limit(pageSize);
+    qb.offset(pageSize * (current - 1));
+
+    const [data, count] = await qb.getManyAndCount();
+    return PageResponse.list(data, count);
+  }
+
   /* 查询指定文件 */
   async findOneFile(id: number) {
     const result = await this.fileRepository.findOne({

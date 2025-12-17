@@ -3,6 +3,7 @@ import { WsException } from '@nestjs/websockets';
 import { AuthService } from 'src/core/auth/auth.service';
 import { Response } from 'src/common/response/api-response';
 import { I18nService } from 'nestjs-i18n';
+import { UserContext } from 'src/common/context/user.context';
 
 @Injectable()
 export class WsJwtAuthGuard implements CanActivate {
@@ -27,6 +28,9 @@ export class WsJwtAuthGuard implements CanActivate {
     try {
       const user = this.authService.verifyToken(token);
       client.user = user;
+
+      UserContext.run(user);
+
       return true;
     } catch {
       throw new WsException('Invalid token');
