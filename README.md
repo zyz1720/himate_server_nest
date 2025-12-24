@@ -329,4 +329,4 @@ export const FILE_DIR = {
 
 ### 关联项目
 - **前端**: [Himate React Native App](https://gitee.com/zyz1720/himate_app_rn)
-- **后端**: [Himate React Backend](https://gitee.com/zyz1720/himate_backend_react)
+- **后台管理**: [Himate React Backend](https://gitee.com/zyz1720/himate_backend_react)

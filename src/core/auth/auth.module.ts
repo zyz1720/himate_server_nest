@@ -6,8 +6,10 @@ import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from 'src/modules/user/user.module';
 import { AuthController } from './auth.controller';
+import { AuthQrCodeController } from './auth-qrcode.controller';
 import { WsJwtAuthGuard } from './guards/ws-jwt.auth.guard';
 import { WsThrottlerGuard } from './guards/ws-throttler.guard';
+import { RedisModule } from 'src/core/redis/redis.module';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { WsThrottlerGuard } from './guards/ws-throttler.guard';
     }),
     forwardRef(() => UserModule),
     PassportModule,
+    RedisModule,
   ],
   providers: [
     AuthService,
@@ -24,7 +27,7 @@ import { WsThrottlerGuard } from './guards/ws-throttler.guard';
     WsJwtAuthGuard,
     WsThrottlerGuard,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, AuthQrCodeController],
   exports: [AuthService, WsJwtAuthGuard, WsThrottlerGuard],
 })
 export class AuthModule {}

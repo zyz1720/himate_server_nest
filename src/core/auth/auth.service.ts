@@ -8,6 +8,9 @@ import { I18nService } from 'nestjs-i18n';
 import { Response } from 'src/common/response/api-response';
 import { LoginResponse } from './response/login.response';
 import { ConfigService } from '@nestjs/config';
+import { StringUtil } from 'src/common/utils/string.util';
+import { RedisService } from 'src/core/redis/redis.service';
+import { UserLoginByQrCodeDto } from './dto/user-login-qrcode.dto';
 
 export interface IJwtSign {
   selfAccount: string;
@@ -23,6 +26,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly i18n: I18nService,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {}
 
   /* jwt签名用 - 生成双token */
@@ -126,5 +130,35 @@ export class AuthService {
         error?.message || this.i18n.t('message.OPERATE_ERROR'),
       );
     }
+  }
+
+  /* 获取二维码信息 */
+  async getLoginQrCode() {
+    const qrcode_id = StringUtil.createUUID();
+    this.redisService.setValue(qrcode_id, qrcode_id, 60);
+    return Response.ok(this.i18n.t('message.GET_SUCCESS'), {
+      qrcode_id,
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  /* 检查二维码是否登录 */
+  async checkIsQrCodeLogin(qrcode_id: string) {
+    const loginInfo = await this.redisService.getValue(qrcode_id);
+    return loginInfo;
+  }
+
+  /* 确认登录 */
+  async qrCodeLogin(data: UserLoginByQrCodeDto) {
+    const { qrcode_id, refresh_token } = data || {};
+    const loginInfo = await this.redisService.getValue(qrcode_id);
+    if (!loginInfo) {
+      return Response.fail(this.i18n.t('message.CAPTCHA_EXPIRED'));
+    }
+    const result = await this.refreshToken(refresh_token);
+    if (result.code == 0) {
+      this.redisService.setValue(qrcode_id, JSON.stringify(result.data), 60);
+    }
+    return result;
   }
 }
