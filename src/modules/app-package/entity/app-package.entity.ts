@@ -33,7 +33,7 @@ export class AppPackageEntity {
   app_description: string;
 
   @ApiProperty({ description: '文件id' })
-  @Column({ type: 'int', comment: '文件id' })
+  @Column({ type: 'int', comment: '文件id', nullable: true })
   file_id: number;
 
   @ApiProperty({ description: '创建时间' })
@@ -57,7 +57,10 @@ export class AppPackageEntity {
   @DeleteDateColumn({ type: 'timestamp', comment: '删除时间' })
   delete_time: Date;
 
-  @OneToOne(() => FileEntity)
+  @OneToOne(() => FileEntity, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   @JoinColumn({ name: 'file_id' })
   file: FileEntity;
 }
