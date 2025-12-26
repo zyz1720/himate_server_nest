@@ -283,10 +283,13 @@ export class MusicApiService {
           const existingMusic = await queryRunner.manager.findOne(MusicEntity, {
             relations: ['musicExtra'],
             where: { musicExtra: { match_id: String(mid) } },
+            select: {
+              id: true,
+            },
           });
 
           if (existingMusic) {
-            musicIds.push(existingMusic.id);
+            musicIds.push(existingMusic);
             shouldRelease = false;
             await queryRunner.release();
             continue;
@@ -348,7 +351,7 @@ export class MusicApiService {
           });
 
           await queryRunner.manager.save(createMusic);
-          musicIds.push(createMusic.id);
+          musicIds.push({ id: createMusic.id });
 
           await CommonUtil.delay();
           await this.matchMusicExtra({

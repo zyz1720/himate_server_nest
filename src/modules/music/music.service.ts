@@ -249,6 +249,7 @@ export class MusicService {
         keyword: '%' + keyword + '%',
       });
     }
+    qb.orderBy('music.create_time', 'DESC');
     qb.limit(pageSize);
     qb.offset(pageSize * (current - 1));
     const [data, count] = await qb.getManyAndCount();
