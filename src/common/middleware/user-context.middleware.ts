@@ -4,7 +4,7 @@ import { AuthService } from 'src/core/auth/auth.service';
 import { UserContext } from 'src/common/context/user.context';
 
 @Injectable()
-export class ContextMiddleware implements NestMiddleware {
+export class UserContextMiddleware implements NestMiddleware {
   constructor(private readonly authService: AuthService) {}
 
   use(req: FastifyRequest['raw'], res: FastifyReply['raw'], next: () => void) {

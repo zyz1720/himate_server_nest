@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigService, ConfigModule } from '@nestjs/config';
@@ -39,6 +39,7 @@ import {
 import { join } from 'path';
 import { Redis } from 'ioredis';
 import envConfig from '../config/env';
+import { UserContextMiddleware } from './common/middleware/user-context.middleware';
 
 @Module({
   imports: [
@@ -171,4 +172,8 @@ import envConfig from '../config/env';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(UserContextMiddleware).forRoutes('*');
+  }
+}

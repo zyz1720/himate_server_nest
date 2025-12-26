@@ -7,7 +7,6 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { I18nService } from 'nestjs-i18n';
-import { UserContext } from 'src/common/context/user.context';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -48,8 +47,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (error || !user) {
       throw error || new UnauthorizedException(this.i18n.t('message.NO_LOGIN'));
     }
-
-    UserContext.run(user);
 
     return user;
   }
