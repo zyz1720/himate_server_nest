@@ -256,4 +256,23 @@ export class FavoritesService {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
   }
+
+  /* 查询收藏夹和收藏的音乐id */
+  async findFavoritesMusicIds(uid: number, name: string) {
+    const favorites = await this.favoritesRepository.findOne({
+      where: { favorites_uid: uid, favorites_name: name },
+      relations: ['music'],
+      select: {
+        music: {
+          id: true,
+        },
+      },
+    });
+    return favorites;
+  }
+
+  /* 保存收藏夹更改 */
+  async saveFavoritesChange(favorites: FavoritesEntity) {
+    await this.favoritesRepository.save(favorites);
+  }
 }

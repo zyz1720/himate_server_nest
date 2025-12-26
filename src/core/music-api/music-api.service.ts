@@ -18,6 +18,7 @@ import {
 import { MusicExtraEntity } from 'src/modules/music-extra/entity/music-extra.entity';
 import { FavoritesEntity } from 'src/modules/favorites/entity/favorites.entity';
 import { MusicService } from 'src/modules/music/music.service';
+import { FavoritesService } from 'src/modules/favorites/favorites.service';
 import { MatchMusicApiDto } from './dto/operate-music-api.dto';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class MusicApiService {
     private readonly musicExtraService: MusicExtraService,
     private readonly fileService: FileService,
     private readonly musicService: MusicService,
+    private readonly favoritesService: FavoritesService,
   ) {}
 
   /* 获取第三方播放地址 */
@@ -192,27 +194,16 @@ export class MusicApiService {
       const match = musicRes.data.match(regex);
 
       if (match && match[1]) {
-        // 使用事务保证操作一致性
-        const queryRunner =
-          this.musicRepository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
           const parsedData = JSON.parse(match[1]);
           const { title, picurl, desc, id } = parsedData?.taogeData || {};
           if (!title || !picurl || !id) {
             return Response.fail(this.i18n.t('message.NO_PARSE_DATA'));
           }
-          const favorites = await queryRunner.manager.findOne(FavoritesEntity, {
-            where: { favorites_uid: uid },
-            relations: ['music'],
-            select: {
-              music: {
-                id: true,
-              },
-            },
-          });
+          const favorites = await this.favoritesService.findFavoritesMusicIds(
+            uid,
+            title,
+          );
           if (favorites) {
             const { musicIds, musicCount } = await this.batchDownloadMusic(id);
             if (musicIds.length == 0) {
@@ -221,7 +212,7 @@ export class MusicApiService {
               );
             }
             favorites.music.unshift(...musicIds);
-            await queryRunner.manager.save(FavoritesEntity, favorites);
+            await this.favoritesService.saveFavoritesChange(favorites);
             return Response.ok(
               `共${musicCount}首音乐，成功导入${musicIds.length}首音乐`,
             );
@@ -239,10 +230,11 @@ export class MusicApiService {
             if (downloadRes.code == 0) {
               addForm.favorites_cover = downloadRes.data?.file_key;
             }
-            const addFavoritesRes = queryRunner.manager.create(
-              FavoritesEntity,
-              addForm,
-            );
+            const addFavoritesRes =
+              await this.favoritesService.addFavorites(addForm);
+            if (addFavoritesRes.code !== 0) {
+              return addFavoritesRes;
+            }
             await CommonUtil.delay();
             const { musicIds, musicCount } = await this.batchDownloadMusic(id);
             if (musicIds.length == 0) {
@@ -250,8 +242,9 @@ export class MusicApiService {
                 this.i18n.t('message.DOWNLOAD_FAVORITES_FAILED'),
               );
             }
-            addFavoritesRes.music = musicIds;
-            await queryRunner.manager.save(FavoritesEntity, addFavoritesRes);
+            const newFavorites = addFavoritesRes.data as FavoritesEntity;
+            newFavorites.music = musicIds;
+            await this.favoritesService.saveFavoritesChange(newFavorites);
             return Response.ok(
               `共${musicCount}首音乐，成功导入${musicIds.length}首音乐`,
             );
@@ -281,6 +274,7 @@ export class MusicApiService {
         const queryRunner =
           this.musicRepository.manager.connection.createQueryRunner();
         await queryRunner.connect();
+        let shouldRelease = true;
 
         try {
           const { id: mid, interval, title, singer, album } = item;
@@ -293,6 +287,7 @@ export class MusicApiService {
 
           if (existingMusic) {
             musicIds.push(existingMusic.id);
+            shouldRelease = false;
             await queryRunner.release();
             continue;
           }
@@ -303,6 +298,7 @@ export class MusicApiService {
           const findRes = await this.findMusicUrl({ id: mid });
           if (findRes.code != 0) {
             await queryRunner.rollbackTransaction();
+            shouldRelease = false;
             await queryRunner.release();
             Logger.warn(
               `获取歌曲 ${title} (${mid}) 的下载链接失败: ${findRes.message}`,
@@ -313,6 +309,7 @@ export class MusicApiService {
           const { url, singer: _singer, quality } = findRes.data;
           if (quality.includes('试听')) {
             await queryRunner.rollbackTransaction();
+            shouldRelease = false;
             await queryRunner.release();
             Logger.warn(`歌曲 ${title} (${mid}) 是试听版本，跳过下载`);
             continue;
@@ -330,6 +327,7 @@ export class MusicApiService {
 
           if (downloadRes.code != 0) {
             await queryRunner.rollbackTransaction();
+            shouldRelease = false;
             await queryRunner.release();
             Logger.error(
               `下载歌曲 ${title} (${mid}) 失败: ${downloadRes.message}`,
@@ -364,7 +362,9 @@ export class MusicApiService {
           await queryRunner.rollbackTransaction();
           Logger.error('处理单首歌曲时发生错误', error);
         } finally {
-          await queryRunner.release();
+          if (shouldRelease) {
+            await queryRunner.release();
+          }
         }
       }
     }

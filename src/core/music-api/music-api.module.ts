@@ -4,6 +4,7 @@ import { MusicApiController } from './music-api.controller';
 import { MusicExtraModule } from 'src/modules/music-extra/music-extra.module';
 import { MusicModule } from 'src/modules/music/music.module';
 import { FileModule } from 'src/modules/file/file.module';
+import { FavoritesModule } from 'src/modules/favorites/favorites.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MusicEntity } from 'src/modules/music/entity/music.entity';
 
@@ -13,6 +14,7 @@ import { MusicEntity } from 'src/modules/music/entity/music.entity';
     MusicExtraModule,
     FileModule,
     MusicModule,
+    FavoritesModule,
   ],
   controllers: [MusicApiController],
   providers: [MusicApiService],
