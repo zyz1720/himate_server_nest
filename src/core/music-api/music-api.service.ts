@@ -354,12 +354,11 @@ export class MusicApiService {
           musicIds.push({ id: createMusic.id });
 
           await CommonUtil.delay();
+          await queryRunner.commitTransaction();
           await this.matchMusicExtra({
             musicId: createMusic.id,
             matchId: String(mid),
           });
-
-          await queryRunner.commitTransaction();
           Logger.log(`成功下载并保存歌曲: ${title}`);
         } catch (error) {
           await queryRunner.rollbackTransaction();
