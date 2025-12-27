@@ -1,3 +1,5 @@
+<a href="./README.EN.md" >English</a> | <a href="./README.md" >简体中文</a>
+
 # Himate Nest Server
 
 Himate Nest Server is a modern backend service developed based on the NestJS framework, providing comprehensive user management, real-time communication, file management, music services, and more. It adopts a modular architecture design, supporting multi-environment configuration and internationalization.
