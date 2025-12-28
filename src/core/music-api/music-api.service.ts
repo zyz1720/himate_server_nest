@@ -63,7 +63,7 @@ export class MusicApiService {
     try {
       const searchRes = await axios.get(
         this.configService.get('MUSIC_API') + '/search/song',
-        { params: { word, current, pageSize } },
+        { params: { word, page: current, num: pageSize } },
       );
       if (searchRes.status != 200) {
         return Response.fail(this.i18n.t('message.GET_FAILED'));
@@ -350,15 +350,55 @@ export class MusicApiService {
             album: album.title,
           });
 
-          await queryRunner.manager.save(createMusic);
+          await queryRunner.manager.insert(MusicEntity, createMusic);
           musicIds.push({ id: createMusic.id });
 
           await CommonUtil.delay();
+          const musicUrlRes = await this.findMusicUrl({ id: mid });
+          if (musicUrlRes.code !== 0) {
+            await queryRunner.commitTransaction();
+            continue;
+          }
+
+          await CommonUtil.delay();
+          const musicLrcRes = await this.findMusicLyric(mid);
+          if (musicLrcRes.code !== 0) {
+            await queryRunner.commitTransaction();
+            continue;
+          }
+
+          const { cover } = musicUrlRes.data;
+          const { lrc, trans, yrc, roma } = musicLrcRes.data;
+
+          const coverDownloadRes = (await this.fileService.downloadSaveFile({
+            download_url: cover,
+            use_type: UseTypeEnum.music,
+            file_type: FileTypeEnum.image,
+          })) as Response<FileEntity>;
+          if (coverDownloadRes.code !== 0) {
+            await queryRunner.commitTransaction();
+            continue;
+          }
+
+          const insertData = {
+            music_id: createMusic.id,
+            match_id: String(mid),
+            music_cover: coverDownloadRes.data?.file_key,
+            music_lyric: lrc,
+            music_trans: trans,
+            music_yrc: yrc,
+            music_roma: roma,
+          };
+
+          const musicExtra = queryRunner.manager.create(
+            MusicExtraEntity,
+            insertData,
+          );
+          createMusic.musicExtra = musicExtra;
+          await queryRunner.manager.insert(MusicExtraEntity, musicExtra);
+          await queryRunner.manager.save(MusicEntity, createMusic);
+
           await queryRunner.commitTransaction();
-          await this.matchMusicExtra({
-            musicId: createMusic.id,
-            matchId: String(mid),
-          });
           Logger.log(`成功下载并保存歌曲: ${title}`);
         } catch (error) {
           await queryRunner.rollbackTransaction();
@@ -370,6 +410,7 @@ export class MusicApiService {
         }
       }
     }
+    Logger.log(`成功下载并保存 ${musicCount} 首歌曲`);
     return {
       musicIds,
       musicCount,

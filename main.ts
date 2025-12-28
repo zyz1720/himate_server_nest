@@ -63,7 +63,11 @@ async function bootstrap() {
 
   //  fastify-cors配置
   await app.register(fastifyCors, {
-    origin: ['http://localhost:8080', 'http://192.168.110.35'],
+    origin: [
+      'http://localhost:8080',
+      'http://192.168.110.35',
+      'http://192.168.110.35:81',
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-lang'],
   });
