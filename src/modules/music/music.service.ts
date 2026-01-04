@@ -369,7 +369,7 @@ export class MusicService {
 
     try {
       const favorites = await queryRunner.manager.findOne(FavoritesEntity, {
-        where: { is_default: Whether.Y, favorites_uid: uid, id: favoritesId },
+        where: { favorites_uid: uid, id: favoritesId },
         relations: ['music'],
         select: {
           music: {
