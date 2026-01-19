@@ -253,6 +253,8 @@ export class MusicApiService {
           console.error(error);
           return Response.fail(this.i18n.t('message.UNSUPPORTED_DATA_FORMAT'));
         }
+      } else {
+        return Response.fail(this.i18n.t('message.GET_FAVORITES_FAILED'));
       }
     } catch (error) {
       console.log(error);

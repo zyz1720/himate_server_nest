@@ -13,9 +13,10 @@ export interface IResponse<T> {
   data: T;
 }
 @Injectable()
-export class HttpReqTransformInterceptor<T>
-  implements NestInterceptor<T, IResponse<T>>
-{
+export class HttpReqTransformInterceptor<T> implements NestInterceptor<
+  T,
+  IResponse<T>
+> {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
