@@ -6,6 +6,7 @@ import { MusicApiService } from './music-api.service';
 import { FindMusicUrlDto, SearchMusicApiDto } from './dto/find-music-api.to';
 import { UserId } from '../auth/decorators/user.decorator';
 import { MatchMusicApiDto } from './dto/operate-music-api.dto';
+import { ApiOkMsgRes } from 'src/common/response/api-response.decorator';
 
 @ApiTags('mix - 音乐API')
 @ApiBearerAuth()
@@ -14,24 +15,28 @@ export class MusicApiController {
   constructor(private readonly musicApiService: MusicApiService) {}
 
   @ApiOperation({ summary: '查找音乐播放地址' })
+  @ApiOkMsgRes()
   @Get('detail')
   findOne(@Query() query: FindMusicUrlDto) {
     return this.musicApiService.findMusicUrl(query);
   }
 
   @ApiOperation({ summary: '查找音乐' })
+  @ApiOkMsgRes()
   @Get('list')
   findMore(@Query() query: SearchMusicApiDto) {
     return this.musicApiService.findMusicList(query);
   }
 
   @ApiOperation({ summary: '查找歌词' })
+  @ApiOkMsgRes()
   @Get(':mid/lyric')
   findLyric(@Param('mid') id: string) {
     return this.musicApiService.findMusicLyric(id);
   }
 
   @ApiOperation({ summary: '匹配没有扩展的音乐信息' })
+  @ApiOkMsgRes()
   @Roles(Role.Admin)
   @Get(':num/match')
   matchInfo(@Param('num') num: string) {
@@ -39,6 +44,7 @@ export class MusicApiController {
   }
 
   @ApiOperation({ summary: '匹配音乐信息' })
+  @ApiOkMsgRes()
   @Roles(Role.Admin)
   @Post('match')
   matchOneInfo(@Body() data: MatchMusicApiDto) {
@@ -46,6 +52,7 @@ export class MusicApiController {
   }
 
   @ApiOperation({ summary: '同步收藏夹' })
+  @ApiOkMsgRes()
   @Get('sync')
   syncFavorite(@UserId() uid: number, @Query('target') target: string) {
     return this.musicApiService.syncMusicFavorites(uid, target);
