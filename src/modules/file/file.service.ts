@@ -186,16 +186,15 @@ export class FileService {
   /* 查询用户的文件列表 */
   async findAllAppFile(uid: number, query: FindAllAppFileDto) {
     const { use_type, current = 1, pageSize = 10 } = query || {};
-    const qb = this.fileRepository.createQueryBuilder('file');
-    qb.where('create_by = :uid', { uid });
-    if (use_type) {
-      qb.andWhere('use_type = :use_type', {
+    const qb = this.fileRepository
+      .createQueryBuilder('file')
+      .where('create_by = :uid', { uid })
+      .andWhere('use_type = :use_type', {
         use_type: use_type,
-      });
-    }
-    qb.orderBy('create_time', 'DESC');
-    qb.limit(pageSize);
-    qb.offset(pageSize * (current - 1));
+      })
+      .orderBy('create_time', 'DESC')
+      .limit(pageSize)
+      .offset(pageSize * (current - 1));
     const [data, count] = await qb.getManyAndCount();
     return PageResponse.list(data, count);
   }
