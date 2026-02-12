@@ -189,23 +189,23 @@ export class MusicApiService {
   async syncMusicFavorites(uid: number, url: string) {
     try {
       const musicRes = await axios.get(url);
+      const finalUrl = musicRes.request?.res?.responseUrl;
+      const urlObj = new URL(finalUrl);
+      const thirdPartyId = urlObj.pathname.split('/').pop();
 
-      const regex = /var firstPageData\s*=\s*({.*?})\s*;\s*(?:\n|$)/s;
-      const match = musicRes.data.match(regex);
-
-      if (match && match[1]) {
+      if (thirdPartyId) {
         try {
-          const parsedData = JSON.parse(match[1]);
-          const { title, picurl, desc, id } = parsedData?.taogeData || {};
-          if (!title || !picurl || !id) {
-            return Response.fail(this.i18n.t('message.NO_PARSE_DATA'));
+          const favoriteRes = await this.findMoreFavorite(thirdPartyId);
+          if (favoriteRes.code !== 0) {
+            return favoriteRes;
           }
+          const { dissname, desc, logo, songlist, songnum } = favoriteRes.data;
           const favorites = await this.favoritesService.findFavoritesMusicIds(
             uid,
-            title,
+            dissname,
           );
           if (favorites) {
-            const { musicIds, musicCount } = await this.batchDownloadMusic(id);
+            const musicIds = await this.batchDownloadMusic(songlist);
             if (musicIds.length == 0) {
               return Response.fail(
                 this.i18n.t('message.DOWNLOAD_FAVORITES_FAILED'),
@@ -214,16 +214,16 @@ export class MusicApiService {
             favorites.music.unshift(...musicIds);
             await this.favoritesService.saveFavoritesChange(favorites);
             return Response.ok(
-              `共${musicCount}首音乐，成功导入${musicIds.length}首音乐`,
+              `共${songnum}首音乐，成功导入${musicIds.length}首音乐`,
             );
           } else {
             const addForm = {
               favorites_uid: uid,
-              favorites_name: title,
+              favorites_name: dissname,
               favorites_remarks: desc || '',
             } as FavoritesEntity;
             const downloadRes = (await this.fileService.downloadSaveFile({
-              download_url: picurl,
+              download_url: logo,
               use_type: UseTypeEnum.music,
               file_type: FileTypeEnum.image,
             })) as Response<FileEntity>;
@@ -236,7 +236,7 @@ export class MusicApiService {
               return addFavoritesRes;
             }
             await CommonUtil.delay();
-            const { musicIds, musicCount } = await this.batchDownloadMusic(id);
+            const musicIds = await this.batchDownloadMusic(songlist);
             if (musicIds.length == 0) {
               return Response.fail(
                 this.i18n.t('message.DOWNLOAD_FAVORITES_FAILED'),
@@ -246,7 +246,7 @@ export class MusicApiService {
             newFavorites.music = musicIds;
             await this.favoritesService.saveFavoritesChange(newFavorites);
             return Response.ok(
-              `共${musicCount}首音乐，成功导入${musicIds.length}首音乐`,
+              `共${songnum}首音乐，成功导入${musicIds.length}首音乐`,
             );
           }
         } catch (error) {
@@ -254,7 +254,7 @@ export class MusicApiService {
           return Response.fail(this.i18n.t('message.UNSUPPORTED_DATA_FORMAT'));
         }
       } else {
-        return Response.fail(this.i18n.t('message.GET_FAVORITES_FAILED'));
+        return Response.fail(this.i18n.t('message.NO_PARSE_DATA'));
       }
     } catch (error) {
       console.log(error);
@@ -263,164 +263,155 @@ export class MusicApiService {
   }
 
   /* 批量下载音乐 */
-  async batchDownloadMusic(thirdPartyId: number) {
+  async batchDownloadMusic(songList: any[] = []) {
     const musicIds = [];
-    let musicCount = 0;
 
-    const favoriteRes = await this.findMoreFavorite(thirdPartyId);
-    if (favoriteRes.code == 0) {
-      const { songlist, songnum } = favoriteRes.data;
-      musicCount = songnum;
+    for (const item of songList) {
+      const queryRunner =
+        this.musicRepository.manager.connection.createQueryRunner();
+      await queryRunner.connect();
+      let shouldRelease = true;
 
-      for (const item of songlist) {
-        const queryRunner =
-          this.musicRepository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        let shouldRelease = true;
+      try {
+        const { id: mid, interval, title, singer, album } = item;
 
-        try {
-          const { id: mid, interval, title, singer, album } = item;
+        // 检查音乐是否已存在
+        const existingMusic = await queryRunner.manager.findOne(MusicEntity, {
+          relations: ['musicExtra'],
+          where: { musicExtra: { match_id: String(mid) } },
+          select: {
+            id: true,
+          },
+        });
 
-          // 检查音乐是否已存在
-          const existingMusic = await queryRunner.manager.findOne(MusicEntity, {
-            relations: ['musicExtra'],
-            where: { musicExtra: { match_id: String(mid) } },
-            select: {
-              id: true,
-            },
-          });
+        if (existingMusic) {
+          musicIds.push(existingMusic);
+          shouldRelease = false;
+          await queryRunner.release();
+          continue;
+        }
 
-          if (existingMusic) {
-            musicIds.push(existingMusic);
-            shouldRelease = false;
-            await queryRunner.release();
-            continue;
-          }
+        // 为当前歌曲创建独立事务
+        await queryRunner.startTransaction();
 
-          // 为当前歌曲创建独立事务
-          await queryRunner.startTransaction();
-
-          const findRes = await this.findMusicUrl({ id: mid });
-          if (findRes.code != 0) {
-            await queryRunner.rollbackTransaction();
-            shouldRelease = false;
-            await queryRunner.release();
-            Logger.warn(
-              `获取歌曲 ${title} (${mid}) 的下载链接失败: ${findRes.message}`,
-            );
-            continue;
-          }
-
-          const { url, singer: _singer, quality } = findRes.data;
-          if (quality.includes('试听')) {
-            await queryRunner.rollbackTransaction();
-            shouldRelease = false;
-            await queryRunner.release();
-            Logger.warn(`歌曲 ${title} (${mid}) 是试听版本，跳过下载`);
-            continue;
-          }
-
-          await CommonUtil.delay();
-          const downloadRes = await this.fileService.downloadSaveFile(
-            {
-              download_url: url,
-              use_type: UseTypeEnum.music,
-              file_type: FileTypeEnum.audio,
-            },
-            false,
-          );
-
-          if (downloadRes.code != 0) {
-            await queryRunner.rollbackTransaction();
-            shouldRelease = false;
-            await queryRunner.release();
-            Logger.error(
-              `下载歌曲 ${title} (${mid}) 失败: ${downloadRes.message}`,
-            );
-            continue;
-          }
-
-          const { file_key } = downloadRes.data as FileEntity;
-          const createMusic = queryRunner.manager.create(MusicEntity, {
-            file_key: file_key,
-            sample_rate: 44100,
-            bitrate: 320000,
-            duration: interval,
-            title,
-            artist: _singer,
-            artists: singer.map((e: any) => e.title),
-            album: album.title,
-          });
-
-          await queryRunner.manager.insert(MusicEntity, createMusic);
-          musicIds.push({ id: createMusic.id });
-
-          await CommonUtil.delay();
-          const musicUrlRes = await this.findMusicUrl({ id: mid });
-          if (musicUrlRes.code !== 0) {
-            await queryRunner.commitTransaction();
-            continue;
-          }
-
-          await CommonUtil.delay();
-          const musicLrcRes = await this.findMusicLyric(mid);
-          if (musicLrcRes.code !== 0) {
-            await queryRunner.commitTransaction();
-            continue;
-          }
-
-          const { cover } = musicUrlRes.data;
-          const { lrc, trans, yrc, roma } = musicLrcRes.data;
-
-          const coverDownloadRes = (await this.fileService.downloadSaveFile({
-            download_url: cover,
-            use_type: UseTypeEnum.music,
-            file_type: FileTypeEnum.image,
-          })) as Response<FileEntity>;
-          if (coverDownloadRes.code !== 0) {
-            await queryRunner.commitTransaction();
-            continue;
-          }
-
-          const insertData = {
-            music_id: createMusic.id,
-            match_id: String(mid),
-            music_cover: coverDownloadRes.data?.file_key,
-            music_lyric: lrc,
-            music_trans: trans,
-            music_yrc: yrc,
-            music_roma: roma,
-          };
-
-          const musicExtra = queryRunner.manager.create(
-            MusicExtraEntity,
-            insertData,
-          );
-          createMusic.musicExtra = musicExtra;
-          await queryRunner.manager.insert(MusicExtraEntity, musicExtra);
-          await queryRunner.manager.save(MusicEntity, createMusic);
-
-          await queryRunner.commitTransaction();
-          Logger.log(`成功下载并保存歌曲: ${title}`);
-        } catch (error) {
+        const findRes = await this.findMusicUrl({ id: mid });
+        if (findRes.code != 0) {
           await queryRunner.rollbackTransaction();
-          Logger.error('处理单首歌曲时发生错误', error);
-        } finally {
-          if (shouldRelease) {
-            await queryRunner.release();
-          }
+          shouldRelease = false;
+          await queryRunner.release();
+          Logger.warn(
+            `获取歌曲 ${title} (${mid}) 的下载链接失败: ${findRes.message}`,
+          );
+          continue;
+        }
+
+        const { url, singer: _singer, quality } = findRes.data;
+        if (quality.includes('试听')) {
+          await queryRunner.rollbackTransaction();
+          shouldRelease = false;
+          await queryRunner.release();
+          Logger.warn(`歌曲 ${title} (${mid}) 是试听版本，跳过下载`);
+          continue;
+        }
+
+        await CommonUtil.delay();
+        const downloadRes = await this.fileService.downloadSaveFile(
+          {
+            download_url: url,
+            use_type: UseTypeEnum.music,
+            file_type: FileTypeEnum.audio,
+          },
+          false,
+        );
+
+        if (downloadRes.code != 0) {
+          await queryRunner.rollbackTransaction();
+          shouldRelease = false;
+          await queryRunner.release();
+          Logger.error(
+            `下载歌曲 ${title} (${mid}) 失败: ${downloadRes.message}`,
+          );
+          continue;
+        }
+
+        const { file_key } = downloadRes.data as FileEntity;
+        const createMusic = queryRunner.manager.create(MusicEntity, {
+          file_key: file_key,
+          sample_rate: 44100,
+          bitrate: 320000,
+          duration: interval,
+          title,
+          artist: _singer,
+          artists: singer.map((e: any) => e.title),
+          album: album.title,
+        });
+
+        await queryRunner.manager.insert(MusicEntity, createMusic);
+        musicIds.push({ id: createMusic.id });
+
+        await CommonUtil.delay();
+        const musicUrlRes = await this.findMusicUrl({ id: mid });
+        if (musicUrlRes.code !== 0) {
+          await queryRunner.commitTransaction();
+          continue;
+        }
+
+        await CommonUtil.delay();
+        const musicLrcRes = await this.findMusicLyric(mid);
+        if (musicLrcRes.code !== 0) {
+          await queryRunner.commitTransaction();
+          continue;
+        }
+
+        const { cover } = musicUrlRes.data;
+        const { lrc, trans, yrc, roma } = musicLrcRes.data;
+
+        const coverDownloadRes = (await this.fileService.downloadSaveFile({
+          download_url: cover,
+          use_type: UseTypeEnum.music,
+          file_type: FileTypeEnum.image,
+        })) as Response<FileEntity>;
+        if (coverDownloadRes.code !== 0) {
+          await queryRunner.commitTransaction();
+          continue;
+        }
+
+        const insertData = {
+          music_id: createMusic.id,
+          match_id: String(mid),
+          music_cover: coverDownloadRes.data?.file_key,
+          music_lyric: lrc,
+          music_trans: trans,
+          music_yrc: yrc,
+          music_roma: roma,
+        };
+
+        const musicExtra = queryRunner.manager.create(
+          MusicExtraEntity,
+          insertData,
+        );
+        createMusic.musicExtra = musicExtra;
+        await queryRunner.manager.insert(MusicExtraEntity, musicExtra);
+        await queryRunner.manager.save(MusicEntity, createMusic);
+
+        await queryRunner.commitTransaction();
+        Logger.log(`成功下载并保存歌曲: ${title}`);
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        Logger.error('处理单首歌曲时发生错误', error);
+      } finally {
+        if (shouldRelease) {
+          await queryRunner.release();
         }
       }
     }
-    Logger.log(`成功下载并保存 ${musicCount} 首歌曲`);
-    return {
-      musicIds,
-      musicCount,
-    };
+
+    Logger.log(`成功下载并保存 ${musicIds.length} 首歌曲`);
+    return musicIds;
   }
 
   /* 获取第三方歌单 */
-  async findMoreFavorite(thirdPartyId: number) {
+  async findMoreFavorite(thirdPartyId: string) {
     try {
       const favoriteRes = await axios.get(
         this.configService.get('FAVORITE_API'),
