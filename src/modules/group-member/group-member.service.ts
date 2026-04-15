@@ -243,7 +243,7 @@ export class GroupMemberService {
     return member;
   }
 
-  /* 查询用户是否是正常群成员 */
+  /* 查询用户是否是群成员 */
   async findIsMemberByGroupId(uid: number, group_id: string) {
     const isMember = await this.groupMemberRepository
       .createQueryBuilder('group_member')
@@ -251,7 +251,6 @@ export class GroupMemberService {
         group_id,
         uid,
       })
-      .andWhere('member_status = :status', { status: MemberStatusEnum.normal })
       .getExists();
     return isMember;
   }
