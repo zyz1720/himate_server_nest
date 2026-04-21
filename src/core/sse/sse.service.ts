@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Observable, Subject, finalize, map } from 'rxjs';
+import { Observable, Subject, finalize } from 'rxjs';
 import { MessageEvent } from '@nestjs/common';
 import { SessionService } from 'src/modules/session/session.service';
 import {
   SessionWithExtra,
-  SessionWithMateOrGroup,
   SessionWithMateOrGroupWithLatest,
 } from 'src/modules/session/response/session.response';
 import { ChatTypeEnum } from 'src/modules/session/entity/session.entity';

@@ -29,14 +29,6 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(GroupMemberEntity)
-    private readonly groupMemberRepository: Repository<GroupMemberEntity>,
-    @InjectRepository(FavoritesEntity)
-    private readonly favoritesRepository: Repository<FavoritesEntity>,
-    @InjectRepository(MessageEntity)
-    private readonly messageRepository: Repository<MessageEntity>,
-    @InjectRepository(MateEntity)
-    private readonly mateRepository: Repository<MateEntity>,
     private readonly redisService: RedisService,
     private readonly i18n: I18nService,
   ) {}
