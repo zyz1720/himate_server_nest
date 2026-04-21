@@ -306,64 +306,77 @@ export class GroupMemberService {
   /* 邀请群成员 */
   async addUserGroupMember(uid: number, groupId: number, data: IdsDto) {
     const { ids } = data;
-    // 使用事务保证操作一致性
+
+    // 1. 先检查群组是否存在（事务外）
+    const group = await this.groupMemberRepository.manager.findOne(
+      GroupEntity,
+      {
+        where: { id: groupId },
+      },
+    );
+    if (!group) {
+      return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
+    }
+
+    // 2. 检查是否有重复用户（事务外）
+    const members = await this.groupMemberRepository.manager.find(
+      GroupMemberEntity,
+      {
+        where: { user_id: In(ids), group_primary_id: groupId },
+        select: ['id', 'user_id'],
+      },
+    );
+    const existingUserIds = members.map((member) => member.user_id);
+    const nonExistingUserIds = ids.filter(
+      (id) => !existingUserIds.includes(id),
+    );
+
+    if (nonExistingUserIds.length === 0) {
+      return Response.fail(this.i18n.t('message.DATA_EXIST'));
+    }
+
+    // 3. 获取用户信息（事务外）
+    const users = await this.groupMemberRepository.manager.find(UserEntity, {
+      where: { id: In(nonExistingUserIds) },
+      select: ['id', 'user_name'],
+    });
+
+    // 创建用户ID到用户名的映射
+    const userIdToName = new Map<number, string>();
+    users.forEach((user) => {
+      userIdToName.set(user.id, user.user_name);
+    });
+
+    // 4. 准备要创建的群成员数据
+    const groupMembers = [];
+    nonExistingUserIds.forEach((userId) => {
+      if (userId !== uid) {
+        groupMembers.push({
+          group_primary_id: group.id,
+          group_id: group.group_id,
+          user_id: userId,
+          member_remarks: userIdToName.get(userId) || '未知用户',
+          member_role: MemberRoleEnum.member,
+          create_by: uid,
+        });
+      }
+    });
+
+    if (groupMembers.length === 0) {
+      return Response.fail(this.i18n.t('message.DATA_EXIST'));
+    }
+
+    // 5. 使用事务保存数据（只包含必要的数据库操作）
     const queryRunner =
       this.groupMemberRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const group = await queryRunner.manager.findOne(GroupEntity, {
-        where: { id: groupId },
-      });
-      if (!group) {
-        return Response.fail(this.i18n.t('message.DATA_NOT_EXIST'));
-      }
-
-      const members = await queryRunner.manager.find(GroupMemberEntity, {
-        where: { user_id: In(ids), group_primary_id: groupId },
-        select: ['id', 'user_id'],
-      });
-      // 检查是否有重复用户
-      const existingUserIds = members.map((member) => member.user_id);
-      const nonExistingUserIds = ids.filter(
-        (id) => !existingUserIds.includes(id),
-      );
-
-      if (nonExistingUserIds.length == 0) {
-        return Response.fail(this.i18n.t('message.DATA_EXIST'));
-      }
-
-      // 获取所有用户信息（包括创建者和成员）
-      const users = await queryRunner.manager.find(UserEntity, {
-        where: { id: In(nonExistingUserIds) },
-        select: ['id', 'user_name'],
-      });
-
-      // 创建用户ID到用户名的映射
-      const userIdToName = new Map<number, string>();
-      users.forEach((user) => {
-        userIdToName.set(user.id, user.user_name);
-      });
-
-      const groupMembers = [];
-
-      nonExistingUserIds.forEach((userId) => {
-        if (userId !== uid) {
-          groupMembers.push(
-            queryRunner.manager.create(GroupMemberEntity, {
-              group_primary_id: group.id,
-              group_id: group.group_id,
-              user_id: userId,
-              member_remarks: userIdToName.get(userId) || '未知用户',
-              member_role: MemberRoleEnum.member,
-            }),
-          );
-        }
-      });
       await queryRunner.manager.save(GroupMemberEntity, groupMembers);
       await queryRunner.commitTransaction();
-      // 触发群成员变更事件
+
+      // 6. 事务外触发事件
       this.eventEmitter.emitAsync(
         'group.message',
         new GroupMessageEvent(

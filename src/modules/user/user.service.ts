@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entity/user.entity';
+import { GroupMemberEntity } from '../group-member/entity/group-member.entity';
+import { FavoritesEntity } from '../favorites/entity/favorites.entity';
+import { MessageEntity } from '../message/entity/message.entity';
+import { MateEntity } from '../mate/entity/mate.entity';
 import { RedisService } from 'src/core/redis/redis.service';
 import { StringUtil } from 'src/common/utils/string.util';
 import { UserLoginByCodeDto } from '../../core/auth/dto/user-login-code.dto';
@@ -12,7 +16,6 @@ import {
   findOneUserEnabledDto,
   SearchOneUserEnabledDto,
 } from './dto/find-one-user.dto';
-import { IdsDto } from 'src/common/dto/common.dto';
 import { I18nService } from 'nestjs-i18n';
 import {
   UpdateUserDto,
@@ -26,6 +29,14 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(GroupMemberEntity)
+    private readonly groupMemberRepository: Repository<GroupMemberEntity>,
+    @InjectRepository(FavoritesEntity)
+    private readonly favoritesRepository: Repository<FavoritesEntity>,
+    @InjectRepository(MessageEntity)
+    private readonly messageRepository: Repository<MessageEntity>,
+    @InjectRepository(MateEntity)
+    private readonly mateRepository: Repository<MateEntity>,
     private readonly redisService: RedisService,
     private readonly i18n: I18nService,
   ) {}
@@ -260,21 +271,111 @@ export class UserService {
 
   /* 软删除用户 */
   async softDeleteUser(id: number) {
-    const result = await this.userRepository.softDelete(id);
-    if (result.affected) {
-      return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
-    } else {
+    const queryRunner =
+      this.userRepository.manager.connection.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 软删除用户的群成员关系
+      await queryRunner.manager
+        .getRepository(GroupMemberEntity)
+        .softDelete({ user_id: id });
+
+      // 软删除用户的收藏夹
+      await queryRunner.manager
+        .getRepository(FavoritesEntity)
+        .softDelete({ favorites_uid: id });
+
+      // 软删除用户发送的消息
+      await queryRunner.manager
+        .getRepository(MessageEntity)
+        .softDelete({ sender_id: id });
+
+      // 软删除用户作为user_id的好友关系
+      await queryRunner.manager
+        .getRepository(MateEntity)
+        .softDelete({ user_id: id });
+
+      // 软删除用户作为friend_id的好友关系
+      await queryRunner.manager
+        .getRepository(MateEntity)
+        .softDelete({ friend_id: id });
+
+      // 软删除用户本身
+      const result = await queryRunner.manager
+        .getRepository(UserEntity)
+        .softDelete(id);
+
+      await queryRunner.commitTransaction();
+
+      if (result.affected) {
+        return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
+      } else {
+        return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+      }
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
+    } finally {
+      await queryRunner.release();
     }
   }
 
   /* 恢复用户 */
   async restoreUser(id: number) {
-    const result = await this.userRepository.restore(id);
-    if (result.affected) {
-      return Response.ok(this.i18n.t('message.RESTORE_SUCCESS'));
-    } else {
+    const queryRunner =
+      this.userRepository.manager.connection.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 恢复用户本身
+      const result = await queryRunner.manager
+        .getRepository(UserEntity)
+        .restore(id);
+
+      if (result.affected) {
+        // 恢复用户的群成员关系
+        await queryRunner.manager
+          .getRepository(GroupMemberEntity)
+          .restore({ user_id: id });
+
+        // 恢复用户的收藏夹
+        await queryRunner.manager
+          .getRepository(FavoritesEntity)
+          .restore({ favorites_uid: id });
+
+        // 恢复用户发送的消息
+        await queryRunner.manager
+          .getRepository(MessageEntity)
+          .restore({ sender_id: id });
+
+        // 恢复用户作为user_id的好友关系
+        await queryRunner.manager
+          .getRepository(MateEntity)
+          .restore({ user_id: id });
+
+        // 恢复用户作为friend_id的好友关系
+        await queryRunner.manager
+          .getRepository(MateEntity)
+          .restore({ friend_id: id });
+      }
+
+      await queryRunner.commitTransaction();
+
+      if (result.affected) {
+        return Response.ok(this.i18n.t('message.RESTORE_SUCCESS'));
+      } else {
+        return Response.fail(this.i18n.t('message.RESTORE_FAILED'));
+      }
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
       return Response.fail(this.i18n.t('message.RESTORE_FAILED'));
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -283,56 +384,6 @@ export class UserService {
     const result = await this.userRepository.delete(id);
     if (result.affected) {
       return Response.ok(this.i18n.t('message.DELETE_SUCCESS'));
-    } else {
-      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
-    }
-  }
-
-  /* 批量软刪除用户 */
-  async BatchSoftDeleteUser(data: IdsDto) {
-    const { ids = [] } = data || {};
-    const qb = this.userRepository.createQueryBuilder('user').softDelete();
-    qb.where('id IN (:...ids)', { ids });
-    const delRes = await qb.execute();
-    if (delRes.affected) {
-      return Response.ok(
-        delRes.affected + this.i18n.t('message.BATCH_DELETE_SUCCESS'),
-      );
-    } else {
-      return Response.fail(this.i18n.t('message.DELETE_FAILED'));
-    }
-  }
-
-  /* 批量恢复用户数据 */
-  async BatchRestoreUser(data: IdsDto) {
-    const { ids = [] } = data || {};
-    const delRes = await this.userRepository
-      .createQueryBuilder('user')
-      .restore()
-      .where('id IN (:...ids)', { ids })
-      .execute();
-    if (delRes.affected) {
-      return Response.ok(
-        delRes.affected + this.i18n.t('message.BATCH_RESTORE_SUCCESS'),
-      );
-    } else {
-      return Response.fail(this.i18n.t('message.RESTORE_FAILED'));
-    }
-  }
-
-  /* 批量真刪除用户*/
-  async BatchDeleteUser(data: IdsDto) {
-    const { ids = [] } = data || {};
-    const delRes = await this.userRepository
-      .createQueryBuilder('user')
-      .delete()
-      .where('id IN (:...ids)', { ids })
-      .andWhere('delete_time IS NOT NULL')
-      .execute();
-    if (delRes.affected) {
-      return Response.ok(
-        delRes.affected + this.i18n.t('message.BATCH_DELETE_SUCCESS'),
-      );
     } else {
       return Response.fail(this.i18n.t('message.DELETE_FAILED'));
     }
